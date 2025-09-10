@@ -1,0 +1,235 @@
+'use client';
+
+import { BaseCard } from './ui/BaseCard';
+import { BaseBadge } from './ui/BaseBadge';
+import { BaseAvatar } from './ui/BaseAvatar';
+import { clsx } from 'clsx';
+import { Question } from '@/services/api';
+import { useState } from 'react';
+import Link from 'next/link';
+
+interface QuestionCardProps {
+  question: Question;
+  onClick?: (question: Question) => void;
+  onPublished?: (question: Question) => void;
+}
+
+export function QuestionCard({ question, onClick, onPublished }: QuestionCardProps) {
+  const [showAllTags, setShowAllTags] = useState(false);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('fa-IR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }).format(date);
+  };
+
+  const getContentPreview = (content: string) => {
+    if (!content) return '';
+    // Remove HTML tags and get first 200 characters
+    const text = content.replace(/<[^>]*>/g, '');
+    return text.length > 200 ? text.substring(0, 200) + '...' : text;
+  };
+
+  const publishQuestion = async () => {
+    try {
+      // This would need to be implemented with your API service
+      // const response = await api.post(`/questions/${question.id}/publish`);
+      // if (response.data.success) {
+      //   onPublished?.(question);
+      // }
+      console.log('Publishing question:', question.id);
+    } catch (error) {
+      console.error('Error publishing question:', error);
+    }
+  };
+
+  // Conditional styling based on pinned/featured status
+  const cardClassName = clsx(
+    'mb-4 hover:shadow-md transition-all duration-300',
+    {
+      'bg-gradient-to-r from-green-50 to-orange-50 dark:from-green-900/20 dark:to-orange-900/20 border-green-300 dark:border-green-700': 
+        question.is_pinned_by_user && question.is_featured_by_user,
+      'bg-green-100 dark:bg-green-900/20 border-green-400 dark:border-green-800': 
+        question.is_pinned_by_user && !question.is_featured_by_user,
+      'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800': 
+        question.is_featured_by_user && !question.is_pinned_by_user,
+    }
+  );
+
+  return (
+    <BaseCard variant="outline" className={cardClassName}>
+      <div className="p-1 md:p-6">
+        {/* Section 1: Category and Pin Badge (right), Creation Date and Pin Button (left) */}
+        <div className="flex items-center justify-between mb-2 min-h-[32px]">
+          <div className="flex items-center gap-2 mb-4">
+            {/* Category Badge */}
+            {question.category && (
+              <Link href={`/categories/${question.category.slug}`}>
+                <span className="cursor-pointer transition-all duration-300 px-5 2xl:px-8 py-1 pt-[5px] border border-gray-400 dark:border-gray-200 rounded-full text-sm">
+                  {question.category.name}
+                </span>
+              </Link>
+            )}
+            
+            {/* Pin Badge */}
+            {question.is_pinned_by_user && (
+              <BaseBadge 
+                variant="success" 
+                size="sm"
+                className="flex items-center gap-1 px-8 py-2 border-2 border-green-400 dark:border-green-200"
+              >
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M8 2a1.5 1.5 0 0 0-1.415.996l-.346 1.039a4 4 0 0 1-1.905 2.53l-.346.17a.5.5 0 0 0-.297.642l.774 2.316a.5.5 0 0 0 .475.354h2.064l1.173 3.52a.5.5 0 0 0 .95 0L10.346 10h-.346z" />
+                </svg>
+                پین شده
+              </BaseBadge>
+            )}
+            
+            {/* Featured Badge */}
+            {question.is_featured_by_user && (
+              <BaseBadge 
+                variant="warning" 
+                size="sm"
+                className="flex items-center gap-1 px-8 py-2 border-2 border-orange-400 dark:border-orange-200"
+              >
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                ویژه
+              </BaseBadge>
+            )}
+          </div>
+          
+          <div className="flex items-center gap-3">
+            {/* Creation Date */}
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {formatDate(question.created_at)}
+            </div>
+          </div>
+        </div>
+
+        {/* Section 2: Title and Content Preview */}
+        <div className="mb-4 cursor-pointer" onClick={() => onClick?.(question)}>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2 leading-relaxed">
+            {question.title}
+          </h3>
+          <div 
+            className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed"
+            style={{
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              lineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden'
+            }}
+          >
+            {getContentPreview(question.content)}
+          </div>
+        </div>
+
+        {/* Tags Section */}
+        {question.tags && question.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 my-2 min-h-[36px] items-center">
+            <span className="text-sm text-gray-500 dark:text-gray-400">برچسب‌ها:</span>
+            {(showAllTags ? question.tags : question.tags.slice(0, 5)).map((tag) => (
+              <BaseBadge
+                key={tag.id}
+                size="sm"
+                variant="info"
+                className="px-2 py-1 border border-blue-300 dark:border-blue-700 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200"
+              >
+                {tag.name}
+              </BaseBadge>
+            ))}
+            {question.tags.length > 5 && (
+              <button
+                onClick={() => setShowAllTags(!showAllTags)}
+                className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-blue-600 dark:text-blue-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+                style={{ alignSelf: 'center' }}
+              >
+                {showAllTags ? 'نمایش کمتر' : `+${question.tags.length - 5} بیشتر`}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Section 3: User Info (right), Stats (right), Publish/Unpublished (left) */}
+        <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 pt-4 text-sm text-gray-500 dark:text-gray-400">
+          {/* User Info and Stats (right) */}
+          <div className="flex items-center gap-6 text-xs md:text-sm">
+            {/* User Info */}
+            {question.user && (
+              <Link
+                href={`/authors/${question.user.id}`}
+                className="flex items-center gap-2 hover:underline text-blue-600 dark:text-blue-500"
+              >
+                <BaseAvatar 
+                  src={question.user.image_url} 
+                  name={question.user.name} 
+                  size="sm" 
+                />
+                <span>{question.user.name}</span>
+              </Link>
+            )}
+            
+            {/* Stats */}
+            <span className="flex items-center gap-1">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              {question.answers_count || 0} <span className="hidden md:block">پاسخ</span>
+            </span>
+            
+            <span className="flex items-center gap-1">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+              {question.votes_count || 0} <span className="hidden md:block">رای</span>
+            </span>
+            
+            <span className="flex items-center gap-1">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              {question.views_count} <span className="hidden md:block">بازدید</span>
+            </span>
+            
+            {/* Solved Badge */}
+            {question.is_solved && (
+              <span className="flex items-center gap-1 text-green-600 dark:text-green-400 font-medium">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                #حل شده
+              </span>
+            )}
+          </div>
+          
+          {/* Publish/Unpublished (left) */}
+          <div className="flex items-center">
+            {!question.published && (
+              <BaseBadge variant="warning" size="sm" className="ml-2">
+                منتشر نشده
+              </BaseBadge>
+            )}
+            {question.can?.publish && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  publishQuestion();
+                }}
+                className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors ml-2"
+              >
+                انتشار
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </BaseCard>
+  );
+}

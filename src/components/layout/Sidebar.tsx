@@ -1,0 +1,433 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { 
+  Menu, 
+  ChevronLeft, 
+  Home, 
+  Grid3X3, 
+  Tag, 
+  Clock, 
+  Users, 
+  Newspaper, 
+  UserCheck, 
+  Info, 
+  Mail, 
+  Globe, 
+  LogIn, 
+  LogOut,
+  Sun,
+  Moon,
+  Monitor
+} from 'lucide-react';
+import { BaseButton } from '@/components/ui/BaseButton';
+import { BaseAvatar } from '@/components/ui/BaseAvatar';
+import { BaseBadge } from '@/components/ui/BaseBadge';
+import { useAuth } from '@/contexts/AuthContext';
+import { clsx } from 'clsx';
+
+interface User {
+  id: string;
+  name: string;
+  image_url?: string;
+  online: boolean;
+  score?: number;
+  level_name?: string;
+}
+
+interface SidebarProps {
+  isOpen: boolean;
+  theme: 'light' | 'dark';
+  themeMode: 'light' | 'dark' | 'auto';
+  onToggle: () => void;
+  onThemeChange: (mode: 'light' | 'dark' | 'auto') => void;
+}
+
+export function Sidebar({ isOpen, theme, themeMode, onToggle, onThemeChange }: SidebarProps) {
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  
+  // Get authentication state from context
+  const { user, isAuthenticated, login, logout, getInitials } = useAuth();
+
+  const logoUrl = '/assets/icon/main-logo.PNG';
+
+  const handleLogin = async () => {
+    try {
+      await login();
+    } catch (error) {
+      console.error('Login error:', error);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setUserDropdownOpen(false);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  const onThemeClick = (mode: 'light' | 'dark' | 'auto') => {
+    onThemeChange(mode);
+  };
+
+  const cycleCollapsedTheme = () => {
+    const order: ('light' | 'dark' | 'auto')[] = ['light', 'auto', 'dark'];
+    const currentIndex = order.indexOf(themeMode);
+    const next = order[(currentIndex + 1) % order.length];
+    onThemeChange(next);
+  };
+
+  const toggleUserDropdown = () => {
+    setUserDropdownOpen(!userDropdownOpen);
+  };
+
+  const closeUserDropdown = () => {
+    setUserDropdownOpen(false);
+  };
+
+  const navigationItems = [
+    { href: '/', icon: Home, label: 'خانه' },
+    { href: '/categories', icon: Grid3X3, label: 'دسته بندی ها' },
+    { href: '/tags', icon: Tag, label: 'برچسب ها' },
+    { href: '/activities', icon: Clock, label: 'فعالیت روز' },
+    { href: '/authors', icon: Users, label: 'فعالان انجمن' },
+    { href: '#news', icon: Newspaper, label: 'اخبار متاورس' },
+    { href: '#association', icon: UserCheck, label: 'انجمن متاورس' },
+    { href: '#about', icon: Info, label: 'درباره ما' },
+    { href: '#contact', icon: Mail, label: 'ارتباط با ما' },
+    { href: '#language', icon: Globe, label: 'زبان' },
+  ];
+
+  return (
+    <aside
+      className={clsx(
+        'sidebar-container fixed right-0 top-0 h-full bg-white dark:bg-gray-800 shadow-lg z-50 transform transition-all duration-300 ease-in-out flex flex-col lg:translate-x-0',
+        {
+          'w-80': isOpen,
+          'w-16': !isOpen,
+          'translate-x-0': isOpen,
+          'translate-x-full lg:translate-x-0': !isOpen
+        }
+      )}
+    >
+      {/* Toggle Button (when collapsed) */}
+      {!isOpen && (
+        <div className="flex justify-center border-b border-gray-200 dark:border-gray-700 flex-shrink-0 p-2">
+          <button 
+            onClick={onToggle} 
+            aria-label="باز کردن منو" 
+            className="p-2 rounded-full"
+          >
+            <Menu className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+          </button>
+        </div>
+      )}
+
+      {/* Fixed Header */}
+      <div className={clsx(
+        'flex items-center justify-between border-b border-gray-200 dark:border-gray-700 flex-shrink-0',
+        { 'p-4': isOpen, 'p-2 pr-[10px]': !isOpen }
+      )}>
+        <div className={clsx('flex items-center gap-3', { 'flex-1': isOpen })}>
+          <Link href="/">
+            <div className="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center flex-shrink-0">
+              <div className="w-[30px] h-[30px] rounded-full flex items-center justify-center">
+                <img 
+                  src={logoUrl} 
+                  alt="انجمن حم" 
+                  loading="lazy" 
+                  decoding="async"
+                  className="w-full h-full object-contain rounded-full" 
+                  width="30" 
+                  height="30"
+                  style={{ aspectRatio: '1/1', contain: 'paint' }}
+                />
+              </div>
+            </div>
+          </Link>
+          <Link 
+            href="/" 
+            className={clsx(
+              'text-right transition-all duration-300',
+              { 
+                'opacity-100 flex-1': isOpen, 
+                'opacity-0 w-0 overflow-hidden': !isOpen 
+              }
+            )}
+          >
+            <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">
+              انجمن حم
+            </h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+              پرسش و پاسخ عمومی
+            </p>
+          </Link>
+        </div>
+        
+        {/* Toggle Button (when expanded) */}
+        {isOpen && (
+          <button 
+            onClick={onToggle} 
+            aria-label="بستن منو"
+            className="p-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full transition-all duration-300 flex-shrink-0"
+          >
+            <ChevronLeft className="rotate-180 w-5 h-5 text-gray-600 dark:text-gray-300" />
+          </button>
+        )}
+      </div>
+
+      {/* Fixed User Profile Section */}
+      <div className={clsx(
+        'border-b border-gray-200 dark:border-gray-700 flex-shrink-0 w-full',
+        { 'p-4': isOpen, 'px-0 pr-[10px]': !isOpen }
+      )}>
+        {isAuthenticated && user !== null ? (
+          <div className={clsx('flex items-center gap-3', { 'mb-4': isOpen, 'mb-0 py-2 w-full': !isOpen })}>
+            {/* User Profile with Collapsible Menu (when expanded) */}
+            {isOpen ? (
+              <div className="flex-1">
+                <button 
+                  onClick={toggleUserDropdown} 
+                  aria-expanded={userDropdownOpen}
+                  aria-label="باز کردن منوی کاربر"
+                  className="flex items-center gap-3 w-full p-2 rounded-lg transition-colors outline-none focus:outline-none focus:ring-0 focus:border-0"
+                >
+                  <BaseAvatar 
+                    src={user?.image_url} 
+                    name={user?.name || 'User'} 
+                    size="md"
+                    status="online"
+                  />
+                  <div className="text-right flex-1">
+                    <h4 className="text-xs md:text-sm font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">
+                      {user?.name}
+                    </h4>
+                    {user?.score !== undefined && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        امتیاز:
+                        <BaseBadge variant="primary" size="xs" className="mr-1">
+                          {user.score}
+                        </BaseBadge>
+                      </p>
+                    )}
+                    {user?.level_name && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        سطح:
+                        <BaseBadge variant="secondary" size="xs" className="mr-1">
+                          {user.level_name}
+                        </BaseBadge>
+                      </p>
+                    )}
+                  </div>
+                  <svg 
+                    className={clsx(
+                      'w-4 h-4 text-gray-400 transition-transform duration-200',
+                      { 'rotate-180': userDropdownOpen }
+                    )} 
+                    fill="none" 
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {/* Collapsible Menu Content */}
+                <div 
+                  className="overflow-hidden transition-all duration-300 ease-in-out"
+                  style={{ maxHeight: userDropdownOpen ? '200px' : '0px' }}
+                >
+                  <div className="mt-2 ml-4 space-y-1">
+                    <Link 
+                      href="/profile" 
+                      onClick={closeUserDropdown}
+                      className={clsx(
+                        'dropdown-item flex items-center gap-3 px-4 py-2 text-xs md:text-sm rounded-lg transition-colors',
+                        {
+                          'text-gray-700 hover:bg-gray-100': theme === 'light',
+                          'text-gray-300 hover:bg-gray-700': theme === 'dark'
+                        }
+                      )}
+                      role="menuitem"
+                    >
+                      <svg className="w-4 h-4 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      پروفایل
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Collapsed view - just avatar */
+              <div className="flex items-center justify-center">
+                <BaseAvatar 
+                  src={user?.image_url} 
+                  name={user?.name || 'User'} 
+                  size="md"
+                  status="online"
+                />
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Guest User Section */
+          <div className={clsx('flex items-center gap-3', { 'mb-4': isOpen, 'mb-0': !isOpen })}>
+            <BaseAvatar size="md" variant="secondary" />
+            <div className={clsx(
+              'text-right flex-1 transition-all duration-300',
+              { 'opacity-100': isOpen, 'opacity-0 w-0 overflow-hidden': !isOpen }
+            )}>
+              <h4 className="text-xs md:text-sm font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">
+                کاربر مهمان
+              </h4>
+              <p className="text-xs text-gray-500 dark:text-gray-400">برای ورود کلیک کنید</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Scrollable Menu Items */}
+      <div className="flex-1 overflow-y-auto scrollable-menu">
+        <nav className={clsx({ 'p-4': isOpen, 'p-2': !isOpen })}>
+          <ul className="space-y-2">
+            {navigationItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <li key={item.href}>
+                  <Link 
+                    href={item.href} 
+                    className={clsx(
+                      'flex items-center rounded-lg transition-colors',
+                      {
+                        'gap-3 p-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': isOpen,
+                        'p-2 justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': !isOpen
+                      }
+                    )}
+                  >
+                    <Icon className="w-4 h-4 md:w-7 md:h-7 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                    <span className={clsx(
+                      'text-xs md:text-base transition-all duration-300 whitespace-nowrap mt-2',
+                      { 'opacity-100': isOpen, 'opacity-0 w-0 overflow-hidden': !isOpen }
+                    )}>
+                      {item.label}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      </div>
+
+      {/* Fixed Footer Actions */}
+      <div className={clsx(
+        'border-t border-gray-200 dark:border-gray-700 flex-shrink-0 bg-white dark:bg-gray-800',
+        { 'p-4': isOpen, 'p-2': !isOpen }
+      )}>
+        {/* Login Button (only for guests) */}
+        {!isAuthenticated && isOpen && (
+          <BaseButton 
+            onClick={handleLogin} 
+            variant="primary" 
+            size="lg" 
+            block
+            className="mb-4 flex justify-between"
+          >
+            <LogIn className="w-4 h-4 md:w-7 md:h-7" />
+            <span>ورود</span>
+          </BaseButton>
+        )}
+
+        {/* Logout Button (only for authenticated users) */}
+        {isAuthenticated && isOpen && (
+          <BaseButton 
+            onClick={handleLogout} 
+            variant="danger" 
+            size="lg" 
+            block
+            className="mb-4 flex justify-between"
+          >
+            <LogOut className="w-4 h-4 md:w-7 md:h-7" />
+            <span>خروج</span>
+          </BaseButton>
+        )}
+
+        {/* Theme Toggle (Expanded) */}
+        {isOpen && (
+          <div className="flex bg-gray-100 dark:bg-gray-700 rounded-full p-1">
+            <BaseButton 
+              onClick={() => onThemeClick('light')} 
+              variant={themeMode === 'light' ? 'primary' : 'ghost'}
+              size="sm" 
+              className="flex-1 rounded-full"
+            >
+              <Sun className="w-4 h-4" />
+            </BaseButton>
+            <BaseButton 
+              onClick={() => onThemeClick('auto')} 
+              variant={themeMode === 'auto' ? 'primary' : 'ghost'}
+              size="sm" 
+              className="flex-1 rounded-full"
+            >
+              <Monitor className="w-4 h-4" />
+            </BaseButton>
+            <BaseButton 
+              onClick={() => onThemeClick('dark')} 
+              variant={themeMode === 'dark' ? 'primary' : 'ghost'}
+              size="sm" 
+              className="flex-1 rounded-full"
+            >
+              <Moon className="w-4 h-4" />
+            </BaseButton>
+          </div>
+        )}
+
+        {/* Collapsed Actions */}
+        {!isOpen && (
+          <>
+            <div className="flex justify-center gap-2 mb-2">
+              {!isAuthenticated ? (
+                <button 
+                  onClick={handleLogin}
+                  className="p-2 rounded-full bg-blue-700 dark:bg-yellow-700 text-white" 
+                  title="ورود"
+                >
+                  <LogIn className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                </button>
+              ) : (
+                <button 
+                  onClick={handleLogout}
+                  className="p-2 rounded-full bg-blue-100 dark:bg-yellow-700" 
+                  title="خروج"
+                >
+                  <LogOut className="w-5 h-5 text-red-500" />
+                </button>
+              )}
+            </div>
+            <div className="flex flex-col gap-2">
+              {/* Theme Toggle (Collapsed) */}
+              <div className="flex justify-center">
+                <button 
+                  onClick={cycleCollapsedTheme}
+                  className="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  {themeMode === 'light' ? (
+                    <Sun className="w-5 h-5" />
+                  ) : themeMode === 'auto' ? (
+                    <Monitor className="w-5 h-5" />
+                  ) : (
+                    <Moon className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </aside>
+  );
+}

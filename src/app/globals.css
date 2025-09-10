@@ -1,4 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap');
 @import "tailwindcss";
+@import "sweetalert2/dist/sweetalert2.min.css";
 
 :root {
   --background: #ffffff;
@@ -8,19 +10,266 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: 'Vazirmatn', 'Tahoma', ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #111827;
+    --foreground: #f9fafb;
   }
+}
+
+/* Global styles */
+* {
+  box-sizing: border-box;
+}
+
+html, body, * {
+  font-family: 'Vazirmatn', 'Tahoma', ui-sans-serif, system-ui, sans-serif !important;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  direction: rtl;
+  min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark mode global styles */
+html.dark {
+  color-scheme: dark;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-track {
+  background: #374151;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #6b7280;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Focus outline for accessibility */
+button:focus,
+input:focus,
+a:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.dark button:focus,
+.dark input:focus,
+.dark a:focus {
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
+}
+
+/* Selection colors */
+::selection {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.dark ::selection {
+  background-color: #60a5fa;
+  color: #1f2937;
+}
+
+/* Responsive adjustments */
+@media (min-width: 1024px) {
+  .mr-80 {
+    margin-right: 20rem; /* 320px */
+    transition: all 0.3s ease;
+  }
+
+  .mr-16 {
+    margin-right: 4rem; /* 64px */
+    transition: all 0.3s ease;
+  }
+}
+
+/* Transition animations for questions */
+.question-enter-active {
+  transition: all 0.5s ease;
+}
+
+.question-leave-active {
+  transition: all 0.3s ease;
+}
+
+.question-enter-from {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+.question-leave-to {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.question-move {
+  transition: transform 0.3s ease;
+}
+
+/* Transition animations for user cards */
+.user-enter-active {
+  transition: all 0.5s ease;
+}
+
+.user-leave-active {
+  transition: all 0.3s ease;
+}
+
+.user-enter-from {
+  opacity: 0;
+  transform: translateY(-20px) scale(0.9);
+}
+
+.user-leave-to {
+  opacity: 0;
+  transform: translateY(20px) scale(0.9);
+}
+
+.user-move {
+  transition: transform 0.3s ease;
+}
+
+/* Transition animations for categories */
+.category-enter-active {
+  transition: all 0.5s ease;
+}
+
+.category-leave-active {
+  transition: all 0.3s ease;
+}
+
+.category-enter-from {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+.category-leave-to {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.category-move {
+  transition: transform 0.3s ease;
+}
+
+/* Loading shimmer effect */
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.animate-pulse {
+  animation: shimmer 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200px 100%;
+}
+
+.dark .animate-pulse {
+  background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+  background-size: 200px 100%;
+}
+
+/* Custom scrollbar for sidebar */
+.sidebar-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.5);
+  border-radius: 2px;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.8);
+}
+
+.dark .sidebar-scrollbar {
+  scrollbar-color: rgba(75, 85, 99, 0.5) transparent;
+}
+
+.dark .sidebar-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(75, 85, 99, 0.5);
+}
+
+.dark .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(75, 85, 99, 0.8);
+}
+
+/* Custom scrollbar for question list */
+.question-list-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+}
+
+.question-list-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.question-list-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.question-list-scroll::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.5);
+  border-radius: 2px;
+}
+
+.question-list-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.8);
+}
+
+.dark .question-list-scroll {
+  scrollbar-color: rgba(75, 85, 99, 0.5) transparent;
+}
+
+.dark .question-list-scroll::-webkit-scrollbar-thumb {
+  background: rgba(75, 85, 99, 0.5);
+}
+
+.dark .question-list-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(75, 85, 99, 0.8);
 }
