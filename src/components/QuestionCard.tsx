@@ -68,7 +68,7 @@ export function QuestionCard({ question, onClick, onPublished }: QuestionCardPro
             {/* Category Badge */}
             {question.category && (
               <Link href={`/categories/${question.category.slug}`}>
-                <span className="cursor-pointer transition-all duration-300 px-5 2xl:px-8 py-1 pt-[5px] border border-gray-400 dark:border-gray-200 rounded-full text-sm">
+                <span className="cursor-pointer transition-all duration-300 px-2 sm:px-3 md:px-4 lg:px-5 xl:px-6 2xl:px-8 py-1 pt-[5px] border border-gray-400 dark:border-gray-200 rounded-full text-xs sm:text-sm md:text-sm lg:text-sm xl:text-sm 2xl:text-base">
                   {question.category.name}
                 </span>
               </Link>
@@ -79,12 +79,13 @@ export function QuestionCard({ question, onClick, onPublished }: QuestionCardPro
               <BaseBadge 
                 variant="success" 
                 size="sm"
-                className="flex items-center gap-1 px-8 py-2 border-2 border-green-400 dark:border-green-200"
+                className="flex items-center gap-1 px-2 sm:px-3 md:px-4 lg:px-5 xl:px-6 2xl:px-8 py-1 sm:py-1.5 md:py-2 border-2 border-green-400 dark:border-green-200 text-xs sm:text-sm md:text-sm lg:text-sm xl:text-sm 2xl:text-base"
               >
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 lg:w-3 lg:h-3 xl:w-3 xl:h-3 2xl:w-4 2xl:h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M8 2a1.5 1.5 0 0 0-1.415.996l-.346 1.039a4 4 0 0 1-1.905 2.53l-.346.17a.5.5 0 0 0-.297.642l.774 2.316a.5.5 0 0 0 .475.354h2.064l1.173 3.52a.5.5 0 0 0 .95 0L10.346 10h-.346z" />
                 </svg>
-                پین شده
+                <span className="hidden sm:inline">پین شده</span>
+                <span className="sm:hidden">پین</span>
               </BaseBadge>
             )}
             
@@ -93,9 +94,9 @@ export function QuestionCard({ question, onClick, onPublished }: QuestionCardPro
               <BaseBadge 
                 variant="warning" 
                 size="sm"
-                className="flex items-center gap-1 px-8 py-2 border-2 border-orange-400 dark:border-orange-200"
+                className="flex items-center gap-1 px-2 sm:px-3 md:px-4 lg:px-5 xl:px-6 2xl:px-8 py-1 sm:py-1.5 md:py-2 border-2 border-orange-400 dark:border-orange-200 text-xs sm:text-sm md:text-sm lg:text-sm xl:text-sm 2xl:text-base"
               >
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 lg:w-3 lg:h-3 xl:w-3 xl:h-3 2xl:w-4 2xl:h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                 </svg>
                 ویژه
@@ -113,9 +114,11 @@ export function QuestionCard({ question, onClick, onPublished }: QuestionCardPro
 
         {/* Section 2: Title and Content Preview */}
         <div className="mb-4 cursor-pointer" onClick={() => onClick?.(question)}>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2 leading-relaxed">
-            {question.title}
-          </h3>
+          <Link href={`/questions/${question.slug}`}>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2 leading-relaxed hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+              {question.title}
+            </h3>
+          </Link>
           <div 
             className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed"
             style={{

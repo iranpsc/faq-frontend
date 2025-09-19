@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from "next/image";
 import { ContentArea } from '@/components/ContentArea';
 import { PopularCategories } from '@/components/PopularCategories';
@@ -16,6 +17,7 @@ import { useUsers } from '@/hooks/useUsers';
 import { Question, User, Category } from '@/services/api';
 
 function HomeContent() {
+  const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [currentFilters, setCurrentFilters] = useState({});
 
@@ -51,7 +53,7 @@ function HomeContent() {
 
 
   const handleQuestionClick = (question: Question) => {
-    // TODO: Navigate to question detail page
+    // Navigation is handled by the Link component in QuestionCard
     console.log('Question clicked:', question);
   };
 
@@ -178,8 +180,7 @@ function HomeContent() {
                 <button 
                   className="border-2 border-blue-600 dark:border-blue-500 dark:text-blue-500 text-blue-600 md:text-xl rounded-xl px-4 py-2 rounded flex items-center"
                   onClick={() => {
-                    // TODO: Navigate to authors page
-                    console.log('Navigate to authors page');
+                    router.push('/authors');
                   }}
                 >
                   مشاهده بیشتر

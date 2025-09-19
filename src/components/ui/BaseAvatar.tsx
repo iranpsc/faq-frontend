@@ -2,6 +2,7 @@
 
 import { HTMLAttributes, forwardRef } from 'react';
 import { clsx } from 'clsx';
+import { AvatarSvg } from './AvatarSvg';
 
 interface BaseAvatarProps extends HTMLAttributes<HTMLDivElement> {
   src?: string;
@@ -41,14 +42,6 @@ export const BaseAvatar = forwardRef<HTMLDivElement, BaseAvatarProps>(
       away: 'bg-yellow-500',
     };
 
-    const getInitials = (name: string) => {
-      return name
-        .split(' ')
-        .map(word => word.charAt(0))
-        .join('')
-        .toUpperCase()
-        .slice(0, 2);
-    };
 
     return (
       <div
@@ -68,7 +61,7 @@ export const BaseAvatar = forwardRef<HTMLDivElement, BaseAvatarProps>(
             className="w-full h-full rounded-full object-cover"
           />
         ) : (
-          <span>{getInitials(name)}</span>
+          <AvatarSvg size={size} className="w-full h-full" />
         )}
         
         {status && (

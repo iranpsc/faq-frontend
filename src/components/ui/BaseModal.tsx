@@ -75,31 +75,31 @@ export function BaseModal({
   };
 
   const modalContent = (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div className="fixed inset-0 z-[100] overflow-y-auto">
       <div className="flex min-h-full items-center justify-center p-4">
         {/* Backdrop */}
-        <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" />
+        <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity dark:bg-black/60" />
         
         {/* Modal */}
         <div
           ref={modalRef}
           className={clsx(
-            'relative w-full transform overflow-hidden rounded-lg bg-white shadow-xl transition-all',
+            'relative w-full transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow-xl transition-all',
             sizeClasses[size]
           )}
         >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+          <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 px-6 py-4">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h3>
               {subtitle && (
-                <p className="mt-1 text-sm text-gray-500">{subtitle}</p>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>
               )}
             </div>
             {closable && (
               <button
                 onClick={onClose}
-                className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-gray-100"
               >
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -109,13 +109,13 @@ export function BaseModal({
           </div>
 
           {/* Body */}
-          <div className="px-6 py-4">
+          <div className="px-6 py-4 text-gray-900 dark:text-gray-100">
             {children}
           </div>
 
           {/* Footer */}
           {footer && (
-            <div className="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4">
+            <div className="flex items-center justify-end gap-3 border-t border-gray-200 dark:border-gray-700 px-6 py-4">
               {footer}
             </div>
           )}

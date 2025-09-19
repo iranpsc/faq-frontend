@@ -7,6 +7,8 @@ interface UseQuestionsParams {
   search?: string;
   sort?: string;
   order?: string;
+  tags?: string;
+  filter?: string;
 }
 
 interface UseQuestionsReturn {
@@ -27,13 +29,13 @@ interface UseQuestionsReturn {
     title: string;
     content: string;
     category_id: string;
-    tags?: string[];
+    tags?: Array<{ id: number } | { name: string }>;
   }) => Promise<{ success: boolean; data?: Question; error?: string }>;
   updateQuestion: (id: string, questionData: {
     title: string;
     content: string;
     category_id: string;
-    tags?: string[];
+    tags?: Array<{ id: number } | { name: string }>;
   }) => Promise<{ success: boolean; data?: Question; error?: string }>;
 }
 
@@ -100,7 +102,7 @@ export function useQuestions(initialParams: UseQuestionsParams = {}): UseQuestio
     title: string;
     content: string;
     category_id: string;
-    tags?: string[];
+    tags?: Array<{ id: number } | { name: string }>;
   }): Promise<{ success: boolean; data?: Question; error?: string }> => {
     try {
       setIsSubmitting(true);

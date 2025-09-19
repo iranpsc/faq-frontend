@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ContentArea } from '@/components/ContentArea';
+import { HomeSidebar } from '@/components/HomeSidebar';
 import { BasePagination } from '@/components/ui/BasePagination';
 import { apiService } from '@/services/api';
 import { Category } from '@/services/types';
@@ -68,6 +69,7 @@ export default function CategoriesPage() {
     }
   };
 
+
   const handlePageChange = async (page: number) => {
     if (pagination.meta && page === pagination.meta.current_page) return;
 
@@ -86,13 +88,14 @@ export default function CategoriesPage() {
     await fetchCategories(page);
   };
 
+
   useEffect(() => {
     const page = parseInt(searchParams.get('page') || '1');
     fetchCategories(page);
   }, [searchParams]);
 
   return (
-    <ContentArea layout="with-sidebar" showSidebar={true} mainWidth="3/4" sidebarWidth="1/4">
+    <ContentArea layout="with-sidebar" showSidebar={true} mainWidth="3/4" sidebarWidth="1/4" sidebar={<HomeSidebar />}>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
         <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">دسته بندی ها</h1>
         <div className="mt-2 sm:mt-0 text-sm text-gray-600 dark:text-gray-400">
@@ -156,6 +159,7 @@ export default function CategoriesPage() {
               />
             </div>
           )}
+
         </>
       )}
     </ContentArea>

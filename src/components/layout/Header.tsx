@@ -1,6 +1,7 @@
 'use client';
 
-import { Menu, X, Plus } from 'lucide-react';
+import { useState } from 'react';
+import { Menu, X, Plus, Search } from 'lucide-react';
 import { BaseButton } from '../ui/BaseButton';
 import { SearchComponent } from './index';
 
@@ -8,9 +9,22 @@ interface HeaderProps {
   sidebarOpen: boolean;
   onToggleSidebar: () => void;
   onMainAction: () => void;
+  mobileSearchOpen?: boolean;
+  onToggleMobileSearch?: () => void;
 }
 
-export function Header({ sidebarOpen, onToggleSidebar, onMainAction }: HeaderProps) {
+export function Header({ sidebarOpen, onToggleSidebar, onMainAction, mobileSearchOpen: externalMobileSearchOpen, onToggleMobileSearch }: HeaderProps) {
+  const [internalMobileSearchOpen, setInternalMobileSearchOpen] = useState(false);
+  const mobileSearchOpen = externalMobileSearchOpen !== undefined ? externalMobileSearchOpen : internalMobileSearchOpen;
+
+  const toggleMobileSearch = () => {
+    if (onToggleMobileSearch) {
+      onToggleMobileSearch();
+    } else {
+      setInternalMobileSearchOpen(!internalMobileSearchOpen);
+    }
+  };
+
   return (
     <header 
       className="header-container bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-4 py-3 transition-colors duration-300"
@@ -33,13 +47,29 @@ export function Header({ sidebarOpen, onToggleSidebar, onMainAction }: HeaderPro
           </BaseButton>
         </div>
 
-        {/* Center - Search bar */}
+        {/* Center - Search bar (desktop) */}
         <div className="flex-1 max-w-2xl mx-4 hidden md:block">
-          <SearchComponent />
+          <SearchComponent 
+            position="desktop" 
+            mobileSearchOpen={mobileSearchOpen}
+            onMobileSearchToggle={toggleMobileSearch}
+          />
         </div>
 
         {/* Right side - Action buttons */}
         <div className="flex items-center gap-3">
+          {/* Mobile search button (hidden on large screens) */}
+          <BaseButton
+            variant="ghost"
+            size="sm"
+            onClick={toggleMobileSearch}
+            className="md:hidden"
+            aria-label="جستجو"
+            data-mobile-search-trigger
+          >
+            <Search className="w-5 h-5" />
+          </BaseButton>
+          
           {/* Main action button */}
           <BaseButton
             variant="primary"
@@ -53,10 +83,16 @@ export function Header({ sidebarOpen, onToggleSidebar, onMainAction }: HeaderPro
         </div>
       </div>
       
-      {/* Mobile search bar */}
-      <div className="flex-1 w-full mt-4 rounded-xl md:hidden border">
-        <SearchComponent />
-      </div>
+      {/* Mobile Search Bar - appears in new row below header */}
+      {mobileSearchOpen && (
+        <div className="max-w-7xl mx-auto mt-3 md:hidden">
+          <SearchComponent 
+            position="mobile" 
+            mobileSearchOpen={mobileSearchOpen}
+            onMobileSearchToggle={toggleMobileSearch}
+          />
+        </div>
+      )}
     </header>
   );
 }

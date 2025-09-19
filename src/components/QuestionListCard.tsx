@@ -15,6 +15,7 @@ export function QuestionListCard({
   isLoading = false, 
   onQuestionClick 
 }: QuestionListCardProps) {
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -54,13 +55,13 @@ export function QuestionListCard({
     );
   }
 
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-        {title}
-      </h3>
+  if (questions.length > 0) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+          {title}
+        </h3>
 
-      {questions.length > 0 ? (
         <div className="space-y-3">
           {/* Scrollable container for questions */}
           <div className="max-h-80 overflow-y-auto question-list-scroll space-y-3">
@@ -86,7 +87,7 @@ export function QuestionListCard({
                   <span>{formatDate(question.created_at)}</span>
                   <div className="flex items-center gap-2">
                     {/* Answers count */}
-                    {question.answers_count > 0 && (
+                    {question.answers_count && (
                       <span className="flex items-center">
                         <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
@@ -95,7 +96,7 @@ export function QuestionListCard({
                       </span>
                     )}
                     {/* Views count */}
-                    {question.views_count > 0 && (
+                    {question.views_count && (
                       <span className="flex items-center">
                         <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -105,7 +106,7 @@ export function QuestionListCard({
                       </span>
                     )}
                     {/* Votes count */}
-                    {question.votes_count > 0 && (
+                    {question.votes_count && (
                       <span className="flex items-center">
                         <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
@@ -119,14 +120,21 @@ export function QuestionListCard({
             ))}
           </div>
         </div>
-      ) : (
-        <div className="text-center py-8">
-          <svg className="mx-auto h-8 w-8 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-          </svg>
-          <p className="text-sm text-gray-500 dark:text-gray-400">موردی یافت نشد</p>
-        </div>
-      )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+        {title}
+      </h3>
+      <div className="text-center py-8">
+        <svg className="mx-auto h-8 w-8 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+        </svg>
+        <p className="text-sm text-gray-500 dark:text-gray-400">موردی یافت نشد</p>
+      </div>
     </div>
   );
 }

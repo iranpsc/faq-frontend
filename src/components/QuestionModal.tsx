@@ -10,6 +10,8 @@ import { useQuestions } from '@/hooks/useQuestions';
 import { useCategories } from '@/hooks/useCategories';
 import { useTags } from '@/hooks/useTags';
 import { Question, Category, Tag } from '@/services/types';
+import Swal from 'sweetalert2';
+import { apiService } from '@/services/api';
 
 interface QuestionModalProps {
   visible: boolean;
@@ -63,24 +65,44 @@ export function QuestionModal({
 
   const isEditMode = !!form.id;
 
-  // Populate form when questionToEdit changes
+  // Local option stores to support pagination/append like Vue's BaseSelect2
+  const [categoryOptions, setCategoryOptions] = useState<Category[]>([]);
+  const [tagOptions, setTagOptions] = useState<Tag[]>([]);
+
+  useEffect(() => {
+    if (Array.isArray(categories)) {
+      setCategoryOptions(categories);
+    }
+  }, [categories]);
+
+  useEffect(() => {
+    if (Array.isArray(tags)) {
+      setTagOptions(tags);
+    }
+  }, [tags]);
+
+  // Populate form when questionToEdit or options change (to resolve category by id if needed)
   useEffect(() => {
     if (questionToEdit) {
+      const resolvedCategory: Category | null = questionToEdit.category
+        ? {
+            ...questionToEdit.category,
+            created_at: (questionToEdit.category as any).created_at || new Date().toISOString(),
+            updated_at: (questionToEdit.category as any).updated_at || new Date().toISOString(),
+          }
+        : (categoryOptions.find(c => c.id === (questionToEdit as any).category_id) || null);
+
       setForm({
         id: questionToEdit.id,
         title: questionToEdit.title || '',
         content: questionToEdit.content || '',
-        category: questionToEdit.category ? {
-          ...questionToEdit.category,
-          created_at: (questionToEdit.category as any).created_at || new Date().toISOString(),
-          updated_at: (questionToEdit.category as any).updated_at || new Date().toISOString(),
-        } : null,
+        category: resolvedCategory,
         tags: questionToEdit.tags || [],
       });
     } else {
       resetForm();
     }
-  }, [questionToEdit]);
+  }, [questionToEdit, categoryOptions]);
 
   const resetForm = () => {
     setForm({
@@ -125,7 +147,14 @@ export function QuestionModal({
       title: form.title.trim(),
       content: form.content, // Keep HTML content as is
       category_id: form.category!.id,
-      tags: form.tags.map(tag => tag.id),
+      tags: form.tags.map(tag => {
+        // For existing tags (numeric ID), send the ID
+        if (tag.id && typeof tag.id === 'number') {
+          return { id: tag.id };
+        }
+        // For new tags (string ID), send the name for backend to create
+        return { name: tag.name || tag.id };
+      }),
     };
 
     try {
@@ -137,9 +166,13 @@ export function QuestionModal({
       }
 
       if (result.success && result.data) {
-        // Show success message (you can implement a toast notification here)
-        alert(`سوال شما با موفقیت ${isEditMode ? 'ویرایش' : 'ثبت'} شد.`);
-        
+        await Swal.fire({
+          title: 'موفقیت!',
+          text: `سوال شما با موفقیت ${isEditMode ? 'ویرایش' : 'ثبت'} شد.`,
+          icon: 'success',
+          confirmButtonText: 'باشه',
+        });
+
         resetForm();
         onClose();
         
@@ -149,35 +182,111 @@ export function QuestionModal({
           onQuestionCreated?.(result.data);
         }
       } else {
-        // Show error message
-        alert(result.error || 'خطایی رخ داده است');
+        await Swal.fire({
+          title: 'خطا!',
+          text: result?.error || 'خطایی رخ داده است',
+          icon: 'error',
+          confirmButtonText: 'باشه',
+        });
       }
-    } catch (error) {
-      alert('خطایی رخ داده است');
+    } catch (error: any) {
+      await Swal.fire({
+        title: 'خطا!',
+        text: error?.message || 'خطایی رخ داده است',
+        icon: 'error',
+        confirmButtonText: 'باشه',
+      });
     }
   };
 
   const handleFetchCategories = async (page: number, search?: string) => {
     const result = await fetchCategoriesPaginated(page, search);
     if (!result.success) {
-      alert(result.error || 'خطا در بارگذاری دسته‌بندی‌ها');
+      await Swal.fire({
+        title: 'خطا!',
+        text: result.error || 'خطا در بارگذاری دسته‌بندی‌ها',
+        icon: 'error',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+      });
+      return;
+    }
+    if (Array.isArray(result.data)) {
+      setCategoryOptions(prev => {
+        const map = new Map(prev.map(c => [c.id, c]));
+        result.data!.forEach(c => {
+          if (!map.has(c.id)) map.set(c.id, c);
+        });
+        return Array.from(map.values());
+      });
     }
   };
 
   const handleFetchTags = async (page: number, search?: string) => {
-    // This would be implemented if you have a paginated tags API
-    // For now, we'll just return success
-    // Note: This function should return void, not an object
+    try {
+      const result = await apiService.getTagsPaginated({ page, per_page: 10, search });
+      if (!result.success) {
+        await Swal.fire({
+          title: 'خطا!',
+          text: result.error || 'خطا در بارگذاری برچسب‌ها',
+          icon: 'error',
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000,
+        });
+        return;
+      }
+      const pageItems = result.data.data || [];
+      setTagOptions(prev => {
+        const map = new Map(prev.map(t => [t.id, t]));
+        pageItems.forEach(t => {
+          if (!map.has(t.id)) map.set(t.id, t);
+        });
+        return Array.from(map.values());
+      });
+    } catch (err: any) {
+      await Swal.fire({
+        title: 'خطا!',
+        text: err?.message || 'خطا در بارگذاری برچسب‌ها',
+        icon: 'error',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+      });
+    }
   };
 
-  const handleAddTag = async (tagName: string) => {
-    const newTag = await addTag(tagName);
-    if (newTag) {
-      setForm(prev => ({
-        ...prev,
-        tags: [...prev.tags, newTag],
-      }));
-    }
+  const handleAddTag = (tagName: string) => {
+    // Avoid duplicates in selected tags (case-insensitive)
+    const existsInForm = form.tags.find(t => t.name.toLowerCase() === tagName.toLowerCase());
+    if (existsInForm) return;
+
+    // Create a local tag object immediately (like Vue implementation)
+    // The actual API call will happen when the question is submitted
+    const newTag: Tag = {
+      id: tagName, // Use name as temporary ID
+      name: tagName,
+      slug: tagName.toLowerCase().replace(/\s+/g, '-'), // Generate slug
+      questions_count: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    // Add to form tags
+    setForm(prev => ({
+      ...prev,
+      tags: [...prev.tags, newTag],
+    }));
+
+    // Add to options for future searches
+    setTagOptions(prev => {
+      if (prev.find(t => t.id === newTag.id)) return prev;
+      return [...prev, newTag];
+    });
   };
 
   const handleCategoryChange = (category: Category | null) => {
@@ -220,6 +329,7 @@ export function QuestionModal({
           type="submit"
           form="question-form"
           disabled={isSubmitting}
+          rounded="lg"
           className="px-6 py-2"
         >
           {isSubmitting ? (
@@ -230,14 +340,14 @@ export function QuestionModal({
         </BaseButton>
       }
     >
-      <div className="overflow-y-auto max-h-[60vh]" style={{ direction: 'rtl' }}>
+      <div className="overflow-y-auto max-h-[60vh] pr-2" style={{ direction: 'rtl' }}>
         <form onSubmit={handleSubmit} id="question-form">
           <div className="space-y-6">
             {/* Category */}
             <div>
               <BaseSelect<Category>
                 value={form.category}
-                options={categories}
+                options={categoryOptions}
                 onChange={handleCategoryChange as any}
                 label="دسته بندی"
                 placeholder="انتخاب دسته بندی"
@@ -265,22 +375,25 @@ export function QuestionModal({
 
             {/* Content */}
             <div>
-              <BaseEditor
-                value={form.content}
-                onChange={handleContentChange}
-                label="شرح سوال"
-                mode="full"
-                imageUpload={true}
-                error={errors.content}
-                height={300}
-              />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                شرح سوال
+              </label>
+        <BaseEditor
+          value={form.content}
+          onChange={handleContentChange}
+          imageUpload={true}
+          rtl={true}
+        />
+              {errors.content && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.content}</p>
+              )}
             </div>
 
             {/* Tags */}
             <div>
               <BaseSelect<Tag>
                 value={form.tags}
-                options={tags}
+                options={tagOptions}
                 onChange={handleTagsChange as any}
                 label="برچسب ها"
                 placeholder="برای سوال خود برچسب وارد کنید..."

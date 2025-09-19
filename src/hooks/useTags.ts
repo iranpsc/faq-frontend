@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
 import { apiService } from '@/services/api';
-import { Tag } from '@/services/types';
+import { Tag, PaginatedResponse } from '@/services/types';
 
 interface UseTagsParams {
   page?: number;
   search?: string;
   limit?: number;
+  per_page?: number;
 }
 
 interface UseTagsReturn {
   tags: Tag[];
+  pagination: PaginatedResponse<Tag>['meta'] | null;
   isLoading: boolean;
   error: string | null;
   refetch: (params?: UseTagsParams) => Promise<void>;
@@ -19,6 +21,7 @@ interface UseTagsReturn {
 
 export function useTags(initialParams: UseTagsParams = {}): UseTagsReturn {
   const [tags, setTags] = useState<Tag[]>([]);
+  const [pagination, setPagination] = useState<PaginatedResponse<Tag>['meta'] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,11 +29,29 @@ export function useTags(initialParams: UseTagsParams = {}): UseTagsReturn {
     try {
       setIsLoading(true);
       setError(null);
-      const data = await apiService.getTags({
-        ...initialParams,
-        ...params,
-      });
-      setTags(data);
+      
+      // Use paginated API if page is specified or per_page is set
+      if (params.page || params.per_page || initialParams.page || initialParams.per_page) {
+        const result = await apiService.getTagsPaginated({
+          ...initialParams,
+          ...params,
+        });
+        
+        if (result.success) {
+          setTags(result.data.data);
+          setPagination(result.data.meta);
+        } else {
+          setError(result.error || 'خطا در بارگذاری برچسب‌ها');
+        }
+      } else {
+        // Use simple API for backward compatibility
+        const data = await apiService.getTags({
+          ...initialParams,
+          ...params,
+        });
+        setTags(data);
+        setPagination(null);
+      }
     } catch (err) {
       console.error('useTags: Error fetching tags:', err);
       setError(err instanceof Error ? err.message : 'خطا در بارگذاری برچسب‌ها');
@@ -75,6 +96,7 @@ export function useTags(initialParams: UseTagsParams = {}): UseTagsReturn {
 
   return {
     tags,
+    pagination,
     isLoading,
     error,
     refetch: fetchTags,

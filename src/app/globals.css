@@ -1,24 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap');
-@import "tailwindcss";
 @import "sweetalert2/dist/sweetalert2.min.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: 'Vazirmatn', 'Tahoma', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #111827;
-    --foreground: #f9fafb;
-  }
+.dark {
+  --background: #111827;
+  --foreground: #f9fafb;
 }
 
 /* Global styles */
@@ -272,4 +265,195 @@ a:focus {
 
 .dark .question-list-scroll::-webkit-scrollbar-thumb:hover {
   background: rgba(75, 85, 99, 0.8);
+}
+
+/* Search Component Styles */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Mobile search overlay positioning */
+.fixed.inset-x-0.top-16 {
+  top: 4rem;
+}
+
+/* Smooth transitions for mobile search */
+.transition.ease-out.duration-300 {
+  transition-property: opacity, transform;
+  transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+/* Mobile search results scrolling */
+.max-h-96.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e0 #f7fafc;
+}
+
+.max-h-96.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.max-h-96.overflow-y-auto::-webkit-scrollbar-track {
+  background: #f7fafc;
+}
+
+.max-h-96.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 3px;
+}
+
+.max-h-96.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
+/* Dark mode scrollbar */
+.dark .max-h-96.overflow-y-auto {
+  scrollbar-color: #4a5568 #2d3748;
+}
+
+.dark .max-h-96.overflow-y-auto::-webkit-scrollbar-track {
+  background: #2d3748;
+}
+
+.dark .max-h-96.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #4a5568;
+}
+
+.dark .max-h-96.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #718096;
+}
+
+/* Ensure mobile search and desktop input are above blur backdrop */
+.fixed.z-40, .relative.z-50 {
+  z-index: 40;
+}
+
+/* Blur backdrop styling */
+.backdrop-blur-md {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px); /* برای سازگاری با Safari */
+}
+
+/* Fallback for browsers that don't support backdrop-filter */
+@supports not (backdrop-filter: blur(10px)) {
+  .backdrop-blur-md {
+    background-color: rgba(0, 0, 0, 0.3); /* فال‌بک برای حالت روشن */
+  }
+  .dark .backdrop-blur-md {
+    background-color: rgba(0, 0, 0, 0.4); /* فال‌بک برای حالت دارک */
+  }
+}
+
+/* Prose styles for question content */
+.prose {
+  color: inherit;
+  line-height: 1.7;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.prose p {
+  margin-bottom: 1rem;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  word-wrap: break-word;
+}
+
+.prose ul,
+.prose ol {
+  margin-bottom: 1rem;
+  padding-right: 1.5rem;
+}
+
+.prose li {
+  margin-bottom: 0.25rem;
+}
+
+.prose blockquote {
+  border-right: 4px solid #e5e7eb;
+  padding-right: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  color: #6b7280;
+}
+
+.dark .prose blockquote {
+  border-right-color: #4b5563;
+  color: #9ca3af;
+}
+
+.prose code {
+  background-color: #f3f4f6;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+  word-break: break-all;
+  overflow-wrap: break-word;
+}
+
+.dark .prose code {
+  background-color: #374151;
+}
+
+.prose pre {
+  background-color: #f3f4f6;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 1rem 0;
+  word-wrap: normal;
+  white-space: pre;
+}
+
+.prose pre code {
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.dark .prose pre {
+  background-color: #1f2937;
+}
+
+/* Handle images and other media */
+.prose img,
+.prose video,
+.prose iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Handle tables */
+.prose table {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  display: block;
+  white-space: nowrap;
+}
+
+.prose table th,
+.prose table td {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Force long URLs and text to break */
+.prose a {
+  word-break: break-all;
+  overflow-wrap: break-word;
 }

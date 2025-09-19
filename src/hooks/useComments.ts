@@ -1,0 +1,114 @@
+import { useState } from 'react';
+import { apiService } from '@/services/api';
+
+export function useComments() {
+  const [comments, setComments] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
+  const fetchComments = async (parentId: string, parentType: 'question' | 'answer', page: number = 1) => {
+    setIsLoading(true);
+    try {
+      const response = await apiService.getComments(parentId, parentType, page);
+      setComments(response.data || []);
+      return { success: true, data: response.data, meta: response.meta };
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'خطا در بارگذاری نظرات' };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const addComment = async (parentId: string, content: string, parentType: 'question' | 'answer') => {
+    setIsSubmitting(true);
+    try {
+      const result = await apiService.addComment(parentId, content, parentType);
+      if (result.success && result.data) {
+        setComments(prev => [result.data, ...prev]);
+      }
+      return result;
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'خطا در ایجاد نظر' 
+      };
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const updateComment = async (commentId: string, content: string) => {
+    setIsUpdating(true);
+    try {
+      const result = await apiService.updateComment(commentId, content);
+      if (result.success && result.data) {
+        setComments(prev => prev.map(comment => 
+          comment.id === commentId 
+            ? { ...comment, content: result.data.content, updated_at: result.data.updated_at }
+            : comment
+        ));
+      }
+      return result;
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'خطا در ویرایش نظر' 
+      };
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const deleteComment = async (commentId: string) => {
+    setIsDeleting(commentId);
+    try {
+      const result = await apiService.deleteComment(commentId);
+      if (result.success) {
+        setComments(prev => prev.filter(comment => comment.id !== commentId));
+      }
+      return result;
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'خطا در حذف نظر' 
+      };
+    } finally {
+      setIsDeleting(null);
+    }
+  };
+
+  const publishComment = async (commentId: string) => {
+    try {
+      const result = await apiService.publishComment(commentId);
+      if (result.success) {
+        setComments(prev => prev.map(comment => 
+          comment.id === commentId 
+            ? { ...comment, published: true }
+            : comment
+        ));
+      }
+      return result;
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'خطا در انتشار نظر' 
+      };
+    }
+  };
+
+  return {
+    comments,
+    isLoading,
+    isSubmitting,
+    isUpdating,
+    isDeleting,
+    fetchComments,
+    addComment,
+    updateComment,
+    deleteComment,
+    publishComment
+  };
+}

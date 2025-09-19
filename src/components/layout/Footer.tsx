@@ -3,10 +3,17 @@
 import { BaseCard } from '../ui/BaseCard';
 import { BaseButton } from '../ui/BaseButton';
 
-export function Footer() {
+interface FooterProps {
+  onAskQuestion?: () => void;
+}
+
+export function Footer({ onAskQuestion }: FooterProps) {
   const handleAskQuestion = () => {
-    // TODO: Implement ask question
-    console.log('Ask question clicked');
+    if (onAskQuestion) {
+      onAskQuestion();
+    } else {
+      console.log('Ask question clicked - no handler provided');
+    }
   };
 
   const handleScoring = () => {

@@ -11,7 +11,7 @@ interface SelectOption {
 
 interface BaseSelectProps<T extends SelectOption = SelectOption> {
   value: T | T[] | null;
-  options: T[];
+  options: T[] | undefined | null;
   onChange: (value: T | T[] | null) => void;
   label?: string;
   placeholder?: string;
@@ -58,9 +58,9 @@ export function BaseSelect<T = SelectOption>({
   const searchRef = useRef<HTMLInputElement>(null);
 
   // Filter options based on search term
-  const filteredOptions = options.filter(option =>
+  const filteredOptions = Array.isArray(options) ? options.filter(option =>
     option.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ) : [];
 
   // Handle click outside to close dropdown
   useEffect(() => {
@@ -157,9 +157,9 @@ export function BaseSelect<T = SelectOption>({
   return (
     <div className="w-full" ref={selectRef}>
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
+          {required && <span className="text-red-500 dark:text-red-400 ml-1">*</span>}
         </label>
       )}
       
@@ -169,26 +169,50 @@ export function BaseSelect<T = SelectOption>({
           onClick={() => !disabled && setIsOpen(!isOpen)}
           disabled={disabled}
           className={clsx(
-            'relative w-full cursor-default rounded-md border py-2 pl-3 pr-10 text-left shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 sm:text-sm',
+            'relative w-full cursor-default rounded-md border py-2 pr-3 pl-10 text-right shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 sm:text-sm min-h-[42px]',
             error
-              ? 'border-red-500 focus:border-red-500'
-              : 'border-gray-300 focus:border-blue-500',
+              ? 'border-red-500 focus:border-red-500 dark:border-red-400 dark:focus:border-red-400'
+              : 'border-gray-300 focus:border-blue-500 dark:border-gray-600 dark:focus:border-blue-400',
             disabled
-              ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
-              : 'bg-white text-gray-900'
+              ? 'bg-gray-100 text-gray-500 cursor-not-allowed dark:bg-gray-800 dark:text-gray-400'
+              : 'bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100'
           )}
         >
-          <span className={clsx(
-            'block truncate',
-            (!value || (Array.isArray(value) && value.length === 0)) && 'text-gray-500'
-          )}>
-            {getDisplayValue()}
-          </span>
+          {multiple && Array.isArray(value) && value.length > 0 ? (
+            <div className="flex flex-wrap gap-1 items-center min-h-[20px]">
+              {value.map((item) => (
+                <span
+                  key={item.id}
+                  className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 text-xs rounded-md"
+                >
+                  {item.name}
+                  <span
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveTag(item);
+                    }}
+                  >
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </span>
+                </span>
+              ))}
+            </div>
+          ) : (
+            <span className={clsx(
+              'block truncate',
+              (!value || (Array.isArray(value) && value.length === 0)) && 'text-gray-500 dark:text-gray-400'
+            )}>
+              {getDisplayValue()}
+            </span>
+          )}
           
-          <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+          <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2">
             <svg
               className={clsx(
-                'h-5 w-5 text-gray-400 transition-transform duration-200',
+                'h-5 w-5 text-gray-400 dark:text-gray-500 transition-transform duration-200',
                 isOpen && 'rotate-180'
               )}
               fill="none"
@@ -201,22 +225,22 @@ export function BaseSelect<T = SelectOption>({
         </button>
 
         {isOpen && (
-          <div className="absolute z-10 mt-1 w-full rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+          <div className="absolute z-10 mt-1 w-full rounded-md bg-white dark:bg-gray-700 shadow-lg ring-1 ring-black ring-opacity-5 dark:ring-gray-600">
             {searchable && (
-              <div className="p-2 border-b">
+              <div className="p-2 border-b border-gray-200 dark:border-gray-600">
                 <input
                   ref={searchRef}
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="جستجو..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
                 />
               </div>
             )}
 
             {taggable && (
-              <div className="p-2 border-b">
+              <div className="p-2 border-b border-gray-200 dark:border-gray-600">
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
@@ -224,12 +248,12 @@ export function BaseSelect<T = SelectOption>({
                     onChange={(e) => setNewTag(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="برچسب جدید..."
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
                   />
                   <button
                     type="button"
                     onClick={handleAddNewTag}
-                    className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="px-3 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     اضافه
                   </button>
@@ -242,11 +266,11 @@ export function BaseSelect<T = SelectOption>({
               onScroll={handleScroll}
             >
               {loading ? (
-                <div className="p-4 text-center text-gray-500">
+                <div className="p-4 text-center text-gray-500 dark:text-gray-400">
                   در حال بارگذاری...
                 </div>
               ) : filteredOptions.length === 0 ? (
-                <div className="p-4 text-center text-gray-500">
+                <div className="p-4 text-center text-gray-500 dark:text-gray-400">
                   {searchTerm ? 'نتیجه‌ای یافت نشد' : 'گزینه‌ای موجود نیست'}
                 </div>
               ) : (
@@ -255,15 +279,15 @@ export function BaseSelect<T = SelectOption>({
                     key={option.id}
                     onClick={() => handleSelect(option)}
                     className={clsx(
-                      'relative cursor-pointer select-none py-2 pl-3 pr-9 hover:bg-blue-50',
-                      isSelected(option) && 'bg-blue-100 text-blue-900'
+                      'relative cursor-pointer select-none py-2 pr-3 pl-9 hover:bg-blue-50 dark:hover:bg-blue-900/20',
+                      isSelected(option) && 'bg-blue-100 text-blue-900 dark:bg-blue-900/30 dark:text-blue-100'
                     )}
                   >
                     <span className="block truncate font-normal">
                       {option.name}
                     </span>
                     {isSelected(option) && (
-                      <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-blue-600">
+                      <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-blue-600 dark:text-blue-400">
                         <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
@@ -274,7 +298,7 @@ export function BaseSelect<T = SelectOption>({
               )}
               
               {isLoadingMore && (
-                <div className="p-2 text-center text-gray-500 text-sm">
+                <div className="p-2 text-center text-gray-500 dark:text-gray-400 text-sm">
                   در حال بارگذاری بیشتر...
                 </div>
               )}
@@ -283,31 +307,9 @@ export function BaseSelect<T = SelectOption>({
         )}
       </div>
 
-      {/* Selected tags for multiple selection */}
-      {multiple && Array.isArray(value) && value.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-1">
-          {value.map((item) => (
-            <span
-              key={item.id}
-              className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-md"
-            >
-              {item.name}
-              <button
-                type="button"
-                onClick={() => handleRemoveTag(item)}
-                className="text-blue-600 hover:text-blue-800"
-              >
-                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </span>
-          ))}
-        </div>
-      )}
 
       {error && (
-        <p className="mt-1 text-sm text-red-600">{error}</p>
+        <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>
       )}
     </div>
   );

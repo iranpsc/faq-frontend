@@ -4,6 +4,7 @@ import { useState, useEffect, use } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ContentArea } from '@/components/ContentArea';
+import { HomeSidebar } from '@/components/HomeSidebar';
 import { QuestionCard } from '@/components/QuestionCard';
 import { BasePagination } from '@/components/ui/BasePagination';
 import { apiService } from '@/services/api';
@@ -56,8 +57,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
   const [error, setError] = useState<string | null>(null);
 
   const handleQuestionClick = (question: Question) => {
-    // TODO: Navigate to question detail page
-    console.log('Question clicked:', question);
+    router.push(`/questions/${question.slug}`);
   };
 
   const fetchData = async (slug: string, page: number = 1) => {
@@ -109,7 +109,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
 
   if (loading) {
     return (
-      <ContentArea layout="full-width" showSidebar={false}>
+      <ContentArea layout="with-sidebar" showSidebar={true} mainWidth="3/4" sidebarWidth="1/4" sidebar={<HomeSidebar />}>
         <div className="flex justify-center items-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
         </div>
@@ -119,7 +119,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
 
   if (error) {
     return (
-      <ContentArea layout="full-width" showSidebar={false}>
+      <ContentArea layout="with-sidebar" showSidebar={true} mainWidth="3/4" sidebarWidth="1/4" sidebar={<HomeSidebar />}>
         <p className="text-red-500">Error loading data.</p>
       </ContentArea>
     );
@@ -127,14 +127,14 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
 
   if (!category) {
     return (
-      <ContentArea layout="full-width" showSidebar={false}>
+      <ContentArea layout="with-sidebar" showSidebar={true} mainWidth="3/4" sidebarWidth="1/4" sidebar={<HomeSidebar />}>
         <p className="text-gray-500">Category not found.</p>
       </ContentArea>
     );
   }
 
   return (
-    <ContentArea layout="full-width" showSidebar={false}>
+    <ContentArea layout="with-sidebar" showSidebar={true} mainWidth="3/4" sidebarWidth="1/4" sidebar={<HomeSidebar />}>
       <h1 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-200">
         {category.name}
       </h1>
@@ -142,26 +142,43 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
       {/* Subcategories */}
       {category.children && category.children.length > 0 && (
         <>
-          <h2 className="text-2xl font-semibold mb-4">زیردسته ها</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">زیردسته ها</h2>
+            <div className="mt-2 sm:mt-0 text-sm text-gray-600 dark:text-gray-400">
+              {category.children.length} زیردسته
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
             {category.children.map((child) => (
               <Link
                 key={child.id}
                 href={`/categories/${child.slug}`}
-                className="block bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
+                className="block bg-gradient-to-br from-blue-50 via-white to-blue-100 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300 border border-blue-100 dark:border-gray-700 group"
               >
-                <div className="p-5">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                <div className="p-6 flex flex-col h-full">
+                  <h3 className="text-xl font-bold text-blue-900 dark:text-blue-200 mb-2 group-hover:text-blue-700 transition-colors duration-200">
                     {child.name}
                   </h3>
-                </div>
-                {child.children_count && child.children_count > 0 && (
-                  <div className="bg-gray-50 dark:bg-gray-700 px-5 py-3 rounded-b-lg">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {child.children_count} زیردسته
-                    </p>
+                  <div className="flex-1"></div>
+                  <div className="flex flex-col gap-2 mt-4">
+                    {child.questions_count && (
+                      <div className="flex items-center text-sm text-green-600 dark:text-green-300">
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16h6a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2z"/>
+                        </svg>
+                        {child.questions_count} سوال
+                      </div>
+                    )}
+                    {child.children_count && child.children_count > 0 && (
+                      <div className="flex items-center text-sm text-purple-600 dark:text-purple-300">
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                        </svg>
+                        {child.children_count} زیردسته
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
               </Link>
             ))}
           </div>
@@ -171,7 +188,12 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
       {/* Questions */}
       {questions.length > 0 && (
         <>
-          <h2 className="text-2xl font-semibold mb-4 mt-8">سوالات</h2>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">سوالات این دسته‌بندی</h2>
+            <div className="mt-2 sm:mt-0 text-sm text-gray-600 dark:text-gray-400">
+              {pagination.meta && `مجموع ${pagination.meta.total} سوال`}
+            </div>
+          </div>
           <div className="space-y-4">
             {questions.map((question) => (
               <QuestionCard
@@ -198,7 +220,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
       )}
 
       {/* Empty state for questions */}
-      {questions.length === 0 && (!category.children || category.children.length === 0) && (
+      {questions.length === 0 && (
         <div className="text-center py-12">
           <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16h6a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2z" />

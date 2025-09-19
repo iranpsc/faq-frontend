@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { 
   Menu, 
   ChevronLeft, 
@@ -38,14 +39,22 @@ interface User {
 
 interface SidebarProps {
   isOpen: boolean;
+  mounted?: boolean;
   theme: 'light' | 'dark';
   themeMode: 'light' | 'dark' | 'auto';
   onToggle: () => void;
   onThemeChange: (mode: 'light' | 'dark' | 'auto') => void;
 }
 
-export function Sidebar({ isOpen, theme, themeMode, onToggle, onThemeChange }: SidebarProps) {
+export function Sidebar({ isOpen, mounted = false, theme, themeMode, onToggle, onThemeChange }: SidebarProps) {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const pathname = usePathname();
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef<number>(0);
+  const touchStartY = useRef<number>(0);
+  const touchEndX = useRef<number>(0);
+  const touchEndY = useRef<number>(0);
+  const [isSwiping, setIsSwiping] = useState(false);
   
   // Get authentication state from context
   const { user, isAuthenticated, login, logout, getInitials } = useAuth();
@@ -88,30 +97,141 @@ export function Sidebar({ isOpen, theme, themeMode, onToggle, onThemeChange }: S
     setUserDropdownOpen(false);
   };
 
+  const handleMenuItemClick = () => {
+    // Close sidebar when menu item is clicked (only on mobile screens)
+    if (window.innerWidth < 1024) {
+      onToggle();
+    }
+    // Also close user dropdown if it's open
+    setUserDropdownOpen(false);
+  };
+
+  // Swipe detection functions for mobile devices
+  // Swipe right from left edge (50px) to open sidebar
+  // Swipe left anywhere to close sidebar
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.targetTouches[0].clientX;
+    touchStartY.current = e.targetTouches[0].clientY;
+    setIsSwiping(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+    touchEndY.current = e.targetTouches[0].clientY;
+  };
+
+  const handleTouchEnd = () => {
+    const deltaX = touchEndX.current - touchStartX.current;
+    const deltaY = touchEndY.current - touchStartY.current;
+    const minSwipeDistance = 50; // Minimum distance for a swipe
+    const maxVerticalDistance = 100; // Maximum vertical movement to consider it a horizontal swipe
+
+    // Check if it's a horizontal swipe (not vertical scroll)
+    if (Math.abs(deltaY) > maxVerticalDistance) {
+      setIsSwiping(false);
+      return;
+    }
+
+    // Swipe right to open sidebar (only when sidebar is closed)
+    if (deltaX > minSwipeDistance && !isOpen) {
+      onToggle();
+    }
+    // Swipe left to close sidebar (only when sidebar is open)
+    else if (deltaX < -minSwipeDistance && isOpen) {
+      onToggle();
+    }
+    
+    setIsSwiping(false);
+  };
+
+  // Add touch event listeners for mobile swipe detection
+  useEffect(() => {
+    const handleGlobalTouchStart = (e: TouchEvent) => {
+      // Only handle swipes on mobile screens (width < 1024px)
+      if (window.innerWidth >= 1024) return;
+      
+      touchStartX.current = e.touches[0].clientX;
+      touchStartY.current = e.touches[0].clientY;
+    };
+
+    const handleGlobalTouchEnd = (e: TouchEvent) => {
+      // Only handle swipes on mobile screens (width < 1024px)
+      if (window.innerWidth >= 1024) return;
+      
+      touchEndX.current = e.changedTouches[0].clientX;
+      touchEndY.current = e.changedTouches[0].clientY;
+      const deltaX = touchEndX.current - touchStartX.current;
+      const deltaY = touchEndY.current - touchStartY.current;
+      const minSwipeDistance = 50;
+      const maxVerticalDistance = 100;
+
+      // Check if it's a horizontal swipe (not vertical scroll)
+      if (Math.abs(deltaY) > maxVerticalDistance) {
+        return;
+      }
+
+      // Swipe right to open sidebar (only when sidebar is closed and swipe starts from left edge)
+      if (deltaX > minSwipeDistance && !isOpen && touchStartX.current < 50) {
+        // Add haptic feedback simulation
+        if ('vibrate' in navigator) {
+          navigator.vibrate(50);
+        }
+        onToggle();
+      }
+      // Swipe left to close sidebar (only when sidebar is open)
+      else if (deltaX < -minSwipeDistance && isOpen) {
+        // Add haptic feedback simulation
+        if ('vibrate' in navigator) {
+          navigator.vibrate(50);
+        }
+        onToggle();
+      }
+    };
+
+    // Add global touch listeners for swipe detection
+    document.addEventListener('touchstart', handleGlobalTouchStart, { passive: true });
+    document.addEventListener('touchend', handleGlobalTouchEnd, { passive: true });
+
+    return () => {
+      document.removeEventListener('touchstart', handleGlobalTouchStart);
+      document.removeEventListener('touchend', handleGlobalTouchEnd);
+    };
+  }, [isOpen, onToggle]);
+
   const navigationItems = [
     { href: '/', icon: Home, label: 'خانه' },
     { href: '/categories', icon: Grid3X3, label: 'دسته بندی ها' },
     { href: '/tags', icon: Tag, label: 'برچسب ها' },
-    { href: '/activities', icon: Clock, label: 'فعالیت روز' },
+    { href: '/daily-activity', icon: Clock, label: 'فعالیت روز' },
     { href: '/authors', icon: Users, label: 'فعالان انجمن' },
     { href: '#news', icon: Newspaper, label: 'اخبار متاورس' },
     { href: '#association', icon: UserCheck, label: 'انجمن متاورس' },
-    { href: '#about', icon: Info, label: 'درباره ما' },
-    { href: '#contact', icon: Mail, label: 'ارتباط با ما' },
+    { href: 'https://3d.irpsc.com/about-us', icon: Info, label: 'درباره ما', external: true },
+    { href: 'https://3d.irpsc.com/contact-us', icon: Mail, label: 'ارتباط با ما', external: true },
     { href: '#language', icon: Globe, label: 'زبان' },
   ];
 
   return (
     <aside
+      ref={sidebarRef}
       className={clsx(
         'sidebar-container fixed right-0 top-0 h-full bg-white dark:bg-gray-800 shadow-lg z-50 transform transition-all duration-300 ease-in-out flex flex-col lg:translate-x-0',
         {
+          // Mobile widths and slide-in behavior
           'w-80': isOpen,
           'w-16': !isOpen,
           'translate-x-0': isOpen,
-          'translate-x-full lg:translate-x-0': !isOpen
+          'translate-x-full lg:translate-x-0': !isOpen,
+          // Desktop widths: default open to avoid CLS before mount; collapse after mount when closed
+          'lg:w-80': !mounted || isOpen,
+          'lg:w-16': mounted && !isOpen,
+          'opacity-90': isSwiping,
+          'opacity-100': !isSwiping
         }
       )}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       {/* Toggle Button (when collapsed) */}
       {!isOpen && (
@@ -243,7 +363,7 @@ export function Sidebar({ isOpen, theme, themeMode, onToggle, onThemeChange }: S
                   <div className="mt-2 ml-4 space-y-1">
                     <Link 
                       href="/profile" 
-                      onClick={closeUserDropdown}
+                      onClick={handleMenuItemClick}
                       className={clsx(
                         'dropdown-item flex items-center gap-3 px-4 py-2 text-xs md:text-sm rounded-lg transition-colors',
                         {
@@ -296,26 +416,61 @@ export function Sidebar({ isOpen, theme, themeMode, onToggle, onThemeChange }: S
           <ul className="space-y-2">
             {navigationItems.map((item) => {
               const Icon = item.icon;
+              const isExternal = item.external === true;
+              const isActive = !isExternal && pathname === item.href;
+              
               return (
                 <li key={item.href}>
-                  <Link 
-                    href={item.href} 
-                    className={clsx(
-                      'flex items-center rounded-lg transition-colors',
-                      {
-                        'gap-3 p-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': isOpen,
-                        'p-2 justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': !isOpen
-                      }
-                    )}
-                  >
-                    <Icon className="w-4 h-4 md:w-7 md:h-7 text-gray-400 dark:text-gray-500 flex-shrink-0" />
-                    <span className={clsx(
-                      'text-xs md:text-base transition-all duration-300 whitespace-nowrap mt-2',
-                      { 'opacity-100': isOpen, 'opacity-0 w-0 overflow-hidden': !isOpen }
-                    )}>
-                      {item.label}
-                    </span>
-                  </Link>
+                  {isExternal ? (
+                    <a 
+                      href={item.href} 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={handleMenuItemClick}
+                      className={clsx(
+                        'flex items-center rounded-lg transition-colors focus:outline-none',
+                        {
+                          'gap-3 p-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': isOpen,
+                          'p-2 justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': !isOpen
+                        }
+                      )}
+                    >
+                      <Icon className="w-4 h-4 md:w-7 md:h-7 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                      <span className={clsx(
+                        'text-xs md:text-base transition-all duration-300 whitespace-nowrap mt-2',
+                        { 'opacity-100': isOpen, 'opacity-0 w-0 overflow-hidden': !isOpen }
+                      )}>
+                        {item.label}
+                      </span>
+                    </a>
+                  ) : (
+                    <Link 
+                      href={item.href} 
+                      onClick={handleMenuItemClick}
+                      className={clsx(
+                        'flex items-center rounded-lg transition-colors focus:outline-none',
+                        {
+                          'gap-3 p-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': isOpen && !isActive,
+                          'p-2 justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': !isOpen && !isActive,
+                          'gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-r-4 border-blue-500': isOpen && isActive,
+                          'p-2 justify-center bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-r-4 border-blue-500': !isOpen && isActive
+                        }
+                      )}
+                    >
+                      <Icon className={clsx(
+                        'w-4 h-4 md:w-7 md:h-7 flex-shrink-0',
+                        isActive 
+                          ? 'text-blue-500 dark:text-blue-400' 
+                          : 'text-gray-400 dark:text-gray-500'
+                      )} />
+                      <span className={clsx(
+                        'text-xs md:text-base transition-all duration-300 whitespace-nowrap mt-2',
+                        { 'opacity-100': isOpen, 'opacity-0 w-0 overflow-hidden': !isOpen }
+                      )}>
+                        {item.label}
+                      </span>
+                    </Link>
+                  )}
                 </li>
               );
             })}

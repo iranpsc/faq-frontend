@@ -2,11 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { ChevronDown, X, Search } from 'lucide-react';
-
-interface Tag {
-  id: string;
-  name: string;
-}
+import { apiService } from '@/services/api';
+import { Tag } from '@/services/types';
 
 interface SortOption {
   value: string;
@@ -43,31 +40,45 @@ export function FilterQuestion({ onFiltersChanged }: FilterQuestionProps) {
     { value: 'unsolved', label: 'حل نشده' }
   ];
 
-  // Mock tags data (replace with actual API call)
-  const mockTags: Tag[] = [
-    { id: '1', name: 'برنامه نویسی' },
-    { id: '2', name: 'JavaScript' },
-    { id: '3', name: 'React' },
-    { id: '4', name: 'Vue.js' },
-    { id: '5', name: 'Node.js' },
-    { id: '6', name: 'Python' },
-    { id: '7', name: 'PHP' },
-    { id: '8', name: 'Laravel' },
-    { id: '9', name: 'دیتابیس' },
-    { id: '10', name: 'MySQL' },
-  ];
-
   // Computed properties
-  const filteredTags = availableTags.filter(tag =>
-    tag.name.toLowerCase().includes(tagSearchQuery.toLowerCase())
-  );
+  const filteredTags = availableTags;
 
   const hasActiveFilters = appliedTags.length > 0 || appliedSortOptions.length > 0;
 
-  // Initialize tags
+  // Initialize and fetch tags (with debounce on search)
   useEffect(() => {
-    setAvailableTags(mockTags);
-  }, []);
+    let isCancelled = false;
+    let debounceTimer: number | undefined;
+
+    const fetchTags = async (q: string) => {
+      try {
+        // Prefer backend 'query' param to match Vue implementation
+        const data = await apiService.getTags(q ? { query: q } : {});
+        if (!isCancelled) {
+          setAvailableTags(data);
+        }
+      } catch (err) {
+        if (!isCancelled) {
+          setAvailableTags([]);
+        }
+      }
+    };
+
+    // Initial fetch
+    if (availableTags.length === 0 && tagSearchQuery === '') {
+      fetchTags('');
+    }
+
+    // Debounced fetch on search input
+    debounceTimer = window.setTimeout(() => {
+      fetchTags(tagSearchQuery.trim());
+    }, 300);
+
+    return () => {
+      isCancelled = true;
+      if (debounceTimer) window.clearTimeout(debounceTimer);
+    };
+  }, [tagSearchQuery]);
 
   // Filter methods
   const toggleTagsFilter = () => {
@@ -80,56 +91,20 @@ export function FilterQuestion({ onFiltersChanged }: FilterQuestionProps) {
     if (showTagsFilter) setShowTagsFilter(false);
   };
 
-  const applyTagFilters = () => {
-    const newAppliedTags = availableTags.filter(tag =>
-      selectedTags.includes(tag.id)
-    );
-    setAppliedTags(newAppliedTags);
-    setShowTagsFilter(false);
-    applyFilters();
-  };
-
-  const clearTagFilters = () => {
-    setSelectedTags([]);
-    setAppliedTags([]);
-    setShowTagsFilter(false);
-    applyFilters();
-  };
-
-  const applySortFilters = () => {
-    const newAppliedSortOptions = sortOptions.filter(option =>
-      option.value === selectedSortOptions
-    );
-    setAppliedSortOptions(newAppliedSortOptions);
-    setShowSortFilter(false);
-    applyFilters();
-  };
-
-  const removeTagFilter = (tagId: string) => {
-    setSelectedTags(selectedTags.filter(id => id !== tagId));
-    setAppliedTags(appliedTags.filter(tag => tag.id !== tagId));
-    applyFilters();
-  };
-
-  const removeSortFilter = (sortValue: string) => {
-    if (selectedSortOptions === sortValue) {
-      setSelectedSortOptions('');
-    }
-    setAppliedSortOptions(appliedSortOptions.filter(option => option.value !== sortValue));
-    applyFilters();
-  };
-
-  const applyFilters = () => {
+  const applyFilters = (nextAppliedTags?: Tag[], nextAppliedSortOptions?: SortOption[]) => {
     let params: any = { page: 1 };
 
+    const tagsToUse = nextAppliedTags ?? appliedTags;
+    const sortToUse = nextAppliedSortOptions ?? appliedSortOptions;
+
     // Apply tag filters
-    if (appliedTags.length > 0) {
-      params.tags = appliedTags.map(tag => tag.id).join(',');
+    if (tagsToUse.length > 0) {
+      params.tags = tagsToUse.map(tag => tag.id).join(',');
     }
 
     // Apply sort filters (use the first selected sort option)
-    if (appliedSortOptions.length > 0) {
-      const primarySort = appliedSortOptions[0].value;
+    if (sortToUse.length > 0) {
+      const primarySort = sortToUse[0].value;
       switch (primarySort) {
         case 'newest':
           params.sort = 'created_at';
@@ -163,6 +138,50 @@ export function FilterQuestion({ onFiltersChanged }: FilterQuestionProps) {
       }
     }
     onFiltersChanged?.(params);
+  };
+
+  const applyTagFilters = () => {
+    const newAppliedTags = availableTags.filter(tag =>
+      selectedTags.includes(tag.id)
+    );
+    setAppliedTags(newAppliedTags);
+    setShowTagsFilter(false);
+    applyFilters(newAppliedTags, undefined);
+  };
+
+  const clearTagFilters = () => {
+    setSelectedTags([]);
+    setAppliedTags([]);
+    setShowTagsFilter(false);
+    applyFilters([], undefined);
+  };
+
+  const applySortFilters = () => {
+    const newAppliedSortOptions = sortOptions.filter(option =>
+      option.value === selectedSortOptions
+    );
+    setAppliedSortOptions(newAppliedSortOptions);
+    setShowSortFilter(false);
+    applyFilters(undefined, newAppliedSortOptions);
+  };
+
+  const removeTagFilter = (tagId: string) => {
+    const nextSelected = selectedTags.filter(id => id !== tagId);
+    const nextApplied = appliedTags.filter(tag => tag.id !== tagId);
+    setSelectedTags(nextSelected);
+    setAppliedTags(nextApplied);
+    applyFilters(nextApplied, undefined);
+  };
+
+  const removeSortFilter = (sortValue: string) => {
+    let nextSelectedSort = selectedSortOptions;
+    if (selectedSortOptions === sortValue) {
+      nextSelectedSort = '';
+      setSelectedSortOptions('');
+    }
+    const nextAppliedSort = appliedSortOptions.filter(option => option.value !== sortValue);
+    setAppliedSortOptions(nextAppliedSort);
+    applyFilters(undefined, nextAppliedSort);
   };
 
   // Close dropdowns when clicking outside

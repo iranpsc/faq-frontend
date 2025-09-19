@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import { clsx } from 'clsx';
 
 interface ContentAreaProps {
@@ -36,6 +36,32 @@ export function ContentArea({
   sidebar,
   footer
 }: ContentAreaProps) {
+  const [isSidebarFixed, setIsSidebarFixed] = useState(true);
+  const footerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!footerRef.current || !footer) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        // When footer comes into view, make sidebar follow normal flow
+        // When footer goes out of view, make sidebar fixed
+        setIsSidebarFixed(!entry.isIntersecting);
+      },
+      {
+        threshold: 0.1, // Trigger when 10% of footer is visible
+        rootMargin: '0px 0px -100px 0px' // Start transition 100px before footer comes into view
+      }
+    );
+
+    observer.observe(footerRef.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [footer]);
+
   // Layout wrapper classes
   const layoutClasses = (() => {
     const gaps = {
@@ -134,22 +160,29 @@ export function ContentArea({
           </div>
         )}
 
+        {/* Question Filters Section */}
+        {filters && (
+          <div className="mb-6">
+            {filters}
+          </div>
+        )}
+
         {/* Main Layout */}
         <div className={layoutClasses}>
           {/* Main Content */}
           <div className={mainContentClasses}>
-            {filters && (
-              <div className="mb-6">
-                {filters}
-              </div>
-            )}
             {main}
             {children}
           </div>
 
           {/* Sidebar */}
           {sidebar && showSidebar && (
-            <div className={clsx(sidebarClasses, 'lg:sticky lg:top-5 h-fit')}>
+            <div className={clsx(
+              sidebarClasses, 
+              'h-fit', 
+              'hidden lg:block lg:self-start',
+              isSidebarFixed ? 'lg:sticky lg:top-5' : 'lg:relative'
+            )}>
               {sidebar}
             </div>
           )}
@@ -157,7 +190,7 @@ export function ContentArea({
 
         {/* Footer */}
         {footer && (
-          <div className="mt-12">
+          <div ref={footerRef} className="mt-12">
             {footer}
           </div>
         )}
