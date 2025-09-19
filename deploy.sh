@@ -33,7 +33,7 @@ echo -e "${GREEN}✅ Node.js version: $(node -v)${NC}"
 
 # Install dependencies
 echo -e "${YELLOW}📦 Installing dependencies...${NC}"
-npm ci --only=production
+npm ci
 
 # Run linting
 echo -e "${YELLOW}🔍 Running linting...${NC}"
