@@ -5,8 +5,15 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
+    "build:prod": "NODE_ENV=production next build",
     "start": "next start",
-    "lint": "eslint"
+    "start:prod": "NODE_ENV=production next start -p 3000",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "type-check": "tsc --noEmit",
+    "analyze": "ANALYZE=true next build",
+    "export": "next export",
+    "postbuild": "next-sitemap"
   },
   "dependencies": {
     "@ckeditor/ckeditor5-build-classic": "^41.4.2",
