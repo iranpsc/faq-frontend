@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { BaseCard } from '@/components/ui/BaseCard';
 import { BaseAvatar } from '@/components/ui/BaseAvatar';
@@ -14,8 +14,8 @@ import Link from 'next/link';
 interface UserProfile {
   name: string;
   email: string;
-  mobile?: string;
-  image_url?: string;
+  mobile: string;
+  image_url: string;
   score: number;
   online: boolean;
   login_notification_enabled: boolean;
@@ -74,14 +74,14 @@ export default function ProfilePage() {
     message: '',
   });
 
-  const showAlert = (type: AlertState['type'], message: string) => {
+  const showAlert = useCallback((type: AlertState['type'], message: string) => {
     setAlert({ type, message, show: true });
     setTimeout(() => {
       setAlert(prev => ({ ...prev, show: false }));
     }, 5000);
-  };
+  }, []);
 
-  const loadUserData = () => {
+  const loadUserData = useCallback(() => {
     if (user) {
       setProfileData(prev => ({
         name: user.name || '',
@@ -102,9 +102,9 @@ export default function ProfilePage() {
           : user.login_notification_enabled || false,
       }));
     }
-  };
+  }, [user, settingsManuallyUpdated]);
 
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = useCallback(async () => {
     setLoadingProfile(true);
     try {
       const response = await apiService.getUserProfile();
@@ -134,9 +134,9 @@ export default function ProfilePage() {
     } finally {
       setLoadingProfile(false);
     }
-  };
+  }, [showAlert]);
 
-  const fetchUserStats = async () => {
+  const fetchUserStats = useCallback(async () => {
     setLoadingStats(true);
     try {
       const response = await apiService.getUserStats();
@@ -151,9 +151,9 @@ export default function ProfilePage() {
     } finally {
       setLoadingStats(false);
     }
-  };
+  }, [showAlert]);
 
-  const fetchRecentActivity = async () => {
+  const fetchRecentActivity = useCallback(async () => {
     setLoadingActivity(true);
     try {
       const response = await apiService.getUserActivity();
@@ -168,7 +168,7 @@ export default function ProfilePage() {
     } finally {
       setLoadingActivity(false);
     }
-  };
+  }, [showAlert]);
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -307,7 +307,7 @@ export default function ProfilePage() {
       fetchUserStats();
       fetchRecentActivity();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, loadUserData, fetchUserProfile, fetchUserStats, fetchRecentActivity]);
 
   if (!isAuthenticated) {
     return (

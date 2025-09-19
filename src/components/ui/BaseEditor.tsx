@@ -12,6 +12,7 @@ const CKEditor = dynamic(() => import('@ckeditor/ckeditor5-react').then(mod => (
 });
 
 // Import ClassicEditor directly but handle SSR
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let ClassicEditor: any = null;
 
 interface BaseEditorProps {
@@ -45,8 +46,10 @@ export function BaseEditor({
 
   // Custom Base64 upload adapter for image uploads
   class Base64UploadAdapter {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     loader: any;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(loader: any) {
       this.loader = loader;
     }
@@ -70,7 +73,9 @@ export function BaseEditor({
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function uploadPlugin(editor: any) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     editor.plugins.get('FileRepository').createUploadAdapter = (loader: any) => {
       return new Base64UploadAdapter(loader);
     };
@@ -134,10 +139,11 @@ export function BaseEditor({
     loadEditor();
   }, []);
 
-  const handleEditorReady = (editor: any) => {
+  const handleEditorReady = () => {
     // Editor is ready
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleEditorChange = (event: any, editor: any) => {
     const data = editor.getData();
     onChange(data);

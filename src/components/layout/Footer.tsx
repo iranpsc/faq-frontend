@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { BaseCard } from '../ui/BaseCard';
 import { BaseButton } from '../ui/BaseButton';
 
@@ -31,15 +32,13 @@ export function Footer({ onAskQuestion }: FooterProps) {
           target="_blank" 
           title="وزارت تعاون کار و رفاه اجتماعی"
         >
-          <img 
+          <Image 
             src="https://irpsc.com/img-icon/vezarat.png" 
             alt="وزارت تعاون کار و رفاه اجتماعی" 
-            width="55" 
-            height="55" 
+            width={55} 
+            height={55} 
             loading="lazy" 
-            decoding="async" 
-            referrerPolicy="no-referrer" 
-            style={{ aspectRatio: '1/1', objectFit: 'contain' }}
+            referrerPolicy="no-referrer"
           />
         </a>
         <a 
@@ -49,15 +48,13 @@ export function Footer({ onAskQuestion }: FooterProps) {
           style={{ width: '55px', height: '55px' }} 
           title="نماد اعتماد الکترونیک"
         >
-          <img 
+          <Image 
             src="https://irpsc.com/img-icon/enamad.png" 
             alt="نماد اعتماد الکترونیک" 
-            width="55" 
-            height="55" 
+            width={55} 
+            height={55} 
             loading="lazy" 
-            decoding="async" 
-            referrerPolicy="no-referrer" 
-            style={{ aspectRatio: '1/1', objectFit: 'contain' }}
+            referrerPolicy="no-referrer"
           />
         </a>
         <a 
@@ -66,15 +63,13 @@ export function Footer({ onAskQuestion }: FooterProps) {
           style={{ width: '55px', height: '55px' }} 
           title="ثبت اسناد و املاک کشور"
         >
-          <img 
+          <Image 
             src="https://irpsc.com/img-icon/qazaii.png" 
             alt="ثبت اسناد و املاک کشور" 
-            width="55" 
-            height="55" 
+            width={55} 
+            height={55} 
             loading="lazy" 
-            decoding="async" 
-            referrerPolicy="no-referrer" 
-            style={{ aspectRatio: '1/1', objectFit: 'contain' }}
+            referrerPolicy="no-referrer"
           />
         </a>
         <a 
@@ -83,15 +78,13 @@ export function Footer({ onAskQuestion }: FooterProps) {
           style={{ width: '55px', height: '55px' }} 
           title="مرکز آموزش ویدئویی"
         >
-          <img 
+          <Image 
             src="https://irpsc.com/img-icon/video.png" 
             alt="مرکز آموزش ویدئویی" 
-            width="55" 
-            height="55" 
+            width={55} 
+            height={55} 
             loading="lazy" 
-            decoding="async" 
-            referrerPolicy="no-referrer" 
-            style={{ aspectRatio: '1/1', objectFit: 'contain' }}
+            referrerPolicy="no-referrer"
           />
         </a>
         <a 
@@ -100,15 +93,13 @@ export function Footer({ onAskQuestion }: FooterProps) {
           style={{ width: '55px', height: '55px' }} 
           title="انجمن پرسش و پاسخ"
         >
-          <img 
+          <Image 
             src="https://irpsc.com/img-icon/faq.png" 
             alt="انجمن پرسش و پاسخ" 
-            width="55" 
-            height="55" 
+            width={55} 
+            height={55} 
             loading="lazy" 
-            decoding="async" 
-            referrerPolicy="no-referrer" 
-            style={{ aspectRatio: '1/1', objectFit: 'contain' }}
+            referrerPolicy="no-referrer"
           />
         </a>
         <a 
@@ -117,15 +108,13 @@ export function Footer({ onAskQuestion }: FooterProps) {
           style={{ width: '55px', height: '55px' }} 
           title="فروشگاه ملی"
         >
-          <img 
+          <Image 
             src="https://irpsc.com/img-icon/shop.png" 
             alt="فروشگاه ملی" 
-            width="55" 
-            height="55" 
+            width={55} 
+            height={55} 
             loading="lazy" 
-            decoding="async" 
-            referrerPolicy="no-referrer" 
-            style={{ aspectRatio: '1/1', objectFit: 'contain' }}
+            referrerPolicy="no-referrer"
           />
         </a>
         <a 
@@ -134,15 +123,13 @@ export function Footer({ onAskQuestion }: FooterProps) {
           style={{ width: '55px', height: '55px' }} 
           title="تولید کنندگان"
         >
-          <img 
+          <Image 
             src="https://irpsc.com/img-icon/supply.png" 
             alt="تولید کنندگان" 
-            width="55" 
-            height="55" 
+            width={55} 
+            height={55} 
             loading="lazy" 
-            decoding="async" 
-            referrerPolicy="no-referrer" 
-            style={{ aspectRatio: '1/1', objectFit: 'contain' }}
+            referrerPolicy="no-referrer"
           />
         </a>
         <a 
@@ -151,15 +138,13 @@ export function Footer({ onAskQuestion }: FooterProps) {
           style={{ width: '55px', height: '55px' }} 
           title="مدیریت بر مدیران"
         >
-          <img 
+          <Image 
             src="https://irpsc.com/img-icon/crm.png" 
             alt="مدیریت بر مدیران" 
-            width="55" 
-            height="55" 
+            width={55} 
+            height={55} 
             loading="lazy" 
-            decoding="async" 
-            referrerPolicy="no-referrer" 
-            style={{ aspectRatio: '1/1', objectFit: 'contain' }}
+            referrerPolicy="no-referrer"
           />
         </a>
         <a 
@@ -168,15 +153,13 @@ export function Footer({ onAskQuestion }: FooterProps) {
           style={{ width: '55px', height: '55px' }} 
           title="نگرش ملی"
         >
-          <img 
+          <Image 
             src="https://irpsc.com/img-icon/target.png" 
             alt="نگرش ملی" 
-            width="55" 
-            height="55" 
+            width={55} 
+            height={55} 
             loading="lazy" 
-            decoding="async" 
-            referrerPolicy="no-referrer" 
-            style={{ aspectRatio: '1/1', objectFit: 'contain' }}
+            referrerPolicy="no-referrer"
           />
         </a>
         <a 
@@ -185,15 +168,13 @@ export function Footer({ onAskQuestion }: FooterProps) {
           style={{ width: '55px', height: '55px' }} 
           title="حیوانات و دامپزشک"
         >
-          <img 
+          <Image 
             src="https://irpsc.com/img-icon/animal.png" 
             alt="حیوانات و دامپزشک" 
-            width="55" 
-            height="55" 
+            width={55} 
+            height={55} 
             loading="lazy" 
-            decoding="async" 
-            referrerPolicy="no-referrer" 
-            style={{ aspectRatio: '1/1', objectFit: 'contain' }}
+            referrerPolicy="no-referrer"
           />
         </a>
         <a 
@@ -202,15 +183,13 @@ export function Footer({ onAskQuestion }: FooterProps) {
           style={{ width: '55px', height: '55px' }} 
           title="رسانه ملی"
         >
-          <img 
+          <Image 
             src="https://irpsc.com/img-icon/irpsc.png" 
             alt="رسانه ملی" 
-            width="55" 
-            height="55" 
+            width={55} 
+            height={55} 
             loading="lazy" 
-            decoding="async" 
-            referrerPolicy="no-referrer" 
-            style={{ aspectRatio: '1/1', objectFit: 'contain' }}
+            referrerPolicy="no-referrer"
           />
         </a>
         <a 
@@ -219,15 +198,13 @@ export function Footer({ onAskQuestion }: FooterProps) {
           style={{ width: '55px', height: '55px' }} 
           title="اخبار متا"
         >
-          <img 
+          <Image 
             src="https://irpsc.com/img-icon/meta.png" 
             alt="اخبار متا" 
-            width="55" 
-            height="55" 
+            width={55} 
+            height={55} 
             loading="lazy" 
-            decoding="async" 
-            referrerPolicy="no-referrer" 
-            style={{ aspectRatio: '1/1', objectFit: 'contain' }}
+            referrerPolicy="no-referrer"
           />
         </a>
         <a 
@@ -236,15 +213,13 @@ export function Footer({ onAskQuestion }: FooterProps) {
           style={{ width: '55px', height: '55px' }} 
           title="دانشگاه متاورس"
         >
-          <img 
+          <Image 
             src="https://irpsc.com/img-icon/uni.png" 
             alt="دانشگاه متاورس" 
-            width="55" 
-            height="55" 
+            width={55} 
+            height={55} 
             loading="lazy" 
-            decoding="async" 
-            referrerPolicy="no-referrer" 
-            style={{ aspectRatio: '1/1', objectFit: 'contain' }}
+            referrerPolicy="no-referrer"
           />
         </a>
         <a 
@@ -253,15 +228,13 @@ export function Footer({ onAskQuestion }: FooterProps) {
           style={{ width: '55px', height: '55px' }}
           title="استخدام | دانش محور"
         >
-          <img 
+          <Image 
             src="https://irpsc.com/img-icon/knowledge.png" 
             alt="استخدام | دانش محور" 
-            width="55" 
-            height="55" 
+            width={55} 
+            height={55} 
             loading="lazy" 
-            decoding="async" 
-            referrerPolicy="no-referrer" 
-            style={{ aspectRatio: '1/1', objectFit: 'contain' }}
+            referrerPolicy="no-referrer"
           />
         </a>
         <a 
@@ -270,15 +243,13 @@ export function Footer({ onAskQuestion }: FooterProps) {
           style={{ width: '55px', height: '55px' }} 
           title="فروشگاه مجازی حم"
         >
-          <img 
+          <Image 
             src="https://irpsc.com/img-icon/sale.png" 
             alt="فروشگاه مجازی حم" 
-            width="55" 
-            height="55" 
+            width={55} 
+            height={55} 
             loading="lazy" 
-            decoding="async" 
-            referrerPolicy="no-referrer" 
-            style={{ aspectRatio: '1/1', objectFit: 'contain' }}
+            referrerPolicy="no-referrer"
           />
         </a>
         <a 
@@ -287,15 +258,13 @@ export function Footer({ onAskQuestion }: FooterProps) {
           style={{ width: '55px', height: '55px' }} 
           title="تبلیغات ملی"
         >
-          <img 
+          <Image 
             src="https://irpsc.com/img-icon/ad.png" 
             alt="تبلیغات ملی" 
-            width="55" 
-            height="55" 
+            width={55} 
+            height={55} 
             loading="lazy" 
-            decoding="async" 
-            referrerPolicy="no-referrer" 
-            style={{ aspectRatio: '1/1', objectFit: 'contain' }}
+            referrerPolicy="no-referrer"
           />
         </a>
         <a 
@@ -304,15 +273,13 @@ export function Footer({ onAskQuestion }: FooterProps) {
           style={{ width: '55px', height: '55px' }} 
           title="بازار NFT"
         >
-          <img 
+          <Image 
             src="https://irpsc.com/img-icon/nft.png" 
             alt="بازار NFT" 
-            width="55" 
-            height="55" 
+            width={55} 
+            height={55} 
             loading="lazy" 
-            decoding="async" 
-            referrerPolicy="no-referrer" 
-            style={{ aspectRatio: '1/1', objectFit: 'contain' }}
+            referrerPolicy="no-referrer"
           />
         </a>
         <a 
@@ -321,15 +288,13 @@ export function Footer({ onAskQuestion }: FooterProps) {
           style={{ width: '55px', height: '55px' }} 
           title="متاورس رنگ"
         >
-          <img 
+          <Image 
             src="https://irpsc.com/img-icon/rgb.png" 
             alt="متاورس رنگ" 
-            width="55" 
-            height="55" 
+            width={55} 
+            height={55} 
             loading="lazy" 
-            decoding="async" 
-            referrerPolicy="no-referrer" 
-            style={{ aspectRatio: '1/1', objectFit: 'contain' }}
+            referrerPolicy="no-referrer"
           />
         </a>
         <a 
@@ -338,27 +303,23 @@ export function Footer({ onAskQuestion }: FooterProps) {
           style={{ width: '55px', height: '55px' }} 
           title="سه بعدی متا"
         >
-          <img 
+          <Image 
             src="https://irpsc.com/img-icon/3d.gif" 
             alt="سه بعدی متا" 
-            width="55" 
-            height="55" 
+            width={55} 
+            height={55} 
             loading="lazy" 
-            decoding="async" 
-            referrerPolicy="no-referrer" 
-            style={{ aspectRatio: '1/1', objectFit: 'contain' }}
+            referrerPolicy="no-referrer"
           />
         </a>
         <a title="خانه" style={{ width: '55px', height: '55px' }}>
-          <img 
+          <Image 
             src="https://irpsc.com/img-icon/home-soon.png" 
             alt="خانه" 
-            width="55" 
-            height="55" 
+            width={55} 
+            height={55} 
             loading="lazy" 
-            decoding="async" 
-            referrerPolicy="no-referrer" 
-            style={{ aspectRatio: '1/1', objectFit: 'contain' }}
+            referrerPolicy="no-referrer"
           />
         </a>
       </div>

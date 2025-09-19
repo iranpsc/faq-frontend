@@ -6,7 +6,7 @@ import { clsx } from 'clsx';
 interface SelectOption {
   id: string;
   name: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface BaseSelectProps<T extends SelectOption = SelectOption> {
@@ -22,14 +22,12 @@ interface BaseSelectProps<T extends SelectOption = SelectOption> {
   onTagAdd?: (tag: string) => void;
   onFetchMore?: (page: number, search?: string) => Promise<void>;
   paginated?: boolean;
-  pageSize?: number;
   loading?: boolean;
   disabled?: boolean;
   required?: boolean;
-  className?: string;
 }
 
-export function BaseSelect<T = SelectOption>({
+export function BaseSelect<T extends SelectOption = SelectOption>({
   value,
   options,
   onChange,
@@ -42,11 +40,9 @@ export function BaseSelect<T = SelectOption>({
   onTagAdd,
   onFetchMore,
   paginated = false,
-  pageSize = 10,
   loading = false,
   disabled = false,
   required = false,
-  className,
 }: BaseSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -85,7 +81,7 @@ export function BaseSelect<T = SelectOption>({
 
   const handleSelect = (option: T) => {
     if (multiple) {
-      const currentValue = Array.isArray(value) ? value : [];
+      const currentValue: T[] = Array.isArray(value) ? value as T[] : [];
       const isSelected = currentValue.some(item => item.id === option.id);
       
       if (isSelected) {
@@ -180,7 +176,7 @@ export function BaseSelect<T = SelectOption>({
         >
           {multiple && Array.isArray(value) && value.length > 0 ? (
             <div className="flex flex-wrap gap-1 items-center min-h-[20px]">
-              {value.map((item) => (
+              {(value as T[]).map((item) => (
                 <span
                   key={item.id}
                   className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 text-xs rounded-md"
@@ -277,16 +273,16 @@ export function BaseSelect<T = SelectOption>({
                 filteredOptions.map((option) => (
                   <div
                     key={option.id}
-                    onClick={() => handleSelect(option)}
+                    onClick={() => handleSelect(option as T)}
                     className={clsx(
                       'relative cursor-pointer select-none py-2 pr-3 pl-9 hover:bg-blue-50 dark:hover:bg-blue-900/20',
-                      isSelected(option) && 'bg-blue-100 text-blue-900 dark:bg-blue-900/30 dark:text-blue-100'
+                      isSelected(option as T) && 'bg-blue-100 text-blue-900 dark:bg-blue-900/30 dark:text-blue-100'
                     )}
                   >
                     <span className="block truncate font-normal">
                       {option.name}
                     </span>
-                    {isSelected(option) && (
+                    {isSelected(option as T) && (
                       <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-blue-600 dark:text-blue-400">
                         <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />

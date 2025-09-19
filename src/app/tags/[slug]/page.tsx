@@ -101,7 +101,7 @@ function TagContent({ slug }: { slug: string }) {
                 <span className="text-gray-900 dark:text-gray-100">{tag?.name || slug}</span>
               </nav>
               <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">
-                سوالات برچسب "{tag?.name || slug}"
+                سوالات برچسب &quot;{tag?.name || slug}&quot;
               </h1>
             </div>
             <div className="mt-2 sm:mt-0 text-sm text-gray-600 dark:text-gray-400">

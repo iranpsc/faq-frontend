@@ -12,8 +12,7 @@
     "lint:fix": "eslint --fix",
     "type-check": "tsc --noEmit",
     "analyze": "ANALYZE=true next build",
-    "export": "next export",
-    "postbuild": "next-sitemap"
+    "export": "next export"
   },
   "dependencies": {
     "@ckeditor/ckeditor5-build-classic": "^41.4.2",

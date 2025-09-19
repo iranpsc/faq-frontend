@@ -7,7 +7,7 @@ import { useProgress } from '@/contexts/ProgressContext';
 export function useRouterProgress() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { startProgress, setProgress, completeProgress } = useProgress();
+  const { startProgress, setProgress, completeProgress, progress } = useProgress();
   const isNavigating = useRef(false);
 
   useEffect(() => {
@@ -21,13 +21,12 @@ export function useRouterProgress() {
 
     // Simulate progress updates
     const progressInterval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 90) {
-          clearInterval(progressInterval);
-          return 90;
-        }
-        return prev + Math.random() * 15;
-      });
+      if (progress >= 90) {
+        clearInterval(progressInterval);
+        setProgress(90);
+      } else {
+        setProgress(progress + Math.random() * 15);
+      }
     }, 100);
 
     // Complete progress after a short delay
@@ -41,5 +40,5 @@ export function useRouterProgress() {
       clearTimeout(completeTimeout);
       isNavigating.current = false;
     };
-  }, [pathname, searchParams]); // Remove the callback dependencies to prevent infinite loops
+  }, [pathname, searchParams, completeProgress, progress, setProgress, startProgress]); // Include all dependencies
 }

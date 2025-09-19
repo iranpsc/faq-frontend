@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { apiService } from '@/services/api';
-import { Question } from '@/services/api';
+import { Question, Answer } from '@/services/types';
 
 export function useQuestionDetails(slug: string) {
   const [question, setQuestion] = useState<Question | null>(null);
-  const [answers, setAnswers] = useState<any[]>([]);
+  const [answers, setAnswers] = useState<Answer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchQuestion = async () => {
+  const fetchQuestion = useCallback(async () => {
     if (!slug) return;
     
     setIsLoading(true);
@@ -27,7 +27,7 @@ export function useQuestionDetails(slug: string) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [slug]);
 
   const refetchQuestion = async () => {
     await fetchQuestion();
@@ -46,7 +46,7 @@ export function useQuestionDetails(slug: string) {
 
   useEffect(() => {
     fetchQuestion();
-  }, [slug]);
+  }, [slug, fetchQuestion]);
 
   return {
     question,

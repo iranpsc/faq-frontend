@@ -117,18 +117,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const handleEditQuestion = (question: Question) => {
-    setQuestionToEdit(question);
-    setShowQuestionModal(true);
-  };
-
-  const handleQuestionCreated = async (newQuestion: Question) => {
+  const handleQuestionCreated = async () => {
     setShowQuestionModal(false);
     // Refresh questions list
     refetch();
   };
 
-  const handleQuestionUpdated = async (updatedQuestion: Question) => {
+  const handleQuestionUpdated = async () => {
     setShowQuestionModal(false);
     setQuestionToEdit(null);
     // Refresh questions list

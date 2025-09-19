@@ -6,7 +6,13 @@ import {
   Category, 
   Tag, 
   PaginatedResponse,
-  DailyActivity
+  DailyActivity,
+  Answer,
+  Comment,
+  ApiParams,
+  VoteResponse,
+  ApiError,
+  QuestionActionResponse
 } from './types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
@@ -230,9 +236,12 @@ class ApiService {
   }
 
   // Questions API
-  async getQuestions(params: any = {}): Promise<PaginatedResponse<Question>> {
+  async getQuestions(params: Record<string, unknown> = {}): Promise<PaginatedResponse<Question>> {
     try {
-      const queryString = new URLSearchParams(params).toString();
+      const stringParams = Object.fromEntries(
+        Object.entries(params).map(([key, value]) => [key, String(value)])
+      );
+      const queryString = new URLSearchParams(stringParams).toString();
       const endpoint = queryString ? `/questions?${queryString}` : '/questions';
       const response = await this.request<PaginatedResponse<Question>>(endpoint);
       return response;
@@ -279,7 +288,7 @@ class ApiService {
   async searchQuestions(query: string, limit: number = 50): Promise<Question[]> {
     try {
       const q = encodeURIComponent(query);
-      const response = await this.request<{ success: boolean; data: any; message?: string }>(`/questions/search?q=${q}&limit=${limit}`);
+      const response = await this.request<{ success: boolean; data: Record<string, unknown> | Question[]; message?: string }>(`/questions/search?q=${q}&limit=${limit}`);
       // The backend returns { success, data: ResourceCollection, message }
       // ResourceCollection for non-paginated collections is typically { data: Question[] }
       const payload = response.data;
@@ -360,7 +369,7 @@ class ApiService {
 
   async deleteQuestion(id: string): Promise<{ success: boolean; error?: string }> {
     try {
-      const result = await this.request(`/questions/${id}`, {
+      await this.request(`/questions/${id}`, {
         method: 'DELETE',
       });
       return { success: true };
@@ -379,7 +388,7 @@ class ApiService {
       // Map the response to match our User interface
       return response.data.map(user => ({
         ...user,
-        image_url: user.image_url || (user as any).image, // Map 'image' to 'image_url'
+        image_url: user.image_url || (user as Record<string, unknown>).image as string, // Map 'image' to 'image_url'
         online: true, // Default to online since we don't have this data
         created_at: user.created_at || new Date().toISOString()
       }));
@@ -395,9 +404,12 @@ class ApiService {
   }
 
   // Tags API
-  async getTags(params: any = {}): Promise<Tag[]> {
+  async getTags(params: Record<string, unknown> = {}): Promise<Tag[]> {
     try {
-      const queryString = new URLSearchParams(params).toString();
+      const stringParams = Object.fromEntries(
+        Object.entries(params).map(([key, value]) => [key, String(value)])
+      );
+      const queryString = new URLSearchParams(stringParams).toString();
       const endpoint = queryString ? `/tags?${queryString}` : '/tags';
       const response = await this.request<{data: Tag[]}>(endpoint);
       return response.data;
@@ -407,9 +419,12 @@ class ApiService {
     }
   }
 
-  async getTagsPaginated(params: any = {}): Promise<{ success: boolean; data: PaginatedResponse<Tag>; error?: string }> {
+  async getTagsPaginated(params: ApiParams = {}): Promise<{ success: boolean; data: PaginatedResponse<Tag>; error?: string }> {
     try {
-      const queryString = new URLSearchParams(params).toString();
+      const stringParams = Object.fromEntries(
+        Object.entries(params).map(([key, value]) => [key, String(value)])
+      );
+      const queryString = new URLSearchParams(stringParams).toString();
       const endpoint = queryString ? `/tags?${queryString}` : '/tags';
       const response = await this.request<PaginatedResponse<Tag>>(endpoint);
       return { success: true, data: response };
@@ -497,9 +512,12 @@ class ApiService {
   }
 
   // Authors API
-  async getAuthors(params: any = {}): Promise<PaginatedResponse<User>> {
+  async getAuthors(params: Record<string, unknown> = {}): Promise<PaginatedResponse<User>> {
     try {
-      const queryString = new URLSearchParams(params).toString();
+      const stringParams = Object.fromEntries(
+        Object.entries(params).map(([key, value]) => [key, String(value)])
+      );
+      const queryString = new URLSearchParams(stringParams).toString();
       const endpoint = queryString ? `/authors?${queryString}` : '/authors';
       const response = await this.request<PaginatedResponse<User>>(endpoint);
       return response;
@@ -703,9 +721,9 @@ class ApiService {
   }
 
   // Answers API
-  async getQuestionAnswers(questionId: string, page: number = 1): Promise<PaginatedResponse<any>> {
+  async getQuestionAnswers(questionId: string, page: number = 1): Promise<PaginatedResponse<Answer>> {
     try {
-      const response = await this.request<PaginatedResponse<any>>(`/questions/${questionId}/answers?page=${page}`);
+      const response = await this.request<PaginatedResponse<Answer>>(`/questions/${questionId}/answers?page=${page}`);
       return response;
     } catch (error) {
       console.warn('Using fallback data for answers. Error:', error);
@@ -727,9 +745,9 @@ class ApiService {
     }
   }
 
-  async addAnswer(questionId: string, content: string): Promise<{ success: boolean; data?: any; error?: string }> {
+  async addAnswer(questionId: string, content: string): Promise<{ success: boolean; data?: Record<string, unknown>; error?: string }> {
     try {
-      const response = await this.request<{ data: any }>(`/questions/${questionId}/answers`, {
+      const response = await this.request<{ data: Record<string, unknown> }>(`/questions/${questionId}/answers`, {
         method: 'POST',
         body: JSON.stringify({ content }),
       });
@@ -742,9 +760,9 @@ class ApiService {
     }
   }
 
-  async updateAnswer(answerId: string, content: string): Promise<{ success: boolean; data?: any; error?: string }> {
+  async updateAnswer(answerId: string, content: string): Promise<{ success: boolean; data?: Record<string, unknown>; error?: string }> {
     try {
-      const response = await this.request<{ data: any }>(`/answers/${answerId}`, {
+      const response = await this.request<{ data: Record<string, unknown> }>(`/answers/${answerId}`, {
         method: 'PUT',
         body: JSON.stringify({ content }),
       });
@@ -759,7 +777,7 @@ class ApiService {
 
   async deleteAnswer(answerId: string): Promise<{ success: boolean; error?: string }> {
     try {
-      const result = await this.request(`/answers/${answerId}`, {
+      await this.request(`/answers/${answerId}`, {
         method: 'DELETE',
       });
       return { success: true };
@@ -785,9 +803,9 @@ class ApiService {
     }
   }
 
-  async toggleAnswerCorrectness(answerId: string): Promise<{ success: boolean; data?: any; error?: string }> {
+  async toggleAnswerCorrectness(answerId: string): Promise<{ success: boolean; data?: Record<string, unknown>; error?: string }> {
     try {
-      const response = await this.request<{ data: any }>(`/answers/${answerId}/toggle-correctness`, {
+      const response = await this.request<{ data: Record<string, unknown> }>(`/answers/${answerId}/toggle-correctness`, {
         method: 'POST',
       });
       return { success: true, data: response.data };
@@ -800,9 +818,9 @@ class ApiService {
   }
 
   // Comments API
-  async getComments(parentId: string, parentType: 'question' | 'answer', page: number = 1): Promise<PaginatedResponse<any>> {
+  async getComments(parentId: string, parentType: 'question' | 'answer', page: number = 1): Promise<PaginatedResponse<Comment>> {
     try {
-      const response = await this.request<PaginatedResponse<any>>(`/${parentType}s/${parentId}/comments?page=${page}`);
+      const response = await this.request<PaginatedResponse<Comment>>(`/${parentType}s/${parentId}/comments?page=${page}`);
       return response;
     } catch (error) {
       console.warn('Using fallback data for comments. Error:', error);
@@ -824,9 +842,9 @@ class ApiService {
     }
   }
 
-  async addComment(parentId: string, content: string, parentType: 'question' | 'answer'): Promise<{ success: boolean; data?: any; error?: string }> {
+  async addComment(parentId: string, content: string, parentType: 'question' | 'answer'): Promise<{ success: boolean; data?: Record<string, unknown>; error?: string }> {
     try {
-      const response = await this.request<{ data: any }>(`/${parentType}s/${parentId}/comments`, {
+      const response = await this.request<{ data: Record<string, unknown> }>(`/${parentType}s/${parentId}/comments`, {
         method: 'POST',
         body: JSON.stringify({ content }),
       });
@@ -839,9 +857,9 @@ class ApiService {
     }
   }
 
-  async updateComment(commentId: string, content: string): Promise<{ success: boolean; data?: any; error?: string }> {
+  async updateComment(commentId: string, content: string): Promise<{ success: boolean; data?: Record<string, unknown>; error?: string }> {
     try {
-      const response = await this.request<{ data: any }>(`/comments/${commentId}`, {
+      const response = await this.request<{ data: Record<string, unknown> }>(`/comments/${commentId}`, {
         method: 'PUT',
         body: JSON.stringify({ content }),
       });
@@ -856,7 +874,7 @@ class ApiService {
 
   async deleteComment(commentId: string): Promise<{ success: boolean; error?: string }> {
     try {
-      const result = await this.request(`/comments/${commentId}`, {
+      await this.request(`/comments/${commentId}`, {
         method: 'DELETE',
       });
       return { success: true };
@@ -883,43 +901,43 @@ class ApiService {
   }
 
   // Voting API
-  async vote(resourceType: 'question' | 'answer' | 'comment', resourceId: string, voteType: 'up' | 'down'): Promise<{ success: boolean; data?: any; error?: string; message?: string; status?: number }> {
+  async vote(resourceType: 'question' | 'answer' | 'comment', resourceId: string, voteType: 'up' | 'down'): Promise<{ success: boolean; data?: VoteResponse; error?: string; message?: string; status?: number }> {
     try {
-      const response = await this.request<{ data: any }>(`/${resourceType}s/${resourceId}/vote`, {
+      const response = await this.request<{ data: VoteResponse }>(`/${resourceType}s/${resourceId}/vote`, {
         method: 'POST',
         body: JSON.stringify({ type: voteType }),
       });
       return { success: true, data: response.data };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return { 
         success: false, 
         error: error instanceof Error ? error.message : 'خطا در رای دادن',
-        message: error?.response?.data?.message || error?.message,
-        status: error?.response?.status
+        message: (error as ApiError)?.response?.data?.message || (error as ApiError)?.message,
+        status: (error as ApiError)?.response?.status
       };
     }
   }
 
   // Question Actions API
-  async publishQuestion(questionId: string): Promise<{ success: boolean; data?: any; error?: string }> {
+  async publishQuestion(questionId: string): Promise<{ success: boolean; data?: Question; error?: string }> {
     try {
       const response = await this.request<{ 
         success: boolean; 
-        data: any; 
+        data: Question; 
         message: string; 
       }>(`/questions/${questionId}/publish`, {
         method: 'POST',
       });
       return { success: true, data: response.data };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return { 
         success: false, 
-        error: error?.response?.data?.message || error?.message || 'خطا در انتشار سوال'
+        error: (error as ApiError)?.response?.data?.message || (error as ApiError)?.message || 'خطا در انتشار سوال'
       };
     }
   }
 
-  async pinQuestion(questionId: string): Promise<{ success: boolean; data?: any; error?: string }> {
+  async pinQuestion(questionId: string): Promise<{ success: boolean; data?: QuestionActionResponse; error?: string }> {
     try {
       const response = await this.request<{ 
         success: boolean; 
@@ -933,18 +951,18 @@ class ApiService {
         success: true, 
         data: {
           is_pinned_by_user: response.is_pinned_by_user,
-          pinned_at: response.pinned_at
+          pinned_at: response.pinned_at || undefined
         }
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return { 
         success: false, 
-        error: error?.response?.data?.message || error?.message || 'خطا در پین کردن سوال'
+        error: (error as ApiError)?.response?.data?.message || (error as ApiError)?.message || 'خطا در پین کردن سوال'
       };
     }
   }
 
-  async unpinQuestion(questionId: string): Promise<{ success: boolean; data?: any; error?: string }> {
+  async unpinQuestion(questionId: string): Promise<{ success: boolean; data?: QuestionActionResponse; error?: string }> {
     try {
       const response = await this.request<{ 
         success: boolean; 
@@ -958,18 +976,18 @@ class ApiService {
         success: true, 
         data: {
           is_pinned_by_user: response.is_pinned_by_user,
-          pinned_at: response.pinned_at
+          pinned_at: response.pinned_at || undefined
         }
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return { 
         success: false, 
-        error: error?.response?.data?.message || error?.message || 'خطا در برداشتن پین سوال'
+        error: (error as ApiError)?.response?.data?.message || (error as ApiError)?.message || 'خطا در برداشتن پین سوال'
       };
     }
   }
 
-  async featureQuestion(questionId: string): Promise<{ success: boolean; data?: any; error?: string }> {
+  async featureQuestion(questionId: string): Promise<{ success: boolean; data?: QuestionActionResponse; error?: string }> {
     try {
       const response = await this.request<{ 
         success: boolean; 
@@ -983,18 +1001,18 @@ class ApiService {
         success: true, 
         data: {
           is_featured_by_user: response.is_featured_by_user,
-          featured_at: response.featured_at
+          featured_at: response.featured_at || undefined
         }
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return { 
         success: false, 
-        error: error?.response?.data?.message || error?.message || 'خطا در ویژه کردن سوال'
+        error: (error as ApiError)?.response?.data?.message || (error as ApiError)?.message || 'خطا در ویژه کردن سوال'
       };
     }
   }
 
-  async unfeatureQuestion(questionId: string): Promise<{ success: boolean; data?: any; error?: string }> {
+  async unfeatureQuestion(questionId: string): Promise<{ success: boolean; data?: QuestionActionResponse; error?: string }> {
     try {
       const response = await this.request<{ 
         success: boolean; 
@@ -1008,13 +1026,13 @@ class ApiService {
         success: true, 
         data: {
           is_featured_by_user: response.is_featured_by_user,
-          featured_at: response.featured_at
+          featured_at: response.featured_at || undefined
         }
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return { 
         success: false, 
-        error: error?.response?.data?.message || error?.message || 'خطا در برداشتن ویژگی سوال'
+        error: (error as ApiError)?.response?.data?.message || (error as ApiError)?.message || 'خطا در برداشتن ویژگی سوال'
       };
     }
   }
@@ -1031,11 +1049,11 @@ class ApiService {
       );
 
       return response;
-    } catch (error: any) {
+    } catch (error: unknown) {
       return { 
         success: false,
         data: [] as DailyActivity[],
-        error: error?.response?.data?.message || error?.message || 'خطا در دریافت فعالیت‌های روزانه'
+        error: (error as ApiError)?.response?.data?.message || (error as ApiError)?.message || 'خطا در دریافت فعالیت‌های روزانه'
       };
     }
   }

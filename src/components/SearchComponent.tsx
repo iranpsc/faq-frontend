@@ -29,7 +29,6 @@ export function SearchComponent({
   variant = 'filled',
   rounded = 'xl',
   inputClass = '',
-  searchLimit = 8,
   debounceMs = 300,
   position = 'desktop',
   onUpdateModelValue,
@@ -159,21 +158,6 @@ export function SearchComponent({
     }
   }, [router, onSelect, onMobileSearchToggle]);
 
-  // Toggle mobile search
-  const toggleMobileSearch = useCallback(() => {
-    if (onMobileSearchToggle) {
-      onMobileSearchToggle();
-    } else {
-      setInternalMobileSearchOpen(!internalMobileSearchOpen);
-    }
-    if (!isMobileSearchOpen) {
-      setTimeout(() => {
-        if (mobileSearchInput.current) {
-          mobileSearchInput.current.focus();
-        }
-      }, 100);
-    }
-  }, [isMobileSearchOpen, onMobileSearchToggle, internalMobileSearchOpen]);
 
   // Show more questions
   const showMoreQuestions = useCallback(() => {
@@ -220,7 +204,7 @@ export function SearchComponent({
         }
         break;
     }
-  }, [showDropdown, isMobileSearchOpen, displayedResults, selectedIndex, selectQuestion, searchQuery, onSearch, hideDropdown]);
+  }, [showDropdown, isMobileSearchOpen, displayedResults, selectedIndex, selectQuestion, searchQuery, onSearch, hideDropdown, onMobileSearchToggle]);
 
   // Handle click outside
   const handleClickOutside = useCallback((event: MouseEvent) => {
@@ -235,7 +219,7 @@ export function SearchComponent({
         setInternalMobileSearchOpen(false);
       }
     }
-  }, [hideDropdown]);
+  }, [hideDropdown, onMobileSearchToggle]);
 
   // Effects
   useEffect(() => {
@@ -360,7 +344,7 @@ export function SearchComponent({
                         {/* Views */}
                         <span className="flex items-center gap-1">
                           <Eye className="w-4 h-4" />
-                          <span className="mt-[5px] text-sm">{(question as any).views ?? question.views_count ?? 0}</span>
+                          <span className="mt-[5px] text-sm">{(question as Question & { views?: number }).views ?? question.views_count ?? 0}</span>
                         </span>
                       </div>
                     </div>
@@ -488,7 +472,7 @@ export function SearchComponent({
                           {/* Views */}
                           <span className="flex items-center gap-1">
                             <Eye className="w-3 h-3" />
-                            {(question as any).views ?? question.views_count ?? 0}
+                            {(question as Question & { views?: number }).views ?? question.views_count ?? 0}
                           </span>
                         </div>
                       </div>

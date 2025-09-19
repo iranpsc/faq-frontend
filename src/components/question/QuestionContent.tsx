@@ -8,13 +8,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSweetAlert } from '@/hooks/useSweetAlert';
 import { apiService } from '@/services/api';
 import { Question } from '@/services/api';
+import { VoteChangedData, VoteData } from '@/services/types';
 
 interface QuestionContentProps {
   question: Question;
   onEdit: () => void;
   onDelete: () => void;
-  onVote: (voteData: any) => void;
-  onVoteChanged: (voteData: any) => void;
+  onVoteChanged: (voteData: VoteChangedData) => void;
   onQuestionPublished?: (question: Question) => void;
   onPinChanged?: (data: { questionId: string; isPinned: boolean; pinnedAt?: string }) => void;
   onFeatureChanged?: (data: { questionId: string; isFeatured: boolean; featuredAt?: string }) => void;
@@ -24,7 +24,6 @@ export function QuestionContent({
   question, 
   onEdit, 
   onDelete, 
-  onVote, 
   onVoteChanged,
   onQuestionPublished,
   onPinChanged,
@@ -52,8 +51,18 @@ export function QuestionContent({
     return date.toLocaleDateString('fa-IR');
   };
 
-  const handleVoteChanged = (voteData: any) => {
-    onVoteChanged(voteData);
+  const handleVoteChanged = (voteData: VoteData) => {
+    // Convert VoteData to VoteChangedData format
+    const voteChangedData: VoteChangedData = {
+      type: 'question',
+      id: question.id,
+      votes: {
+        upvotes: voteData.upvotes,
+        downvotes: voteData.downvotes,
+        user_vote: voteData.userVote
+      }
+    };
+    onVoteChanged(voteChangedData);
   };
 
   const publishQuestion = async () => {
@@ -85,11 +94,11 @@ export function QuestionContent({
         throw new Error(response.error || 'خطا در انتشار سوال');
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error publishing question:', error);
       await swalFire({
         title: 'خطا!',
-        text: error?.message || 'خطا در انتشار سوال',
+        text: error instanceof Error ? error.message : 'خطا در انتشار سوال',
         icon: 'error'
       });
     } finally {
@@ -116,7 +125,7 @@ export function QuestionContent({
       if (response.success && response.data) {
         // Update the question object
         question.is_pinned_by_user = response.data.is_pinned_by_user;
-        question.pinned_at = response.data.pinned_at;
+        question.pinned_at = response.data.pinned_at || undefined;
 
         // Emit event to parent
         if (onPinChanged) {
@@ -131,11 +140,11 @@ export function QuestionContent({
       } else {
         throw new Error(response.error || 'خطا در تغییر وضعیت پین');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error toggling pin:', error);
 
       let errorMessage = 'خطا در تغییر وضعیت پین';
-      if (error?.message) {
+      if (error instanceof Error) {
         errorMessage = error.message;
       }
 
@@ -182,7 +191,7 @@ export function QuestionContent({
       if (response.success && response.data) {
         // Update the question object
         question.is_featured_by_user = response.data.is_featured_by_user;
-        question.featured_at = response.data.featured_at;
+        question.featured_at = response.data.featured_at || undefined;
 
         // Update permissions based on the new state
         if (question.can) {
@@ -210,11 +219,11 @@ export function QuestionContent({
       } else {
         throw new Error(response.error || 'خطا در تغییر وضعیت ویژگی');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error toggling feature:', error);
 
       let errorMessage = 'خطا در تغییر وضعیت ویژگی';
-      if (error?.message) {
+      if (error instanceof Error) {
         errorMessage = error.message;
       }
 

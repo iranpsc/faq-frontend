@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { apiService } from '@/services/api';
 import { Category } from '@/services/types';
 
@@ -15,7 +15,7 @@ export function useCategories(limit?: number): UseCategoriesReturn {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -27,9 +27,9 @@ export function useCategories(limit?: number): UseCategoriesReturn {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [limit]);
 
-  const fetchCategoriesPaginated = async (page: number, search?: string): Promise<{ success: boolean; data?: Category[]; error?: string }> => {
+  const fetchCategoriesPaginated = async (page: number): Promise<{ success: boolean; data?: Category[]; error?: string }> => {
     try {
       const response = await apiService.getCategoriesPaginated(page);
       return { success: true, data: response.data };
@@ -41,7 +41,7 @@ export function useCategories(limit?: number): UseCategoriesReturn {
 
   useEffect(() => {
     fetchCategories();
-  }, [limit]);
+  }, [limit, fetchCategories]);
 
   return {
     categories,

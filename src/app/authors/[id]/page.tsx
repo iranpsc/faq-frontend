@@ -25,6 +25,16 @@ export default function AuthorDetailPage({ params }: AuthorDetailPageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchAuthorQuestions = useCallback(async (page = 1) => {
+    try {
+      const response = await apiService.getAuthorQuestions(resolvedParams.id, page);
+      setQuestions(response.data);
+      setPagination(response.meta);
+    } catch (err) {
+      console.error('Error fetching author questions:', err);
+    }
+  }, [resolvedParams.id]);
+
   const loadAuthor = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -40,17 +50,7 @@ export default function AuthorDetailPage({ params }: AuthorDetailPageProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [resolvedParams.id, searchParams]);
-
-  const fetchAuthorQuestions = useCallback(async (page = 1) => {
-    try {
-      const response = await apiService.getAuthorQuestions(resolvedParams.id, page);
-      setQuestions(response.data);
-      setPagination(response.meta);
-    } catch (err) {
-      console.error('Error fetching author questions:', err);
-    }
-  }, [resolvedParams.id]);
+  }, [resolvedParams.id, searchParams, fetchAuthorQuestions]);
 
   const handlePageChange = useCallback(async (page: number) => {
     if (pagination && page === pagination.current_page) return;

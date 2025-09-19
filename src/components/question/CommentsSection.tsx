@@ -1,36 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { BaseAvatar } from '../ui/BaseAvatar';
 import { VoteButtons } from '../ui/VoteButtons';
 import { useAuth } from '../../contexts/AuthContext';
 import { useComments } from '../../hooks/useComments';
 import { useSweetAlert } from '../../hooks/useSweetAlert';
-
-interface Comment {
-  id: string;
-  content: string;
-  created_at: string;
-  updated_at: string;
-  published: boolean;
-  user: {
-    id: string;
-    name: string;
-    image_url?: string;
-    score: number;
-  };
-  votes: {
-    upvotes: number;
-    downvotes: number;
-    user_vote: string | null;
-  };
-  can: {
-    update?: boolean;
-    delete?: boolean;
-    publish?: boolean;
-  };
-}
+import { Comment, VoteData } from '../../services/types';
 
 interface PaginationMeta {
   current_page: number;
@@ -51,10 +28,9 @@ export function CommentsSection({
   parentType, 
   onCommentAdded 
 }: CommentsSectionProps) {
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const {
     comments,
-    isLoading,
     isSubmitting,
     isUpdating,
     isDeleting,
@@ -79,13 +55,7 @@ export function CommentsSection({
 
   const hasMoreComments = commentsPagination && commentsPagination.current_page < commentsPagination.last_page;
 
-  useEffect(() => {
-    if (parentId) {
-      fetchCommentsData(parentId, parentType);
-    }
-  }, [parentId, parentType]);
-
-  const fetchCommentsData = async (parentId: string, parentType: 'question' | 'answer', page = 1, append = false) => {
+  const fetchCommentsData = useCallback(async (parentId: string, parentType: 'question' | 'answer', page = 1) => {
     const result = await fetchComments(parentId, parentType);
     if (result && result.success) {
       // Assuming the API returns pagination metadata
@@ -93,13 +63,19 @@ export function CommentsSection({
       setCurrentCommentsPage(page);
       // Comments are managed by the hook, so we don't need to update them here
     }
-  };
+  }, [fetchComments]);
+
+  useEffect(() => {
+    if (parentId) {
+      fetchCommentsData(parentId, parentType);
+    }
+  }, [parentId, parentType, fetchCommentsData]);
 
   const loadMoreComments = async () => {
     if (!hasMoreComments || isLoadingMore || !parentId) return;
     setIsLoadingMore(true);
     try {
-      await fetchCommentsData(parentId, parentType as 'question' | 'answer', currentCommentsPage + 1, true);
+      await fetchCommentsData(parentId, parentType as 'question' | 'answer', currentCommentsPage + 1);
     } finally {
       setIsLoadingMore(false);
     }
@@ -107,7 +83,7 @@ export function CommentsSection({
 
   const formatNumber = (num: number) => new Intl.NumberFormat('fa-IR').format(num);
 
-  const handleCommentVoteChanged = (commentId: string, voteData: any) => {
+  const handleCommentVoteChanged = (commentId: string, voteData: VoteData) => {
     // Note: In the hook-based approach, vote changes are handled by the hook
     // This function is kept for compatibility but actual updates should be managed by the hook
     console.log('Vote changed for comment:', commentId, voteData);
@@ -355,7 +331,7 @@ export function CommentsSection({
                       initialDownvotes={comment.votes?.downvotes || 0}
                       initialUserVote={comment.votes?.user_vote}
                       size="small"
-                      onVoteChanged={(voteData: any) => handleCommentVoteChanged(comment.id, voteData)}
+                      onVoteChanged={(voteData: VoteData) => handleCommentVoteChanged(comment.id, voteData)}
                     />
 
                     {/* Edit/Delete */}
@@ -487,16 +463,3 @@ export function CommentsSection({
   );
 }
 
-// CSS styles for overflow handling
-const styles = `
-.overflow-wrap-anywhere {
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  hyphens: auto;
-}
-
-textarea {
-  min-width: 0;
-  width: 100%;
-}
-`;

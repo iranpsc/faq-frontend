@@ -11,7 +11,7 @@ interface SortOption {
 }
 
 interface FilterQuestionProps {
-  onFiltersChanged?: (filters: any) => void;
+  onFiltersChanged?: (filters: Record<string, unknown>) => void;
 }
 
 export function FilterQuestion({ onFiltersChanged }: FilterQuestionProps) {
@@ -45,10 +45,11 @@ export function FilterQuestion({ onFiltersChanged }: FilterQuestionProps) {
 
   const hasActiveFilters = appliedTags.length > 0 || appliedSortOptions.length > 0;
 
-  // Initialize and fetch tags (with debounce on search)
+  // Fetch tags only when dropdown is opened or search query changes
   useEffect(() => {
+    if (!showTagsFilter) return;
+    
     let isCancelled = false;
-    let debounceTimer: number | undefined;
 
     const fetchTags = async (q: string) => {
       try {
@@ -57,20 +58,20 @@ export function FilterQuestion({ onFiltersChanged }: FilterQuestionProps) {
         if (!isCancelled) {
           setAvailableTags(data);
         }
-      } catch (err) {
+      } catch {
         if (!isCancelled) {
           setAvailableTags([]);
         }
       }
     };
 
-    // Initial fetch
+    // Fetch tags when dropdown opens
     if (availableTags.length === 0 && tagSearchQuery === '') {
       fetchTags('');
     }
 
     // Debounced fetch on search input
-    debounceTimer = window.setTimeout(() => {
+    const debounceTimer = window.setTimeout(() => {
       fetchTags(tagSearchQuery.trim());
     }, 300);
 
@@ -78,7 +79,7 @@ export function FilterQuestion({ onFiltersChanged }: FilterQuestionProps) {
       isCancelled = true;
       if (debounceTimer) window.clearTimeout(debounceTimer);
     };
-  }, [tagSearchQuery]);
+  }, [showTagsFilter, tagSearchQuery, availableTags.length]);
 
   // Filter methods
   const toggleTagsFilter = () => {
@@ -92,7 +93,7 @@ export function FilterQuestion({ onFiltersChanged }: FilterQuestionProps) {
   };
 
   const applyFilters = (nextAppliedTags?: Tag[], nextAppliedSortOptions?: SortOption[]) => {
-    let params: any = { page: 1 };
+    const params: Record<string, string | number> = { page: 1 };
 
     const tagsToUse = nextAppliedTags ?? appliedTags;
     const sortToUse = nextAppliedSortOptions ?? appliedSortOptions;
@@ -174,9 +175,7 @@ export function FilterQuestion({ onFiltersChanged }: FilterQuestionProps) {
   };
 
   const removeSortFilter = (sortValue: string) => {
-    let nextSelectedSort = selectedSortOptions;
     if (selectedSortOptions === sortValue) {
-      nextSelectedSort = '';
       setSelectedSortOptions('');
     }
     const nextAppliedSort = appliedSortOptions.filter(option => option.value !== sortValue);

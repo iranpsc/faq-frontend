@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { apiService } from '@/services/api';
+import { Comment } from '@/services/types';
 
 export function useComments() {
-  const [comments, setComments] = useState<any[]>([]);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -27,7 +28,7 @@ export function useComments() {
     try {
       const result = await apiService.addComment(parentId, content, parentType);
       if (result.success && result.data) {
-        setComments(prev => [result.data, ...prev]);
+        setComments(prev => [result.data as unknown as Comment, ...prev]);
       }
       return result;
     } catch (error) {
@@ -47,7 +48,7 @@ export function useComments() {
       if (result.success && result.data) {
         setComments(prev => prev.map(comment => 
           comment.id === commentId 
-            ? { ...comment, content: result.data.content, updated_at: result.data.updated_at }
+            ? { ...comment, content: result.data!.content as string, updated_at: result.data!.updated_at as string }
             : comment
         ));
       }

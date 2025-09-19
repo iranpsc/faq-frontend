@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ContentArea } from '@/components/ContentArea';
@@ -15,7 +15,7 @@ function TagsContent() {
   const searchParams = useSearchParams();
   const [currentPage, setCurrentPage] = useState(1);
   const [tags, setTags] = useState<Tag[]>([]);
-  const [pagination, setPagination] = useState<{ meta: any; links: any }>({ meta: null, links: null });
+  const [pagination, setPagination] = useState<{ meta: Record<string, unknown> | null; links: Record<string, unknown> | null }>({ meta: null, links: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -174,13 +174,13 @@ function TagsContent() {
               </div>
 
               {/* Pagination */}
-              {pagination.meta && pagination.meta.last_page > 1 && (
+              {pagination.meta && (pagination.meta.last_page as number) > 1 && (
                 <div className="mt-8">
                   <BasePagination
-                    currentPage={pagination.meta.current_page}
-                    totalPages={pagination.meta.last_page}
-                    total={pagination.meta.total}
-                    perPage={pagination.meta.per_page}
+                    currentPage={pagination.meta.current_page as number}
+                    totalPages={pagination.meta.last_page as number}
+                    total={pagination.meta.total as number}
+                    perPage={pagination.meta.per_page as number}
                     onPageChange={handlePageChange}
                   />
                 </div>
@@ -206,5 +206,16 @@ function TagsContent() {
 }
 
 export default function TagsPage() {
-  return <TagsContent />;
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">در حال بارگذاری...</p>
+        </div>
+      </div>
+    }>
+      <TagsContent />
+    </Suspense>
+  );
 }

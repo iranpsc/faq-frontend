@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { apiService } from '@/services/api';
 import { Tag, PaginatedResponse } from '@/services/types';
 
@@ -19,21 +19,30 @@ interface UseTagsReturn {
   createTag: (name: string) => Promise<{ success: boolean; data?: Tag; error?: string }>;
 }
 
-export function useTags(initialParams: UseTagsParams = {}): UseTagsReturn {
+export function useTags(initialParams: UseTagsParams = {}, autoFetch: boolean = false): UseTagsReturn {
   const [tags, setTags] = useState<Tag[]>([]);
   const [pagination, setPagination] = useState<PaginatedResponse<Tag>['meta'] | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const hasFetchedOnceRef = useRef(false);
 
-  const fetchTags = async (params: UseTagsParams = {}) => {
+  // Memoize initialParams to prevent infinite re-renders
+  const memoizedInitialParams = useMemo(() => initialParams, [
+    initialParams.page,
+    initialParams.search,
+    initialParams.limit,
+    initialParams.per_page,
+  ]);
+
+  const fetchTags = useCallback(async (params: UseTagsParams = {}) => {
     try {
       setIsLoading(true);
       setError(null);
       
       // Use paginated API if page is specified or per_page is set
-      if (params.page || params.per_page || initialParams.page || initialParams.per_page) {
+      if (params.page || params.per_page || memoizedInitialParams.page || memoizedInitialParams.per_page) {
         const result = await apiService.getTagsPaginated({
-          ...initialParams,
+          ...memoizedInitialParams,
           ...params,
         });
         
@@ -46,7 +55,7 @@ export function useTags(initialParams: UseTagsParams = {}): UseTagsReturn {
       } else {
         // Use simple API for backward compatibility
         const data = await apiService.getTags({
-          ...initialParams,
+          ...memoizedInitialParams,
           ...params,
         });
         setTags(data);
@@ -58,7 +67,7 @@ export function useTags(initialParams: UseTagsParams = {}): UseTagsReturn {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [memoizedInitialParams]);
 
   const createTag = async (name: string): Promise<{ success: boolean; data?: Tag; error?: string }> => {
     try {
@@ -91,8 +100,11 @@ export function useTags(initialParams: UseTagsParams = {}): UseTagsReturn {
   };
 
   useEffect(() => {
-    fetchTags();
-  }, []);
+    if (autoFetch && !hasFetchedOnceRef.current) {
+      hasFetchedOnceRef.current = true;
+      fetchTags();
+    }
+  }, [autoFetch, fetchTags]);
 
   return {
     tags,

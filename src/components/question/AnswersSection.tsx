@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { BaseAvatar } from '../ui/BaseAvatar';
 import { VoteButtons } from '../ui/VoteButtons';
@@ -9,42 +9,15 @@ import { CommentsSection } from './CommentsSection';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAnswers } from '../../hooks/useAnswers';
 import { useSweetAlert } from '../../hooks/useSweetAlert';
-
-interface Answer {
-  id: string;
-  content: string;
-  created_at: string;
-  updated_at: string;
-  published: boolean;
-  is_correct: boolean;
-  comments?: any[];
-  comments_count?: number;
-  user: {
-    id: string;
-    name: string;
-    image_url?: string;
-    score: number;
-  };
-  votes: {
-    upvotes: number;
-    downvotes: number;
-    user_vote: string | null;
-  };
-  can: {
-    update?: boolean;
-    delete?: boolean;
-    publish?: boolean;
-    toggle_correctness?: boolean;
-  };
-}
+import { Answer, VoteData, VoteChangedData, AnswerCorrectnessData, CommentData, PaginationMeta } from '../../services/types';
 
 interface AnswersSectionProps {
   questionId: string;
   answers: Answer[];
   onAnswerAdded: () => void;
-  onVoteChanged: (voteData: any) => void;
-  onAnswerCorrectnessChanged: (data: any) => void;
-  onCommentAdded: (commentData: any) => void;
+  onVoteChanged: (voteData: VoteChangedData) => void;
+  onAnswerCorrectnessChanged: (data: AnswerCorrectnessData) => void;
+  onCommentAdded: (commentData: CommentData) => void;
 }
 
 export function AnswersSection({
@@ -55,7 +28,7 @@ export function AnswersSection({
   onAnswerCorrectnessChanged,
   onCommentAdded
 }: AnswersSectionProps) {
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const {
     isSubmitting: isSubmittingAnswer,
     isUpdating: isUpdatingAnswer,
@@ -77,7 +50,7 @@ export function AnswersSection({
 
   // Pagination state
   const [paginatedAnswers, setPaginatedAnswers] = useState<Answer[]>([]);
-  const [answersPagination, setAnswersPagination] = useState<any>(null);
+  const [answersPagination, setAnswersPagination] = useState<PaginationMeta | null>(null);
   const [currentAnswersPage, setCurrentAnswersPage] = useState(1);
   const [isLoadingMoreAnswers, setIsLoadingMoreAnswers] = useState(false);
   const [usePagination, setUsePagination] = useState(false);
@@ -163,8 +136,8 @@ export function AnswersSection({
     }
   };
 
-  const fetchPaginatedAnswers = async (page = 1, append = false) => {
-    const result = await fetchAnswersApi(questionId, page, selectedFilter);
+  const fetchPaginatedAnswers = useCallback(async (page = 1, append = false) => {
+    const result = await fetchAnswersApi(questionId, page);
     if (result.success && result.data) {
       if (append) {
         setPaginatedAnswers([...paginatedAnswers, ...result.data]);
@@ -174,7 +147,7 @@ export function AnswersSection({
       setAnswersPagination(result.meta);
       setCurrentAnswersPage(page);
     }
-  };
+  }, [fetchAnswersApi, questionId, paginatedAnswers]);
 
   const loadMoreAnswers = async () => {
     if (!hasMoreAnswers || isLoadingMoreAnswers) return;
@@ -186,12 +159,12 @@ export function AnswersSection({
     }
   };
 
-  const initializePagination = async () => {
+  const initializePagination = useCallback(async () => {
     if (answers.length === 0) {
       setUsePagination(true);
       await fetchPaginatedAnswers();
     }
-  };
+  }, [answers.length, fetchPaginatedAnswers]);
 
   const toggleFilterDropdown = () => {
     setShowFilters(!showFilters);
@@ -213,7 +186,7 @@ export function AnswersSection({
 
   useEffect(() => {
     initializePagination();
-  }, []);
+  }, [initializePagination]);
 
   const submitAnswer = async () => {
     if (!newAnswer.trim()) return;
@@ -278,7 +251,7 @@ export function AnswersSection({
     }
   };
 
-  const handleAnswerVoteChanged = (answerId: string, voteData: any) => {
+  const handleAnswerVoteChanged = (answerId: string, voteData: VoteData) => {
     onVoteChanged({
       type: 'answer',
       id: answerId,
@@ -292,9 +265,10 @@ export function AnswersSection({
       const index = paginatedAnswers.findIndex(a => a.id === answerId);
       if (index !== -1) {
         const updated = { ...paginatedAnswers[index] } as Answer;
-        (updated as any).votes = {
+        updated.votes = {
           upvotes: voteData.upvotes,
           downvotes: voteData.downvotes,
+          score: voteData.upvotes - voteData.downvotes,
           user_vote: voteData.userVote
         };
         const newList = [...paginatedAnswers];
@@ -331,16 +305,15 @@ export function AnswersSection({
         // Emit event to parent to update question solved status and answer locally
         onAnswerCorrectnessChanged({
           answerId: answer.id,
-          isCorrect: result.data.is_correct,
-          message: result.data.message
+          isCorrect: result.data.is_correct as boolean
         });
 
         // Update local state immediately
-        answer.is_correct = result.data.is_correct;
+        answer.is_correct = result.data.is_correct as boolean;
         if (result.data.can) {
           // Refresh permission (may become false after marking correct)
           if (!answer.can) answer.can = {};
-          answer.can.toggle_correctness = result.data.can.toggle_correctness;
+          answer.can.toggle_correctness = (result.data.can as Record<string, unknown>).toggle_correctness as boolean;
         }
       }
     } catch (error) {

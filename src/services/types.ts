@@ -61,6 +61,7 @@ export interface User {
   login_notification_enabled?: boolean;
   created_at: string;
   recent_questions?: Question[];
+  [key: string]: unknown;
 }
 
 export interface Category {
@@ -72,6 +73,7 @@ export interface Category {
   children_count?: number;
   created_at: string;
   updated_at: string;
+  [key: string]: unknown;
 }
 
 export interface Tag {
@@ -81,6 +83,7 @@ export interface Tag {
   questions_count: number;
   created_at: string;
   updated_at: string;
+  [key: string]: unknown;
 }
 
 export interface PaginatedResponse<T> {
@@ -96,6 +99,59 @@ export interface PaginatedResponse<T> {
     last: string;
     prev: string | null;
     next: string | null;
+  };
+}
+
+export interface Answer {
+  id: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+  published: boolean;
+  is_correct: boolean;
+  comments?: Comment[];
+  comments_count?: number;
+  user: {
+    id: string;
+    name: string;
+    image_url?: string;
+    score: number;
+  };
+  votes: {
+    upvotes: number;
+    downvotes: number;
+    score: number;
+    user_vote: string | null;
+  };
+  can: {
+    update?: boolean;
+    delete?: boolean;
+    publish?: boolean;
+    toggle_correctness?: boolean;
+  };
+}
+
+export interface Comment {
+  id: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+  published: boolean;
+  user: {
+    id: string;
+    name: string;
+    image_url?: string;
+    score: number;
+  };
+  votes: {
+    upvotes: number;
+    downvotes: number;
+    user_vote: string | null;
+  };
+  can: {
+    update?: boolean;
+    delete?: boolean;
+    publish?: boolean;
   };
 }
 
@@ -120,4 +176,105 @@ export interface ApiResponse<T> {
   success: boolean;
   message?: string;
   error?: string;
+}
+
+export interface VoteData {
+  upvotes: number;
+  downvotes: number;
+  userVote: string | null;
+  user_vote?: string | null; // Keep both for compatibility
+  message?: string;
+}
+
+export interface VoteChangedData {
+  type: 'question' | 'answer' | 'comment';
+  id: string;
+  votes: {
+    upvotes: number;
+    downvotes: number;
+    user_vote: string | null;
+  };
+}
+
+export interface AnswerCorrectnessData {
+  answerId: string;
+  isCorrect: boolean;
+}
+
+export interface CommentData {
+  id?: string;
+  content?: string;
+  user?: {
+    id: string;
+    name: string;
+    image_url?: string;
+  };
+}
+
+export interface PaginationMeta {
+  current_page: number;
+  last_page: number;
+  total: number;
+  per_page: number;
+}
+
+// CKEditor types
+export interface CKEditorLoader {
+  file: Promise<File>;
+  upload: () => Promise<{ default: string }>;
+}
+
+export interface CKEditorInstance {
+  getData: () => string;
+  setData: (data: string) => void;
+  plugins: {
+    get: (pluginName: string) => {
+      createUploadAdapter: (loader: CKEditorLoader) => CKEditorUploadAdapter;
+    };
+  };
+}
+
+export interface CKEditorUploadAdapter {
+  upload: () => Promise<{ default: string }>;
+}
+
+export interface CKEditorEvent {
+  name: string;
+  source: CKEditorInstance;
+}
+
+// API parameter types
+export interface ApiParams {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  category?: string;
+  tag?: string;
+  sort?: string;
+  filter?: string;
+  [key: string]: string | number | undefined;
+}
+
+export interface VoteResponse {
+  upvotes: number;
+  downvotes: number;
+  user_vote: string | null;
+}
+
+export interface ApiError {
+  message?: string;
+  response?: {
+    data?: {
+      message?: string;
+    };
+    status?: number;
+  };
+}
+
+export interface QuestionActionResponse {
+  is_pinned_by_user?: boolean;
+  pinned_at?: string | null;
+  is_featured_by_user?: boolean;
+  featured_at?: string | null;
+  is_correct?: boolean;
 }

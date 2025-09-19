@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { apiService, User } from '@/services/api';
 
 interface UseUsersReturn {
@@ -13,7 +13,7 @@ export function useUsers(limit?: number): UseUsersReturn {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -24,11 +24,11 @@ export function useUsers(limit?: number): UseUsersReturn {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [limit]);
 
   useEffect(() => {
     fetchUsers();
-  }, [limit]);
+  }, [limit, fetchUsers]);
 
   return {
     users,

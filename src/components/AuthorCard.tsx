@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { User } from '@/services/types';
+import Image from 'next/image';
+import { User, Question } from '@/services/types';
 
 interface AuthorCardProps {
   author: User;
@@ -28,7 +29,7 @@ export function AuthorCard({ author, onClick }: AuthorCardProps) {
     setImageError(true);
   };
 
-  const handleQuestionClick = (question: any) => {
+  const handleQuestionClick = (question: Question) => {
     // Navigate to question detail page
     console.log('Question clicked:', question);
   };
@@ -44,15 +45,12 @@ export function AuthorCard({ author, onClick }: AuthorCardProps) {
         <div className="flex flex-col items-center space-y-2">
           {/* Avatar */}
           <div className="relative">
-            <img 
+            <Image 
               src={authorImage} 
               alt={author.name} 
-              loading="lazy" 
-              decoding="async"
-              className="w-16 h-16 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600"
               width={64} 
-              height={64} 
-              style={{aspectRatio: '1/1', objectFit: 'cover', contain: 'paint', contentVisibility: 'auto'}}
+              height={64}
+              className="w-16 h-16 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600"
               onError={handleImageError}
             />
             {/* Level Badge */}

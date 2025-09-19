@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiService } from '@/services/api';
+import { VoteData } from '@/services/types';
 
 interface VoteButtonsProps {
   resourceType: 'question' | 'answer' | 'comment';
@@ -12,7 +13,7 @@ interface VoteButtonsProps {
   initialDownvotes: number | number[];
   initialUserVote: string | null;
   size?: 'small' | 'medium';
-  onVoteChanged?: (voteData: any) => void;
+  onVoteChanged?: (voteData: VoteData) => void;
 }
 
 export function VoteButtons({
@@ -118,8 +119,6 @@ export function VoteButtons({
 
         // Emit event to parent component
         onVoteChanged?.({
-          resourceType,
-          resourceId: actualResourceId,
           upvotes: result.data?.upvotes || upvotes,
           downvotes: result.data?.downvotes || downvotes,
           userVote: result.data?.user_vote || voteType,
@@ -138,13 +137,15 @@ export function VoteButtons({
           showErrorAlert(result.message || 'خطا در ثبت رای. لطفا دوباره تلاش کنید.');
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Vote error:', error);
 
       // Check if it's a 401 authentication error
-      if (error.response && error.response.status === 401) {
+      const errorObj = error as Record<string, unknown>;
+      const response = errorObj.response as Record<string, unknown>;
+      if (response && response.status === 401) {
         showLoginAlert();
-      } else if (error.response && error.response.status === 429) {
+      } else if (response && response.status === 429) {
         showErrorAlert('شما خیلی سریع رای می‌دهید. لطفا کمی صبر کنید.');
       } else {
         showErrorAlert('خطا در ثبت رای. لطفا دوباره تلاش کنید.');

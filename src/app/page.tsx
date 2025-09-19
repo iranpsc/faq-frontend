@@ -11,10 +11,9 @@ import { UserCard } from '@/components/UserCard';
 import { HomeSidebar } from '@/components/HomeSidebar';
 import { BaseAlert } from '@/components/ui/BaseAlert';
 import { BasePagination } from '@/components/ui/BasePagination';
-import { BaseButton } from '@/components/ui/BaseButton';
 import { useQuestions } from '@/hooks/useQuestions';
 import { useUsers } from '@/hooks/useUsers';
-import { Question, User, Category } from '@/services/api';
+import { Question, Category } from '@/services/api';
 
 function HomeContent() {
   const router = useRouter();
@@ -36,7 +35,7 @@ function HomeContent() {
     error: userError
   } = useUsers(5);
 
-  const handleFiltersChanged = (filters: any) => {
+  const handleFiltersChanged = (filters: Record<string, unknown>) => {
     setCurrentFilters(filters);
     refetchQuestions(filters);
   };

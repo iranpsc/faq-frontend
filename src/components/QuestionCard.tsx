@@ -11,10 +11,9 @@ import Link from 'next/link';
 interface QuestionCardProps {
   question: Question;
   onClick?: (question: Question) => void;
-  onPublished?: (question: Question) => void;
 }
 
-export function QuestionCard({ question, onClick, onPublished }: QuestionCardProps) {
+export function QuestionCard({ question, onClick }: QuestionCardProps) {
   const [showAllTags, setShowAllTags] = useState(false);
 
   const formatDate = (dateString: string) => {

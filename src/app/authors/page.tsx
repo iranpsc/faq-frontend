@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AuthorCard } from '@/components/AuthorCard';
 import { BasePagination } from '@/components/ui/BasePagination';
 import { apiService } from '@/services/api';
 import { User, PaginatedResponse } from '@/services/types';
 
-export default function AuthorsPage() {
+function AuthorsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -28,7 +28,7 @@ export default function AuthorsPage() {
     setError(null);
     
     try {
-      const params: any = {
+      const params: Record<string, string | number> = {
         page,
         per_page: 20,
         sort_by: sortBy,
@@ -78,7 +78,7 @@ export default function AuthorsPage() {
     }, 300);
     
     setSearchTimeout(timeout);
-  }, [searchQuery, loadAuthors, searchTimeout]);
+  }, [loadAuthors, searchTimeout]);
 
   const handleSortChange = useCallback(() => {
     setCurrentPage(1);
@@ -94,7 +94,7 @@ export default function AuthorsPage() {
     const initialPage = parseInt(searchParams.get('page') || '1');
     setCurrentPage(initialPage);
     loadAuthors(initialPage);
-  }, []);
+  }, [searchParams, loadAuthors]);
 
   // Handle URL changes
   useEffect(() => {
@@ -307,5 +307,20 @@ export default function AuthorsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AuthorsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">در حال بارگذاری...</p>
+        </div>
+      </div>
+    }>
+      <AuthorsPageContent />
+    </Suspense>
   );
 }

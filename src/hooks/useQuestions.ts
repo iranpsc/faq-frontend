@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { apiService, Question, PaginatedResponse } from '@/services/api';
 
 interface UseQuestionsParams {
@@ -29,13 +29,13 @@ interface UseQuestionsReturn {
     title: string;
     content: string;
     category_id: string;
-    tags?: Array<{ id: number } | { name: string }>;
+    tags?: string[];
   }) => Promise<{ success: boolean; data?: Question; error?: string }>;
   updateQuestion: (id: string, questionData: {
     title: string;
     content: string;
     category_id: string;
-    tags?: Array<{ id: number } | { name: string }>;
+    tags?: string[];
   }) => Promise<{ success: boolean; data?: Question; error?: string }>;
 }
 
@@ -53,12 +53,23 @@ export function useQuestions(initialParams: UseQuestionsParams = {}): UseQuestio
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchQuestions = async (params: UseQuestionsParams = {}) => {
+  // Memoize initialParams to prevent infinite re-renders
+  const memoizedInitialParams = useMemo(() => initialParams, [
+    initialParams.page,
+    initialParams.category_id,
+    initialParams.search,
+    initialParams.sort,
+    initialParams.order,
+    initialParams.tags,
+    initialParams.filter,
+  ]);
+
+  const fetchQuestions = useCallback(async (params: UseQuestionsParams = {}) => {
     try {
       setIsLoading(true);
       setError(null);
       const response: PaginatedResponse<Question> = await apiService.getQuestions({
-        ...initialParams,
+        ...memoizedInitialParams,
         ...params,
       });
       setQuestions(response.data);
@@ -70,7 +81,7 @@ export function useQuestions(initialParams: UseQuestionsParams = {}): UseQuestio
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [memoizedInitialParams]);
 
   const createQuestion = async (questionData: {
     title: string;
@@ -81,7 +92,14 @@ export function useQuestions(initialParams: UseQuestionsParams = {}): UseQuestio
     try {
       setIsSubmitting(true);
       setError(null);
-      const result = await apiService.createQuestion(questionData);
+      
+      // Convert string array to API expected format
+      const apiData = {
+        ...questionData,
+        tags: questionData.tags?.map(tag => ({ name: tag }))
+      };
+      
+      const result = await apiService.createQuestion(apiData);
       
       if (result.success && result.data) {
         // Add the new question to the beginning of the list
@@ -102,12 +120,19 @@ export function useQuestions(initialParams: UseQuestionsParams = {}): UseQuestio
     title: string;
     content: string;
     category_id: string;
-    tags?: Array<{ id: number } | { name: string }>;
+    tags?: string[];
   }): Promise<{ success: boolean; data?: Question; error?: string }> => {
     try {
       setIsSubmitting(true);
       setError(null);
-      const result = await apiService.updateQuestion(id, questionData);
+      
+      // Convert string array to API expected format
+      const apiData = {
+        ...questionData,
+        tags: questionData.tags?.map(tag => ({ name: tag }))
+      };
+      
+      const result = await apiService.updateQuestion(id, apiData);
       
       if (result.success && result.data) {
         // Update the question in the list

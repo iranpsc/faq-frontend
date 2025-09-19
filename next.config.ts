@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
   
   // Image optimization
   images: {
-    domains: ['api.faqhub.ir', 'localhost'],
+    domains: ['api.faqhub.ir', 'localhost', 'irpsc.com'],
     formats: ['image/webp', 'image/avif'],
   },
   

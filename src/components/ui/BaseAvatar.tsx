@@ -1,6 +1,7 @@
 'use client';
 
 import { HTMLAttributes, forwardRef } from 'react';
+import Image from 'next/image';
 import { clsx } from 'clsx';
 import { AvatarSvg } from './AvatarSvg';
 
@@ -31,6 +32,15 @@ export const BaseAvatar = forwardRef<HTMLDivElement, BaseAvatarProps>(
       '2xl': 'w-20 h-20 text-2xl',
     };
 
+    const sizeMap = {
+      xs: 24,
+      sm: 32,
+      md: 40,
+      lg: 48,
+      xl: 64,
+      '2xl': 80,
+    };
+
     const variantClasses = {
       default: 'bg-blue-500 text-white',
       secondary: 'bg-gray-500 text-white',
@@ -55,9 +65,11 @@ export const BaseAvatar = forwardRef<HTMLDivElement, BaseAvatarProps>(
         {...props}
       >
         {src ? (
-          <img
+          <Image
             src={src}
-            alt={name}
+            alt={name || ''}
+            width={sizeMap[size]}
+            height={sizeMap[size]}
             className="w-full h-full rounded-full object-cover"
           />
         ) : (

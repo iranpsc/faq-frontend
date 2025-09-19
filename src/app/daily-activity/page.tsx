@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { BaseAvatar } from '@/components/ui/BaseAvatar';
 import { BaseBadge } from '@/components/ui/BaseBadge';
 import { BaseButton } from '@/components/ui/BaseButton';
@@ -16,7 +16,7 @@ export default function DailyActivityPage() {
   const [error, setError] = useState<string | null>(null);
   const [limit, setLimit] = useState(20);
 
-  const fetchActivities = async (append = false) => {
+  const fetchActivities = useCallback(async (append = false) => {
     try {
       if (append) {
         setLoadingMore(true);
@@ -51,14 +51,14 @@ export default function DailyActivityPage() {
       } else {
         throw new Error(response.error || 'خطا در دریافت فعالیت‌ها');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching activities:', err);
-      setError(err.message || 'خطا در دریافت فعالیت‌ها');
+      setError(err instanceof Error ? err.message : 'خطا در دریافت فعالیت‌ها');
     } finally {
       setLoading(false);
       setLoadingMore(false);
     }
-  };
+  }, [limit]);
 
   const loadMore = () => {
     setLimit(prev => prev + 20);
@@ -107,7 +107,7 @@ export default function DailyActivityPage() {
 
   useEffect(() => {
     fetchActivities();
-  }, []);
+  }, [fetchActivities]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">

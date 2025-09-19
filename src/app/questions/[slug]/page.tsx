@@ -45,7 +45,8 @@ const DynamicQuestionModal = dynamic(
   () => import('@/components/QuestionModal').then(m => m.QuestionModal),
   { ssr: false }
 );
-import { apiService, Question } from '@/services/api';
+import { apiService } from '@/services/api';
+import { Answer, VoteChangedData, AnswerCorrectnessData, CommentData } from '@/services/types';
 
 export default function QuestionDetailsPage() {
   const params = useParams();
@@ -89,7 +90,7 @@ export default function QuestionDetailsPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showEditModal]);
 
-  const handleQuestionUpdated = async (updatedQuestion: Question) => {
+  const handleQuestionUpdated = async () => {
     setIsUpdating(true);
     try {
       // slight delay similar to Vue to allow backend processing
@@ -111,25 +112,25 @@ export default function QuestionDetailsPage() {
     await refetchAnswers();
   };
 
-  const handleVoteChanged = (voteData: any) => {
+  const handleVoteChanged = (voteData: VoteChangedData) => {
     // Update question vote data in real-time
     if (question && question.votes) {
-      (question as any).votes.upvotes = voteData.upvotes;
-      (question as any).votes.downvotes = voteData.downvotes;
-      (question as any).votes.score = voteData.upvotes - voteData.downvotes;
-      (question as any).votes.user_vote = voteData.userVote;
+      question.votes.upvotes = voteData.votes.upvotes;
+      question.votes.downvotes = voteData.votes.downvotes;
+      question.votes.score = voteData.votes.upvotes - voteData.votes.downvotes;
+      question.votes.user_vote = voteData.votes.user_vote;
     }
   };
 
-  const handleAnswerVoteChanged = (voteData: any) => {
+  const handleAnswerVoteChanged = (voteData: VoteChangedData) => {
     // Update answer vote data in real-time
     if (voteData.type === 'answer') {
-      const answerIndex = answers.findIndex((a: any) => a.id === voteData.id);
+      const answerIndex = answers.findIndex((a) => a.id === voteData.id);
       if (answerIndex !== -1) {
         const existingAnswer = answers[answerIndex];
         const updatedAnswer = {
           ...existingAnswer,
-          votes: voteData.votes
+          votes: voteData.votes as Answer['votes']
         };
         const newAnswers = [...answers];
         newAnswers[answerIndex] = updatedAnswer;
@@ -139,17 +140,17 @@ export default function QuestionDetailsPage() {
     }
   };
 
-  const handleAnswerCorrectnessChanged = (data: any) => {
+  const handleAnswerCorrectnessChanged = (data: AnswerCorrectnessData) => {
     console.log('Answer correctness changed:', data);
     
     // Update question solved status
     if (question) {
-      const hasCorrectAnswer = answers.some((answer: any) => answer.is_correct);
+      const hasCorrectAnswer = answers.some((answer) => answer.is_correct);
       question.is_solved = hasCorrectAnswer;
     }
   };
 
-  const handleAnswerCommentAdded = (commentData: any) => {
+  const handleAnswerCommentAdded = (commentData: CommentData) => {
     console.log('Comment added to answer:', commentData);
   };
 
@@ -227,10 +228,10 @@ export default function QuestionDetailsPage() {
           confirmButtonText: 'باشه'
         });
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       await swalFire({
         title: 'خطا!',
-        text: e?.message || 'خطایی در حذف سوال رخ داد.',
+        text: e instanceof Error ? e.message : 'خطایی در حذف سوال رخ داد.',
         icon: 'error',
         confirmButtonText: 'باشه'
       });
@@ -277,7 +278,6 @@ export default function QuestionDetailsPage() {
               question={question} 
               onEdit={handleEdit}
               onDelete={handleDelete}
-              onVote={handleVoteChanged}
               onVoteChanged={handleVoteChanged}
             />
 
@@ -308,7 +308,7 @@ export default function QuestionDetailsPage() {
       {showEditModal && question && (
         <DynamicQuestionModal 
           visible={showEditModal}
-          questionToEdit={question as any}
+          questionToEdit={question}
           onClose={() => setShowEditModal(false)}
           onQuestionUpdated={handleQuestionUpdated}
         />

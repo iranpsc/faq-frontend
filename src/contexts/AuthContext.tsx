@@ -1,13 +1,17 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useRef, useCallback } from 'react';
 
 interface User {
   id: string;
   name: string;
   email?: string;
+  mobile?: string;
   image_url?: string;
-  [key: string]: any;
+  score?: number;
+  online?: boolean;
+  login_notification_enabled?: boolean;
+  [key: string]: unknown;
 }
 
 interface AuthContextType {
@@ -17,7 +21,7 @@ interface AuthContextType {
   login: () => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (userData: Partial<User>) => void;
-  can: (permission: string, resource?: any) => boolean;
+  can: (permission: string, resource?: unknown) => boolean;
   getInitials: (name?: string) => string;
   fetchUser: () => Promise<User | null>;
 }
@@ -41,16 +45,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const isAuthenticated = !!token && !!user;
 
   // Custom event system for auth state changes
-  const dispatchAuthEvent = (eventType: string, detail?: any) => {
+  const dispatchAuthEvent = (eventType: string, detail?: unknown) => {
     try {
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent(eventType, { detail }));
       }
-    } catch (_) {}
+    } catch (error) {
+      console.warn('Failed to dispatch auth event:', error);
+    }
   };
 
   // Enhanced token setter with events
-  const setTokenWithEvents = (newToken: string | null) => {
+  const setTokenWithEvents = useCallback((newToken: string | null) => {
     setToken(newToken);
     if (newToken) {
       localStorage.setItem('auth_token', newToken);
@@ -60,10 +66,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     
     // Dispatch token change event
     dispatchAuthEvent('auth:token', { token: newToken });
-  };
+  }, []);
 
   // Enhanced user setter with events
-  const setUserWithEvents = (userData: User | null) => {
+  const setUserWithEvents = useCallback((userData: User | null) => {
     setUser(userData);
     try {
       if (userData) {
@@ -71,7 +77,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       } else {
         localStorage.removeItem('auth_user');
       }
-    } catch (_) {}
+    } catch (error) {
+      console.warn('Failed to dispatch auth event:', error);
+    }
 
     // Emit auth:login only on transition from guest -> authenticated
     const isNowAuthenticated = !!(token && userData);
@@ -79,10 +87,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       dispatchAuthEvent('auth:login', { user: userData });
     }
     wasAuthenticatedRef.current = isNowAuthenticated;
-  };
+  }, [token]);
 
   // Deduplicated fetchUser function
-  const fetchUser = async (authToken?: string): Promise<User | null> => {
+  const fetchUser = useCallback(async (authToken?: string): Promise<User | null> => {
     const tokenToUse = authToken || token;
     if (!tokenToUse) return null;
 
@@ -124,7 +132,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     })();
 
     return fetchUserInFlightRef.current;
-  };
+  }, [token, setTokenWithEvents, setUserWithEvents]);
 
   // Initialize auth state from localStorage
   useEffect(() => {
@@ -161,7 +169,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
           const hashParams = new URLSearchParams(window.location.hash.substring(1));
           tokenFromFragment = hashParams.get('token');
         }
-      } catch (_) {}
+      } catch (error) {
+      console.warn('Failed to dispatch auth event:', error);
+    }
 
       // Backward compatibility: still support query param for any old links
       const urlParams = new URLSearchParams(window.location.search);
@@ -190,7 +200,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
       }
     }
-  }, []);
+  }, [fetchUser, setTokenWithEvents]);
 
 
   // Login function
@@ -260,14 +270,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   // Permission checking
-  const can = (permission: string, resource?: any) => {
+  const can = (permission: string, resource?: unknown) => {
     if (!user || !isAuthenticated) {
       return false;
     }
 
     // Basic permission checking logic
-    if (resource && resource.user && user) {
-      return resource.user.id === user.id;
+    if (resource && typeof resource === 'object' && resource !== null && 'user' in resource && user) {
+      const resourceWithUser = resource as { user: { id: string } };
+      return resourceWithUser.user.id === user.id;
     }
 
     // You can extend this with more sophisticated permission logic
@@ -305,7 +316,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         try {
           const newUser = e.newValue ? JSON.parse(e.newValue) : null;
           setUser(newUser);
-        } catch (_) {
+        } catch (error) {
+          console.warn('Failed to parse user data from localStorage:', error);
           setUser(null);
         }
       }
@@ -340,7 +352,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       window.removeEventListener('auth:logout', handleAuthLogout);
       window.removeEventListener('auth:token', handleAuthToken as EventListener);
     };
-  }, [token]);
+  }, [token, fetchUser, setTokenWithEvents, setUserWithEvents]);
 
   const value: AuthContextType = {
     user,

@@ -75,7 +75,7 @@ export function useAnswers() {
     }
   };
 
-  const fetchAnswers = async (questionId: string, page: number = 1, filter?: string) => {
+  const fetchAnswers = async (questionId: string, page: number = 1) => {
     try {
       const response = await apiService.getQuestionAnswers(questionId, page);
       return { success: true, data: response.data, meta: response.meta };

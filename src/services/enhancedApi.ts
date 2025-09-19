@@ -7,6 +7,7 @@ const pendingRequests = new Map<string, Promise<Response>>();
 interface RequestConfig extends RequestInit {
   skipCache?: boolean;
   cacheTimeout?: number;
+  params?: Record<string, string>;
 }
 
 class EnhancedApiService {
@@ -72,10 +73,10 @@ class EnhancedApiService {
     try {
       const token = localStorage.getItem('auth_token');
       
-      const headers: HeadersInit = {
+      const headers: Record<string, string> = {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        ...config.headers,
+        ...(config.headers as Record<string, string>),
       };
 
       if (token) {
@@ -88,7 +89,7 @@ class EnhancedApiService {
         ...config,
         headers,
       };
-    } catch (_) {
+    } catch {
       return config;
     }
   }
@@ -109,7 +110,9 @@ class EnhancedApiService {
       // Limit cache size
       if (requestCache.size > 100) {
         const firstKey = requestCache.keys().next().value;
-        requestCache.delete(firstKey);
+        if (firstKey) {
+          requestCache.delete(firstKey);
+        }
       }
     }
 
@@ -124,7 +127,9 @@ class EnhancedApiService {
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('auth:logout'));
         }
-      } catch (_) {}
+      } catch {
+        // Ignore errors when dispatching custom event
+      }
     }
 
     if (!response.ok) {
@@ -240,11 +245,17 @@ const enhancedApiService = new EnhancedApiService();
 
 // Expose global helpers for compatibility
 if (typeof window !== 'undefined') {
-  (window as any).updateAxiosAuth = () => {
+  (window as Window & {
+    updateAxiosAuth?: () => void;
+    clearApiCache?: () => void;
+  }).updateAxiosAuth = () => {
     enhancedApiService.updateAuthHeader();
   };
   
-  (window as any).clearApiCache = () => {
+  (window as Window & {
+    updateAxiosAuth?: () => void;
+    clearApiCache?: () => void;
+  }).clearApiCache = () => {
     enhancedApiService.clearCache();
   };
 }

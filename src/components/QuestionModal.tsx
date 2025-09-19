@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { BaseModal } from './ui/BaseModal';
 import { BaseInput } from './ui/BaseInput';
 import { BaseSelect } from './ui/BaseSelect';
@@ -59,8 +59,7 @@ export function QuestionModal({
 
   const {
     tags,
-    addTag,
-    createTag,
+    refetch: fetchTags,
   } = useTags();
 
   const isEditMode = !!form.id;
@@ -68,6 +67,7 @@ export function QuestionModal({
   // Local option stores to support pagination/append like Vue's BaseSelect2
   const [categoryOptions, setCategoryOptions] = useState<Category[]>([]);
   const [tagOptions, setTagOptions] = useState<Tag[]>([]);
+  const requestedTagsRef = useRef(false);
 
   useEffect(() => {
     if (Array.isArray(categories)) {
@@ -81,16 +81,31 @@ export function QuestionModal({
     }
   }, [tags]);
 
+  // Load tags when modal opens (guarded to once per open, even in StrictMode)
+  useEffect(() => {
+    if (visible && !requestedTagsRef.current && tagOptions.length === 0) {
+      requestedTagsRef.current = true;
+      fetchTags();
+    }
+  }, [visible, tagOptions.length, fetchTags]);
+
+  // Reset guard when modal closes
+  useEffect(() => {
+    if (!visible) {
+      requestedTagsRef.current = false;
+    }
+  }, [visible]);
+
   // Populate form when questionToEdit or options change (to resolve category by id if needed)
   useEffect(() => {
     if (questionToEdit) {
       const resolvedCategory: Category | null = questionToEdit.category
         ? {
             ...questionToEdit.category,
-            created_at: (questionToEdit.category as any).created_at || new Date().toISOString(),
-            updated_at: (questionToEdit.category as any).updated_at || new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
           }
-        : (categoryOptions.find(c => c.id === (questionToEdit as any).category_id) || null);
+        : (categoryOptions.find(c => c.id === questionToEdit.category?.id) || null);
 
       setForm({
         id: questionToEdit.id,
@@ -147,14 +162,7 @@ export function QuestionModal({
       title: form.title.trim(),
       content: form.content, // Keep HTML content as is
       category_id: form.category!.id,
-      tags: form.tags.map(tag => {
-        // For existing tags (numeric ID), send the ID
-        if (tag.id && typeof tag.id === 'number') {
-          return { id: tag.id };
-        }
-        // For new tags (string ID), send the name for backend to create
-        return { name: tag.name || tag.id };
-      }),
+      tags: form.tags.map(tag => tag.name || tag.id.toString()),
     };
 
     try {
@@ -189,10 +197,10 @@ export function QuestionModal({
           confirmButtonText: 'باشه',
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       await Swal.fire({
         title: 'خطا!',
-        text: error?.message || 'خطایی رخ داده است',
+        text: error instanceof Error ? error.message : 'خطایی رخ داده است',
         icon: 'error',
         confirmButtonText: 'باشه',
       });
@@ -247,10 +255,10 @@ export function QuestionModal({
         });
         return Array.from(map.values());
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       await Swal.fire({
         title: 'خطا!',
-        text: err?.message || 'خطا در بارگذاری برچسب‌ها',
+        text: err instanceof Error ? err.message : 'خطا در بارگذاری برچسب‌ها',
         icon: 'error',
         toast: true,
         position: 'top-end',
@@ -289,7 +297,9 @@ export function QuestionModal({
     });
   };
 
-  const handleCategoryChange = (category: Category | null) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleCategoryChange = (value: any) => {
+    const category = Array.isArray(value) ? value[0] : value;
     setForm(prev => ({ ...prev, category }));
     if (errors.category) {
       setErrors(prev => ({ ...prev, category: '' }));
@@ -310,8 +320,10 @@ export function QuestionModal({
     }
   };
 
-  const handleTagsChange = (tags: Tag[] | null) => {
-    setForm(prev => ({ ...prev, tags: tags || [] }));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleTagsChange = (value: any) => {
+    const tagObjects = Array.isArray(value) ? value : (value ? [value] : []);
+    setForm(prev => ({ ...prev, tags: tagObjects }));
   };
 
   return (
@@ -348,12 +360,11 @@ export function QuestionModal({
               <BaseSelect<Category>
                 value={form.category}
                 options={categoryOptions}
-                onChange={handleCategoryChange as any}
+                onChange={handleCategoryChange}
                 label="دسته بندی"
                 placeholder="انتخاب دسته بندی"
                 searchable={true}
                 paginated={true}
-                pageSize={10}
                 onFetchMore={handleFetchCategories}
                 error={errors.category}
                 required
@@ -394,7 +405,7 @@ export function QuestionModal({
               <BaseSelect<Tag>
                 value={form.tags}
                 options={tagOptions}
-                onChange={handleTagsChange as any}
+                onChange={handleTagsChange}
                 label="برچسب ها"
                 placeholder="برای سوال خود برچسب وارد کنید..."
                 multiple={true}
@@ -402,7 +413,6 @@ export function QuestionModal({
                 onTagAdd={handleAddTag}
                 searchable={true}
                 paginated={true}
-                pageSize={10}
                 onFetchMore={handleFetchTags}
                 error={errors.tags}
               />

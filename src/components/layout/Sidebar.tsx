@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { 
   Menu, 
@@ -28,14 +29,6 @@ import { BaseBadge } from '@/components/ui/BaseBadge';
 import { useAuth } from '@/contexts/AuthContext';
 import { clsx } from 'clsx';
 
-interface User {
-  id: string;
-  name: string;
-  image_url?: string;
-  online: boolean;
-  score?: number;
-  level_name?: string;
-}
 
 interface SidebarProps {
   isOpen: boolean;
@@ -57,7 +50,7 @@ export function Sidebar({ isOpen, mounted = false, theme, themeMode, onToggle, o
   const [isSwiping, setIsSwiping] = useState(false);
   
   // Get authentication state from context
-  const { user, isAuthenticated, login, logout, getInitials } = useAuth();
+  const { user, isAuthenticated, login, logout } = useAuth();
 
   const logoUrl = '/assets/icon/main-logo.PNG';
 
@@ -93,9 +86,6 @@ export function Sidebar({ isOpen, mounted = false, theme, themeMode, onToggle, o
     setUserDropdownOpen(!userDropdownOpen);
   };
 
-  const closeUserDropdown = () => {
-    setUserDropdownOpen(false);
-  };
 
   const handleMenuItemClick = () => {
     // Close sidebar when menu item is clicked (only on mobile screens)
@@ -255,15 +245,12 @@ export function Sidebar({ isOpen, mounted = false, theme, themeMode, onToggle, o
           <Link href="/">
             <div className="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center flex-shrink-0">
               <div className="w-[30px] h-[30px] rounded-full flex items-center justify-center">
-                <img 
+                <Image 
                   src={logoUrl} 
                   alt="انجمن حم" 
-                  loading="lazy" 
-                  decoding="async"
+                  width={30} 
+                  height={30}
                   className="w-full h-full object-contain rounded-full" 
-                  width="30" 
-                  height="30"
-                  style={{ aspectRatio: '1/1', contain: 'paint' }}
                 />
               </div>
             </div>
@@ -333,14 +320,14 @@ export function Sidebar({ isOpen, mounted = false, theme, themeMode, onToggle, o
                         </BaseBadge>
                       </p>
                     )}
-                    {user?.level_name && (
+                    {user?.level_name && typeof user.level_name === 'string' ? (
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         سطح:
                         <BaseBadge variant="secondary" size="xs" className="mr-1">
                           {user.level_name}
                         </BaseBadge>
                       </p>
-                    )}
+                    ) : null}
                   </div>
                   <svg 
                     className={clsx(
