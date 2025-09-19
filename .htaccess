@@ -4,17 +4,28 @@
 # Enable URL rewriting
 RewriteEngine On
 
-# Handle Next.js static files and assets
-RewriteCond %{REQUEST_FILENAME} -f
+# Enable proxy module
+RewriteCond %{REQUEST_METHOD} ^(GET|POST|PUT|DELETE|HEAD|OPTIONS)$
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+# Handle existing files and directories (serve directly from Apache)
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^(.*)$ - [L]
 
 # Handle Next.js API routes
 RewriteCond %{REQUEST_URI} ^/api/
 RewriteRule ^(.*)$ http://localhost:3005/$1 [P,L]
 
-# Handle all other requests (SPA routing)
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
+# Handle Next.js static assets (_next directory)
+RewriteCond %{REQUEST_URI} ^/_next/
+RewriteRule ^(.*)$ http://localhost:3005/$1 [P,L]
+
+# Handle favicon and other root assets
+RewriteCond %{REQUEST_URI} ^/(favicon\.ico|robots\.txt|sitemap\.xml)$
+RewriteRule ^(.*)$ http://localhost:3005/$1 [P,L]
+
+# Handle all other requests (SPA routing) - proxy to Next.js
 RewriteRule ^(.*)$ http://localhost:3005/$1 [P,L]
 
 # Security headers
@@ -102,10 +113,6 @@ RewriteRule ^(.*)$ http://localhost:3005/$1 [P,L]
         Header set Expires "0"
     </FilesMatch>
 </IfModule>
-
-# Error pages
-ErrorDocument 404 /index.html
-ErrorDocument 500 /index.html
 
 # Prevent access to sensitive files
 <FilesMatch "\.(env|log|config|json)$">
