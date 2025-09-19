@@ -66,13 +66,20 @@ cp -r public $DEPLOY_DIR/
 cp package.json $DEPLOY_DIR/
 cp package-lock.json $DEPLOY_DIR/
 cp next.config.ts $DEPLOY_DIR/
-cp .env.production $DEPLOY_DIR/.env.local
+
+# Create production environment file
+cat > $DEPLOY_DIR/.env.local << 'EOF'
+NODE_ENV=production
+PORT=3005
+NEXT_PUBLIC_API_URL=https://api.faqhub.ir/api
+EOF
 
 # Create production start script
 cat > $DEPLOY_DIR/start.sh << 'EOF'
 #!/bin/bash
 export NODE_ENV=production
-export PORT=${PORT:-3000}
+export PORT=${PORT:-3005}
+export NEXT_PUBLIC_API_URL=https://api.faqhub.ir/api
 exec node .next/standalone/server.js
 EOF
 

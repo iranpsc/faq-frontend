@@ -9,12 +9,12 @@ module.exports = {
       exec_mode: 'cluster',
       env: {
         NODE_ENV: 'production',
-        PORT: 3000,
+        PORT: 3005,
         NEXT_PUBLIC_API_URL: 'https://api.faqhub.ir/api'
       },
       env_production: {
         NODE_ENV: 'production',
-        PORT: 3000,
+        PORT: 3005,
         NEXT_PUBLIC_API_URL: 'https://api.faqhub.ir/api'
       },
       // Logging
