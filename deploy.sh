@@ -66,6 +66,7 @@ cp -r public $DEPLOY_DIR/
 cp package.json $DEPLOY_DIR/
 cp package-lock.json $DEPLOY_DIR/
 cp next.config.ts $DEPLOY_DIR/
+cp .htaccess $DEPLOY_DIR/
 
 # Create production environment file
 cat > $DEPLOY_DIR/.env.local << 'EOF'
