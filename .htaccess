@@ -4,10 +4,6 @@
 # Enable URL rewriting
 RewriteEngine On
 
-# Redirect root path to /home
-RewriteCond %{REQUEST_URI} ^/$
-RewriteRule ^$ /home [R=301,L]
-
 # Enable proxy module
 RewriteCond %{REQUEST_METHOD} ^(GET|POST|PUT|DELETE|HEAD|OPTIONS)$
 RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
