@@ -189,7 +189,7 @@ export function Sidebar({ isOpen, mounted = false, theme, themeMode, onToggle, o
   }, [isOpen, onToggle]);
 
   const navigationItems = [
-    { href: '/', icon: Home, label: 'خانه' },
+    { href: '/home', icon: Home, label: 'خانه' },
     { href: '/categories', icon: Grid3X3, label: 'دسته بندی ها' },
     { href: '/tags', icon: Tag, label: 'برچسب ها' },
     { href: '/daily-activity', icon: Clock, label: 'فعالیت روز' },
@@ -242,7 +242,7 @@ export function Sidebar({ isOpen, mounted = false, theme, themeMode, onToggle, o
         { 'p-4': isOpen, 'p-2 pr-[10px]': !isOpen }
       )}>
         <div className={clsx('flex items-center gap-3', { 'flex-1': isOpen })}>
-          <Link href="/">
+          <Link href="/home">
             <div className="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center flex-shrink-0">
               <div className="w-[30px] h-[30px] rounded-full flex items-center justify-center">
                 <Image 
@@ -256,7 +256,7 @@ export function Sidebar({ isOpen, mounted = false, theme, themeMode, onToggle, o
             </div>
           </Link>
           <Link 
-            href="/" 
+            href="/home" 
             className={clsx(
               'text-right transition-all duration-300',
               { 
