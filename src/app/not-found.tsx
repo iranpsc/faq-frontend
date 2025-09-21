@@ -63,7 +63,7 @@ export default function NotFound() {
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/home"
+              href="/"
               className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
             >
               <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -131,7 +131,7 @@ export default function NotFound() {
                 if (e.key === 'Enter') {
                   const query = (e.target as HTMLInputElement).value.trim();
                   if (query) {
-                    window.location.href = `/home?search=${encodeURIComponent(query)}`;
+                    window.location.href = `/?search=${encodeURIComponent(query)}`;
                   }
                 }
               }}
@@ -141,7 +141,7 @@ export default function NotFound() {
                 const input = document.querySelector('input[type="text"]') as HTMLInputElement;
                 const query = input?.value.trim();
                 if (query) {
-                  window.location.href = `/home?search=${encodeURIComponent(query)}`;
+                  window.location.href = `/?search=${encodeURIComponent(query)}`;
                 }
               }}
               className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
