@@ -69,7 +69,7 @@ export function CommentsSection({
     if (parentId) {
       fetchCommentsData(parentId, parentType);
     }
-  }, [parentId, parentType, fetchCommentsData]);
+  }, [parentId, parentType]);
 
   const loadMoreComments = async () => {
     if (!hasMoreComments || isLoadingMore || !parentId) return;

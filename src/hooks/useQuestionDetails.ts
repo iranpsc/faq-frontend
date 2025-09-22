@@ -29,11 +29,11 @@ export function useQuestionDetails(slug: string) {
     }
   }, [slug]);
 
-  const refetchQuestion = async () => {
+  const refetchQuestion = useCallback(async () => {
     await fetchQuestion();
-  };
+  }, [fetchQuestion]);
 
-  const refetchAnswers = async () => {
+  const refetchAnswers = useCallback(async () => {
     if (!question?.id) return;
     
     try {
@@ -42,11 +42,11 @@ export function useQuestionDetails(slug: string) {
     } catch (err) {
       console.error('Error fetching answers:', err);
     }
-  };
+  }, [question?.id]);
 
   useEffect(() => {
     fetchQuestion();
-  }, [slug, fetchQuestion]);
+  }, [fetchQuestion]);
 
   return {
     question,

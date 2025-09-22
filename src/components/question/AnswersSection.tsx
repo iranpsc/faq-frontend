@@ -140,14 +140,14 @@ export function AnswersSection({
     const result = await fetchAnswersApi(questionId, page);
     if (result.success && result.data) {
       if (append) {
-        setPaginatedAnswers([...paginatedAnswers, ...result.data]);
+        setPaginatedAnswers(prev => [...prev, ...result.data]);
       } else {
         setPaginatedAnswers(result.data);
       }
       setAnswersPagination(result.meta);
       setCurrentAnswersPage(page);
     }
-  }, [fetchAnswersApi, questionId, paginatedAnswers]);
+  }, [fetchAnswersApi, questionId]);
 
   const loadMoreAnswers = async () => {
     if (!hasMoreAnswers || isLoadingMoreAnswers) return;
@@ -186,7 +186,7 @@ export function AnswersSection({
 
   useEffect(() => {
     initializePagination();
-  }, [initializePagination]);
+  }, [answers.length]);
 
   const submitAnswer = async () => {
     if (!newAnswer.trim()) return;
