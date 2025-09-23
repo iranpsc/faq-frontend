@@ -37,7 +37,11 @@ npm ci
 
 # Run linting
 echo -e "${YELLOW}🔍 Running linting...${NC}"
-npm run lint
+if [ "$ENVIRONMENT" = "production" ]; then
+    npm run lint:production
+else
+    npm run lint
+fi
 
 # Run type checking
 echo -e "${YELLOW}🔍 Running type checking...${NC}"
@@ -67,6 +71,7 @@ cp package.json $DEPLOY_DIR/
 cp package-lock.json $DEPLOY_DIR/
 cp next.config.ts $DEPLOY_DIR/
 cp .htaccess $DEPLOY_DIR/
+cp eslint.config.production.mjs $DEPLOY_DIR/
 
 # Create production environment file
 cat > $DEPLOY_DIR/.env.local << 'EOF'

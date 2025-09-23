@@ -10,6 +10,7 @@
     "start:prod": "NODE_ENV=production next start -p 3005",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
+    "lint:production": "eslint --config eslint.config.production.mjs",
     "type-check": "tsc --noEmit",
     "analyze": "ANALYZE=true next build",
     "export": "next export"

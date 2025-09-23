@@ -9,7 +9,7 @@ const compat = new FlatCompat({
   baseDirectory: __dirname,
 });
 
-const eslintConfig = [
+export default [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     ignores: [
@@ -18,25 +18,19 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "deploy/**",
-      "next-env.d.ts",
-      // Ignore third-party scripts in public directory
       "public/assets/script/**",
       "**/public/assets/script/**",
       "**/deploy/public/assets/script/**",
+      "**/public_html/**",
+      "**/domains/**"
     ],
   },
   {
     rules: {
-      // Temporarily disable some strict rules to allow build to pass
-      "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/no-unused-vars": "warn",
-      "react-hooks/exhaustive-deps": "warn",
-      "@next/next/no-img-element": "warn",
-      "prefer-const": "warn",
-      // Keep these as errors
+      // Disable unused vars warnings for production scripts
+      "@typescript-eslint/no-unused-vars": "off",
+      // Keep other important rules
       "react/no-unescaped-entities": "error",
     },
   },
 ];
-
-export default eslintConfig;
