@@ -2,8 +2,7 @@ module.exports = {
   apps: [
     {
       name: 'faq-frontend',
-      script: 'npm',
-      args: 'start:prod',
+      script: './start.sh',
       cwd: './',
       instances: 'max', // Use all CPU cores
       exec_mode: 'cluster',

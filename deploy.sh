@@ -78,9 +78,20 @@ EOF
 # Create production start script
 cat > $DEPLOY_DIR/start.sh << 'EOF'
 #!/bin/bash
+set -e
+
+# Set environment variables
 export NODE_ENV=production
 export PORT=${PORT:-3005}
-export NEXT_PUBLIC_API_URL=https://api.faqhub.ir/api
+export NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://api.faqhub.ir/api}
+
+# Check if standalone server exists
+if [ ! -f ".next/standalone/server.js" ]; then
+    echo "Error: .next/standalone/server.js not found. Make sure to build with 'output: standalone' in next.config.ts"
+    exit 1
+fi
+
+# Start the server
 exec node .next/standalone/server.js
 EOF
 
