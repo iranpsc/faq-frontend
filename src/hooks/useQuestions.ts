@@ -54,15 +54,7 @@ export function useQuestions(initialParams: UseQuestionsParams = {}): UseQuestio
   const [error, setError] = useState<string | null>(null);
 
   // Memoize initialParams to prevent infinite re-renders
-  const memoizedInitialParams = useMemo(() => initialParams, [
-    initialParams.page,
-    initialParams.category_id,
-    initialParams.search,
-    initialParams.sort,
-    initialParams.order,
-    initialParams.tags,
-    initialParams.filter,
-  ]);
+  const memoizedInitialParams = useMemo(() => initialParams, [initialParams]);
 
   const fetchQuestions = useCallback(async (params: UseQuestionsParams = {}) => {
     try {
@@ -153,7 +145,7 @@ export function useQuestions(initialParams: UseQuestionsParams = {}): UseQuestio
 
   useEffect(() => {
     fetchQuestions();
-  }, []);
+  }, [fetchQuestions]);
 
   return {
     questions,

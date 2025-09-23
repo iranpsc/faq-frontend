@@ -27,12 +27,7 @@ export function useTags(initialParams: UseTagsParams = {}, autoFetch: boolean = 
   const hasFetchedOnceRef = useRef(false);
 
   // Memoize initialParams to prevent infinite re-renders
-  const memoizedInitialParams = useMemo(() => initialParams, [
-    initialParams.page,
-    initialParams.search,
-    initialParams.limit,
-    initialParams.per_page,
-  ]);
+  const memoizedInitialParams = useMemo(() => initialParams, [initialParams]);
 
   const fetchTags = useCallback(async (params: UseTagsParams = {}) => {
     try {

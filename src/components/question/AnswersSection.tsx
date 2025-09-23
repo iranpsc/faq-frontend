@@ -186,7 +186,7 @@ export function AnswersSection({
 
   useEffect(() => {
     initializePagination();
-  }, [answers.length]);
+  }, [answers.length, initializePagination]);
 
   const submitAnswer = async () => {
     if (!newAnswer.trim()) return;
