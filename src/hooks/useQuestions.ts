@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { apiService, Question, PaginatedResponse } from '@/services/api';
 
 interface UseQuestionsParams {
@@ -39,7 +39,10 @@ interface UseQuestionsReturn {
   }) => Promise<{ success: boolean; data?: Question; error?: string }>;
 }
 
-export function useQuestions(initialParams: UseQuestionsParams = {}): UseQuestionsReturn {
+// Use a stable default object to avoid creating a new reference on every render
+const DEFAULT_PARAMS: UseQuestionsParams = {};
+
+export function useQuestions(initialParams: UseQuestionsParams = DEFAULT_PARAMS, fetchOnMount: boolean = true): UseQuestionsReturn {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [pagination, setPagination] = useState<{
     meta: {
@@ -53,15 +56,12 @@ export function useQuestions(initialParams: UseQuestionsParams = {}): UseQuestio
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Memoize initialParams to prevent infinite re-renders
-  const memoizedInitialParams = useMemo(() => initialParams, [initialParams]);
-
   const fetchQuestions = useCallback(async (params: UseQuestionsParams = {}) => {
     try {
       setIsLoading(true);
       setError(null);
       const response: PaginatedResponse<Question> = await apiService.getQuestions({
-        ...memoizedInitialParams,
+        ...initialParams,
         ...params,
       });
       setQuestions(response.data);
@@ -73,7 +73,7 @@ export function useQuestions(initialParams: UseQuestionsParams = {}): UseQuestio
     } finally {
       setIsLoading(false);
     }
-  }, [memoizedInitialParams]);
+  }, [initialParams]);
 
   const createQuestion = async (questionData: {
     title: string;
@@ -144,8 +144,10 @@ export function useQuestions(initialParams: UseQuestionsParams = {}): UseQuestio
   };
 
   useEffect(() => {
-    fetchQuestions();
-  }, [fetchQuestions]);
+    if (fetchOnMount) {
+      fetchQuestions();
+    }
+  }, [fetchQuestions, fetchOnMount]);
 
   return {
     questions,

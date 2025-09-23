@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from "next/image";
 import { ContentArea } from '@/components/ContentArea';
@@ -28,6 +28,18 @@ function HomeContent() {
     error,
     refetch: refetchQuestions
   } = useQuestions();
+
+  // Listen for custom refresh events from AppLayout
+  React.useEffect(() => {
+    const handleRefresh = () => {
+      refetchQuestions();
+    };
+
+    window.addEventListener('questions:refresh', handleRefresh);
+    return () => {
+      window.removeEventListener('questions:refresh', handleRefresh);
+    };
+  }, [refetchQuestions]);
 
   const {
     users: activeUsers,

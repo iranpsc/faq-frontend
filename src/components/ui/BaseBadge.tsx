@@ -1,7 +1,7 @@
 'use client';
 
 import { HTMLAttributes, forwardRef } from 'react';
-import { clsx } from 'clsx';
+import clsx from 'clsx';
 
 interface BaseBadgeProps extends HTMLAttributes<HTMLSpanElement> {
   variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'info' | 'default';

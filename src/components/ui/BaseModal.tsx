@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { clsx } from 'clsx';
+import clsx from 'clsx';
 
 interface BaseModalProps {
   visible: boolean;

@@ -3,7 +3,7 @@
 import { BaseCard } from './ui/BaseCard';
 import { BaseBadge } from './ui/BaseBadge';
 import { BaseAvatar } from './ui/BaseAvatar';
-import { clsx } from 'clsx';
+import clsx from 'clsx';
 import { Question } from '@/services/api';
 import { useState } from 'react';
 import Link from 'next/link';

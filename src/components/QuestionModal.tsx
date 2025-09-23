@@ -50,12 +50,13 @@ export function QuestionModal({
     isSubmitting,
     createQuestion,
     updateQuestion,
-  } = useQuestions();
+  } = useQuestions({}, false); // Don't fetch questions on mount
 
   const {
     categories,
     fetchCategoriesPaginated,
-  } = useCategories();
+    refetch: fetchCategories,
+  } = useCategories(undefined, false); // Don't fetch categories on mount
 
   const {
     tags,
@@ -68,6 +69,13 @@ export function QuestionModal({
   const [categoryOptions, setCategoryOptions] = useState<Category[]>([]);
   const [tagOptions, setTagOptions] = useState<Tag[]>([]);
   const requestedTagsRef = useRef(false);
+
+  // Fetch categories when modal becomes visible
+  useEffect(() => {
+    if (visible && categories.length === 0) {
+      fetchCategories();
+    }
+  }, [visible, categories.length, fetchCategories]);
 
   useEffect(() => {
     if (Array.isArray(categories)) {

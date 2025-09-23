@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { clsx } from 'clsx';
+import clsx from 'clsx';
 
 interface SelectOption {
   id: string;

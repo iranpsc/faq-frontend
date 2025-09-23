@@ -2,7 +2,7 @@
 
 import { HTMLAttributes, forwardRef } from 'react';
 import Image from 'next/image';
-import { clsx } from 'clsx';
+import clsx from 'clsx';
 import { AvatarSvg } from './AvatarSvg';
 
 interface BaseAvatarProps extends HTMLAttributes<HTMLDivElement> {

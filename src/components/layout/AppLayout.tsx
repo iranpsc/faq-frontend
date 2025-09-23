@@ -5,9 +5,8 @@ import { Header, Sidebar, Footer } from './index';
 import { QuestionModal } from '@/components/QuestionModal';
 import { AuthDialog } from '@/components/AuthDialog';
 import { useAuth } from '@/contexts/AuthContext';
-import { useQuestions } from '@/hooks/useQuestions';
 import { Question } from '@/services/api';
-import { clsx } from 'clsx';
+import clsx from 'clsx';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -20,7 +19,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   const { isAuthenticated } = useAuth();
-  const { refetch } = useQuestions();
 
   // Initialize theme and handle responsive behavior
   useEffect(() => {
@@ -119,15 +117,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   const handleQuestionCreated = async () => {
     setShowQuestionModal(false);
-    // Refresh questions list
-    refetch();
+    // Dispatch custom event to refresh questions list
+    window.dispatchEvent(new CustomEvent('questions:refresh'));
   };
 
   const handleQuestionUpdated = async () => {
     setShowQuestionModal(false);
     setQuestionToEdit(null);
-    // Refresh questions list
-    refetch();
+    // Dispatch custom event to refresh questions list
+    window.dispatchEvent(new CustomEvent('questions:refresh'));
   };
 
   return (

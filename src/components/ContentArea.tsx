@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode, useEffect, useRef, useState } from 'react';
-import { clsx } from 'clsx';
+import clsx from 'clsx';
 
 interface ContentAreaProps {
   children?: ReactNode;

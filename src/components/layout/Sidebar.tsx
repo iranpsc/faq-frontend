@@ -27,7 +27,7 @@ import { BaseButton } from '@/components/ui/BaseButton';
 import { BaseAvatar } from '@/components/ui/BaseAvatar';
 import { BaseBadge } from '@/components/ui/BaseBadge';
 import { useAuth } from '@/contexts/AuthContext';
-import { clsx } from 'clsx';
+import clsx from 'clsx';
 
 
 interface SidebarProps {
@@ -52,7 +52,7 @@ export function Sidebar({ isOpen, mounted = false, theme, themeMode, onToggle, o
   // Get authentication state from context
   const { user, isAuthenticated, login, logout } = useAuth();
 
-  const logoUrl = '/assets/icon/main-logo.PNG';
+  const logoUrl = '/assets/icons/main-logo.PNG';
 
   const handleLogin = async () => {
     try {

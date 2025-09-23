@@ -10,7 +10,7 @@ interface UseCategoriesReturn {
   fetchCategoriesPaginated: (page: number, search?: string) => Promise<{ success: boolean; data?: Category[]; error?: string }>;
 }
 
-export function useCategories(limit?: number): UseCategoriesReturn {
+export function useCategories(limit?: number, fetchOnMount: boolean = true): UseCategoriesReturn {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,8 +40,10 @@ export function useCategories(limit?: number): UseCategoriesReturn {
   };
 
   useEffect(() => {
-    fetchCategories();
-  }, [limit, fetchCategories]);
+    if (fetchOnMount) {
+      fetchCategories();
+    }
+  }, [limit, fetchCategories, fetchOnMount]);
 
   return {
     categories,

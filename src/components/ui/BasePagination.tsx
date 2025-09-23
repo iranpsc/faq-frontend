@@ -1,7 +1,7 @@
 'use client';
 
 import { HTMLAttributes, forwardRef } from 'react';
-import { clsx } from 'clsx';
+import clsx from 'clsx';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface BasePaginationProps extends HTMLAttributes<HTMLDivElement> {
