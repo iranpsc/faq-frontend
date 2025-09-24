@@ -23,6 +23,42 @@ export const BaseAvatar = forwardRef<HTMLDivElement, BaseAvatarProps>(
     className, 
     ...props 
   }, ref) => {
+    // Validate and normalize the image URL
+    const isValidUrl = (url: string): boolean => {
+      try {
+        new URL(url);
+        return true;
+      } catch {
+        return false;
+      }
+    };
+
+    const getValidImageSrc = (imageSrc?: string): string | null => {
+      if (!imageSrc || imageSrc.trim() === '') {
+        return null;
+      }
+
+      // If it's already a valid absolute URL, return it
+      if (isValidUrl(imageSrc)) {
+        return imageSrc;
+      }
+
+      // If it's a relative URL, try to make it absolute
+      if (imageSrc.startsWith('/')) {
+        // For relative URLs, we need to determine the base URL
+        // This could be the API base URL or the current domain
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+        if (baseUrl && baseUrl !== '/api') {
+          return `${baseUrl.replace('/api', '')}${imageSrc}`;
+        }
+        return imageSrc; // Return as-is for local development
+      }
+
+      // If it's not a valid URL, return null to fall back to avatar
+      return null;
+    };
+
+    const validSrc = getValidImageSrc(src);
     const sizeClasses = {
       xs: 'w-6 h-6 text-xs',
       sm: 'w-8 h-8 text-sm',
@@ -64,9 +100,9 @@ export const BaseAvatar = forwardRef<HTMLDivElement, BaseAvatarProps>(
         )}
         {...props}
       >
-        {src ? (
+        {validSrc ? (
           <Image
-            src={src}
+            src={validSrc}
             alt={name || ''}
             width={sizeMap[size]}
             height={sizeMap[size]}

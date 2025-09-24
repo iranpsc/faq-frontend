@@ -14,6 +14,16 @@ const nextConfig: NextConfig = {
     formats: ['image/webp', 'image/avif'],
   },
   
+  // API proxy to avoid CORS issues
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'https://api.faqhub.ir/api/:path*',
+      },
+    ];
+  },
+  
   // Security headers
   async headers() {
     return [

@@ -49,12 +49,10 @@ class ApiService {
       ...options,
     };
 
-    try {
-      console.log(`Making API request to: ${url}`);
-      
+    try {      
       // Add timeout to prevent hanging requests
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout for production API
       
       const response = await fetch(url, {
         ...config,
@@ -97,7 +95,13 @@ class ApiService {
       if (error instanceof TypeError && (error.message.includes('fetch') || error.message.includes('Failed to fetch'))) {
         const errorMessage = isDevelopment 
           ? `Unable to connect to backend server at ${API_BASE_URL}. Please ensure the Laravel backend is running on port 8000.`
-          : 'Unable to connect to backend server. This might be a CORS issue or the server is not running.';
+          : `Unable to connect to production API at ${API_BASE_URL}. The server may be down or unreachable.`;
+        throw new Error(errorMessage);
+      }
+      
+      // Handle AbortError (timeout)
+      if (error instanceof Error && error.name === 'AbortError') {
+        const errorMessage = `Request timeout: The API server at ${API_BASE_URL} is not responding within 30 seconds.`;
         throw new Error(errorMessage);
       }
       throw error;
