@@ -5,9 +5,6 @@ const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
   
-  // Standalone output for production deployment
-  output: 'standalone',
-  
   // Image optimization
   images: {
     domains: ['api.faqhub.ir', 'localhost', 'irpsc.com', 'ui-avatars.com'],
