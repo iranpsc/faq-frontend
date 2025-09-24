@@ -1,16 +1,8 @@
 # Apache configuration for Next.js FAQ Frontend
-# Routes all requests to localhost:3005
+# Simplified configuration to avoid server errors
 
 # Enable URL rewriting
 RewriteEngine On
-
-# Enable proxy module and set proper headers
-RewriteCond %{REQUEST_METHOD} ^(GET|POST|PUT|DELETE|HEAD|OPTIONS)$
-RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
-
-# Set proxy headers for proper forwarding
-ProxyPreserveHost On
-ProxyRequests Off
 
 # Handle Next.js static assets (_next directory) - highest priority
 RewriteCond %{REQUEST_URI} ^/_next/
@@ -25,122 +17,35 @@ RewriteCond %{REQUEST_URI} ^/(favicon\.ico|robots\.txt|sitemap\.xml)$
 RewriteRule ^(.*)$ http://localhost:3005/$1 [P,L]
 
 # Handle existing files and directories (serve directly from Apache)
-# This should come AFTER the Next.js specific rules
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^(.*)$ - [L]
 
 # Handle all other requests (SPA routing) - proxy to Next.js
-# This should be the last rule
 RewriteRule ^(.*)$ http://localhost:3005/$1 [P,L]
 
-# Fallback for any missed requests
-ErrorDocument 404 http://localhost:3005/
-
-# Additional debugging and error handling
-# Log proxy requests for debugging (remove in production)
-# LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" proxy
-# CustomLog logs/proxy.log proxy
-
-# Ensure proper MIME types for Next.js
-AddType application/javascript .js
-AddType text/css .css
-
-# Security headers
+# Basic security headers (only if mod_headers is available)
 <IfModule mod_headers.c>
-    # Prevent clickjacking
     Header always set X-Frame-Options "DENY"
-    
-    # Prevent MIME type sniffing
     Header always set X-Content-Type-Options "nosniff"
-    
-    # Referrer policy
-    Header always set Referrer-Policy "origin-when-cross-origin"
-    
-    # Remove server signature
-    Header always unset Server
-    Header always unset X-Powered-By
 </IfModule>
 
-# Compression
+# Basic compression (only if mod_deflate is available)
 <IfModule mod_deflate.c>
-    # Compress HTML, CSS, JavaScript, Text, XML and fonts
-    AddOutputFilterByType DEFLATE application/javascript
-    AddOutputFilterByType DEFLATE application/rss+xml
-    AddOutputFilterByType DEFLATE application/vnd.ms-fontobject
-    AddOutputFilterByType DEFLATE application/x-font
-    AddOutputFilterByType DEFLATE application/x-font-opentype
-    AddOutputFilterByType DEFLATE application/x-font-otf
-    AddOutputFilterByType DEFLATE application/x-font-truetype
-    AddOutputFilterByType DEFLATE application/x-font-ttf
-    AddOutputFilterByType DEFLATE application/x-javascript
-    AddOutputFilterByType DEFLATE application/xhtml+xml
-    AddOutputFilterByType DEFLATE application/xml
-    AddOutputFilterByType DEFLATE font/opentype
-    AddOutputFilterByType DEFLATE font/otf
-    AddOutputFilterByType DEFLATE font/ttf
-    AddOutputFilterByType DEFLATE image/svg+xml
-    AddOutputFilterByType DEFLATE image/x-icon
-    AddOutputFilterByType DEFLATE text/css
-    AddOutputFilterByType DEFLATE text/html
-    AddOutputFilterByType DEFLATE text/javascript
-    AddOutputFilterByType DEFLATE text/plain
-    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript
 </IfModule>
 
-# Browser caching
+# Basic caching (only if mod_expires is available)
 <IfModule mod_expires.c>
     ExpiresActive on
-    
-    # Images
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
     ExpiresByType image/jpg "access plus 1 month"
     ExpiresByType image/jpeg "access plus 1 month"
     ExpiresByType image/gif "access plus 1 month"
-    ExpiresByType image/png "access plus 1 month"
-    ExpiresByType image/webp "access plus 1 month"
     ExpiresByType image/svg+xml "access plus 1 month"
-    ExpiresByType image/x-icon "access plus 1 year"
-    
-    # CSS and JavaScript
-    ExpiresByType text/css "access plus 1 month"
-    ExpiresByType application/javascript "access plus 1 month"
-    ExpiresByType text/javascript "access plus 1 month"
-    
-    # Fonts
-    ExpiresByType font/ttf "access plus 1 year"
-    ExpiresByType font/otf "access plus 1 year"
-    ExpiresByType font/woff "access plus 1 year"
-    ExpiresByType font/woff2 "access plus 1 year"
-    ExpiresByType application/font-woff "access plus 1 year"
-    
-    # HTML
-    ExpiresByType text/html "access plus 0 seconds"
 </IfModule>
-
-# Cache control headers
-<IfModule mod_headers.c>
-    # Cache static assets
-    <FilesMatch "\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|otf)$">
-        Header set Cache-Control "public, max-age=31536000"
-    </FilesMatch>
-    
-    # Don't cache HTML files
-    <FilesMatch "\.(html|htm)$">
-        Header set Cache-Control "no-cache, no-store, must-revalidate"
-        Header set Pragma "no-cache"
-        Header set Expires "0"
-    </FilesMatch>
-</IfModule>
-
-# Prevent access to sensitive files
-<FilesMatch "\.(env|log|config|json)$">
-    Order allow,deny
-    Deny from all
-</FilesMatch>
 
 # Prevent directory browsing
 Options -Indexes
-
-# Enable HTTPS redirect (uncomment if you have SSL)
-# RewriteCond %{HTTPS} off
-# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
