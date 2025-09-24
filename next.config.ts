@@ -13,10 +13,13 @@ const nextConfig: NextConfig = {
   
   // API proxy to avoid CORS issues
   async rewrites() {
+    const isProd = process.env.NODE_ENV === 'production';
     return [
       {
         source: '/api/:path*',
-        destination: 'https://api.faqhub.ir/api/:path*',
+        destination: isProd
+          ? 'https://api.faqhub.ir/api/:path*'
+          : 'http://localhost:8000/api/:path*',
       },
     ];
   },
@@ -57,9 +60,13 @@ const nextConfig: NextConfig = {
     return config;
   },
   
-  // Environment variables validation
+  // Environment variables with sensible defaults per environment
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+    NEXT_PUBLIC_API_URL:
+      process.env.NEXT_PUBLIC_API_URL ||
+      (process.env.NODE_ENV === 'production'
+        ? 'https://api.faqhub.ir/api'
+        : 'http://localhost:8000/api'),
   },
 };
 
