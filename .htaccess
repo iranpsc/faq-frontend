@@ -4,29 +4,47 @@
 # Enable URL rewriting
 RewriteEngine On
 
-# Enable proxy module
+# Enable proxy module and set proper headers
 RewriteCond %{REQUEST_METHOD} ^(GET|POST|PUT|DELETE|HEAD|OPTIONS)$
 RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-# Handle existing files and directories (serve directly from Apache)
-RewriteCond %{REQUEST_FILENAME} -f [OR]
-RewriteCond %{REQUEST_FILENAME} -d
-RewriteRule ^(.*)$ - [L]
+# Set proxy headers for proper forwarding
+ProxyPreserveHost On
+ProxyRequests Off
+
+# Handle Next.js static assets (_next directory) - highest priority
+RewriteCond %{REQUEST_URI} ^/_next/
+RewriteRule ^(.*)$ http://localhost:3005/$1 [P,L]
 
 # Handle Next.js API routes
 RewriteCond %{REQUEST_URI} ^/api/
-RewriteRule ^(.*)$ http://localhost:3005/$1 [P,L]
-
-# Handle Next.js static assets (_next directory)
-RewriteCond %{REQUEST_URI} ^/_next/
 RewriteRule ^(.*)$ http://localhost:3005/$1 [P,L]
 
 # Handle favicon and other root assets
 RewriteCond %{REQUEST_URI} ^/(favicon\.ico|robots\.txt|sitemap\.xml)$
 RewriteRule ^(.*)$ http://localhost:3005/$1 [P,L]
 
+# Handle existing files and directories (serve directly from Apache)
+# This should come AFTER the Next.js specific rules
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^(.*)$ - [L]
+
 # Handle all other requests (SPA routing) - proxy to Next.js
+# This should be the last rule
 RewriteRule ^(.*)$ http://localhost:3005/$1 [P,L]
+
+# Fallback for any missed requests
+ErrorDocument 404 http://localhost:3005/
+
+# Additional debugging and error handling
+# Log proxy requests for debugging (remove in production)
+# LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" proxy
+# CustomLog logs/proxy.log proxy
+
+# Ensure proper MIME types for Next.js
+AddType application/javascript .js
+AddType text/css .css
 
 # Security headers
 <IfModule mod_headers.c>
