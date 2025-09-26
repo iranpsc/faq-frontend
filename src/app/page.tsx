@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from "next/image";
 import { ContentArea } from '@/components/ContentArea';
 import { PopularCategories } from '@/components/PopularCategories';
 import { FilterQuestion } from '@/components/FilterQuestion';
@@ -11,6 +10,7 @@ import { UserCard } from '@/components/UserCard';
 import { HomeSidebar } from '@/components/HomeSidebar';
 import { BaseAlert } from '@/components/ui/BaseAlert';
 import { BasePagination } from '@/components/ui/BasePagination';
+import { OptimizedHeroImage } from '@/components/OptimizedHeroImage';
 import { useQuestions } from '@/hooks/useQuestions';
 import { useUsers } from '@/hooks/useUsers';
 import { Question, Category } from '@/services/api';
@@ -85,23 +85,10 @@ function HomeContent() {
           <h1 className="text-center">
             انجمن حم بزرگترین انجمن پرسش و پاسخ ایران
           </h1>
-          <div className="relative overflow-hidden rounded-lg shadow-sm">
-            <Image
-              src={landingImageUrl}
-              alt="خوش آمدید به سیستم پرسش و پاسخ"
-              width={1200}
-              height={480}
-              className="w-full h-auto object-cover"
-              loading="eager"
-              priority
-              style={{ 
-                aspectRatio: '1200/480', 
-                contentVisibility: 'auto', 
-                containIntrinsicSize: '1200px 480px', 
-                objectFit: 'cover' 
-              }}
-            />
-          </div>
+          <OptimizedHeroImage
+            src={landingImageUrl}
+            alt="خوش آمدید به سیستم پرسش و پاسخ"
+          />
         </div>
       }
       filters1={
