@@ -192,7 +192,7 @@ export function Sidebar({ isOpen, mounted = false, theme, themeMode, onToggle, o
     { href: '/', icon: Home, label: 'خانه' },
     { href: '/categories', icon: Grid3X3, label: 'دسته بندی ها' },
     { href: '/tags', icon: Tag, label: 'برچسب ها' },
-    { href: '/daily-activity', icon: Clock, label: 'فعالیت روز' },
+    { href: '/activity', icon: Clock, label: 'فعالیت ها' },
     { href: '/authors', icon: Users, label: 'فعالان انجمن' },
     { href: '#news', icon: Newspaper, label: 'اخبار متاورس' },
     { href: '#association', icon: UserCheck, label: 'انجمن متاورس' },

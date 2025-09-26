@@ -66,7 +66,7 @@ export function HomeSidebar() {
   const loadPopularQuestions = async () => {
     setIsPopularLoading(true);
     try {
-      const questions = await apiService.getPopularQuestions(15, 'week');
+      const questions = await apiService.getPopularQuestions(15, 'all');
       setPopularQuestions(questions);
     } catch (error) {
       console.error('Failed to fetch popular questions:', error);
@@ -104,7 +104,7 @@ export function HomeSidebar() {
 
         {/* Popular Questions */}
         <QuestionListCard
-          title="سوالات پربازدید هفته"
+          title="سوالات پربازدید"
           questions={popularQuestions}
           isLoading={isPopularLoading}
           onQuestionClick={handleQuestionClick}

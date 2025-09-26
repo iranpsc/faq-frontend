@@ -1051,15 +1051,24 @@ class ApiService {
     }
   }
 
-  // Daily Activity API
-  async getDailyActivity(params: { date?: string; limit?: number } = {}): Promise<ApiResponse<DailyActivity[]>> {
+  // Activity API
+  async getActivity(params: { 
+    months?: number; 
+    offset?: number; 
+    questions_limit?: number;
+    answers_limit?: number;
+    comments_limit?: number;
+  } = {}): Promise<ApiResponse<DailyActivity[]>> {
     try {
       const queryParams = new URLSearchParams();
-      if (params.date) queryParams.append('date', params.date);
-      if (params.limit) queryParams.append('limit', params.limit.toString());
+      if (params.months) queryParams.append('months', params.months.toString());
+      if (params.offset) queryParams.append('offset', params.offset.toString());
+      if (params.questions_limit) queryParams.append('questions_limit', params.questions_limit.toString());
+      if (params.answers_limit) queryParams.append('answers_limit', params.answers_limit.toString());
+      if (params.comments_limit) queryParams.append('comments_limit', params.comments_limit.toString());
 
       const response = await this.request<ApiResponse<DailyActivity[]>>(
-        `/dashboard/daily-activity?${queryParams.toString()}`
+        `/dashboard/activity?${queryParams.toString()}`
       );
 
       return response;
@@ -1067,7 +1076,7 @@ class ApiService {
       return { 
         success: false,
         data: [] as DailyActivity[],
-        error: (error as ApiError)?.response?.data?.message || (error as ApiError)?.message || 'خطا در دریافت فعالیت‌های روزانه'
+        error: (error as ApiError)?.response?.data?.message || (error as ApiError)?.message || 'خطا در دریافت فعالیت‌ها'
       };
     }
   }
