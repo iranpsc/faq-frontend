@@ -42,8 +42,24 @@ interface UseQuestionsReturn {
 // Use a stable default object to avoid creating a new reference on every render
 const DEFAULT_PARAMS: UseQuestionsParams = {};
 
-export function useQuestions(initialParams: UseQuestionsParams = DEFAULT_PARAMS, fetchOnMount: boolean = true): UseQuestionsReturn {
-  const [questions, setQuestions] = useState<Question[]>([]);
+type InitialQuestionsState = {
+  questions?: Question[];
+  pagination?: {
+    meta: {
+      current_page: number;
+      last_page: number;
+      total: number;
+      per_page: number;
+    };
+  } | null;
+};
+
+export function useQuestions(
+  initialParams: UseQuestionsParams = DEFAULT_PARAMS,
+  fetchOnMount: boolean = true,
+  initialState?: InitialQuestionsState
+): UseQuestionsReturn {
+  const [questions, setQuestions] = useState<Question[]>(initialState?.questions ?? []);
   const [pagination, setPagination] = useState<{
     meta: {
       current_page: number;
@@ -51,8 +67,8 @@ export function useQuestions(initialParams: UseQuestionsParams = DEFAULT_PARAMS,
       total: number;
       per_page: number;
     };
-  } | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  } | null>(initialState?.pagination ?? null);
+  const [isLoading, setIsLoading] = useState<boolean>(fetchOnMount && !initialState);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

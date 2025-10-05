@@ -8,9 +8,9 @@ interface UseUsersReturn {
   refetch: () => Promise<void>;
 }
 
-export function useUsers(limit?: number): UseUsersReturn {
-  const [users, setUsers] = useState<User[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export function useUsers(limit?: number, fetchOnMount: boolean = true, initialUsers?: User[]): UseUsersReturn {
+  const [users, setUsers] = useState<User[]>(initialUsers ?? []);
+  const [isLoading, setIsLoading] = useState<boolean>(fetchOnMount && !initialUsers);
   const [error, setError] = useState<string | null>(null);
 
   const fetchUsers = useCallback(async () => {
@@ -27,8 +27,10 @@ export function useUsers(limit?: number): UseUsersReturn {
   }, [limit]);
 
   useEffect(() => {
-    fetchUsers();
-  }, [limit, fetchUsers]);
+    if (fetchOnMount) {
+      fetchUsers();
+    }
+  }, [limit, fetchUsers, fetchOnMount]);
 
   return {
     users,
