@@ -6,10 +6,10 @@ import { PaginatedResponse, Tag } from '@/services/types';
 
 interface PaginationHandlerProps {
   pagination: PaginatedResponse<Tag>['meta'];
-  currentPage: number;
+  currentPage?: number;
 }
 
-export function PaginationHandler({ pagination, currentPage }: PaginationHandlerProps) {
+export function PaginationHandler({ pagination }: PaginationHandlerProps) {
   const router = useRouter();
   
   const handlePageChange = (page: number) => {

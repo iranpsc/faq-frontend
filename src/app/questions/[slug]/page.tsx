@@ -1,5 +1,5 @@
 import QuestionDetailsContent from '@/components/QuestionDetailsContent';
-import { apiService } from '@/services/api';
+import { apiService, Answer } from '@/services/api';
 
 interface PageProps {
   params: Promise<{
@@ -14,7 +14,7 @@ export default async function QuestionDetailsPage({ params }: PageProps) {
   try {
     // Use API service for server-side calls
     const question = await apiService.getQuestionBySlugServer(slug);
-    const answers: any[] = []; // Answers will be fetched client-side
+    const answers: Answer[] = []; // Answers will be fetched client-side
 
     return (
       <QuestionDetailsContent 
@@ -23,7 +23,7 @@ export default async function QuestionDetailsPage({ params }: PageProps) {
         initialAnswers={answers}
       />
     );
-  } catch (error) {
+  } catch {
     // Return error state to client component - it will handle the error display
     return (
       <QuestionDetailsContent 

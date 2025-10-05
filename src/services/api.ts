@@ -77,22 +77,22 @@ class ApiService {
         
         // Try to parse error response body for more details
         let errorMessage = `HTTP error! status: ${response.status}`;
-        let errorData: any = null;
+        let errorData: unknown = null;
         
         try {
           const contentType = response.headers.get('content-type');
           if (contentType && contentType.includes('application/json')) {
             errorData = await response.json();
-            if (errorData.message) {
-              errorMessage = errorData.message;
+            if (errorData && typeof errorData === 'object' && 'message' in errorData) {
+              errorMessage = (errorData as { message: string }).message;
             }
           }
-        } catch (parseError) {
+        } catch {
           // If we can't parse the error response, use the default message
         }
         
         // Create a custom error object that preserves response data
-        const error = new Error(errorMessage) as any;
+        const error = new Error(errorMessage) as Error & { response?: { status: number; data: unknown } };
         error.response = {
           status: response.status,
           data: errorData
@@ -606,7 +606,7 @@ class ApiService {
       });
       return { success: true, data: response.data };
     } catch (error: unknown) {
-      const errorObj = error as any;
+      const errorObj = error as Error & { response?: { status: number; data?: { message?: string } } };
       
       // Handle 409 Conflict specifically
       if (errorObj.response?.status === 409) {
@@ -954,4 +954,4 @@ class ApiService {
 export const apiService = new ApiService();
 
 // Re-export types for convenience
-export type { Question, User, Category, Tag, PaginatedResponse, ApiResponse, DailyActivity };
+export type { Question, User, Category, Tag, PaginatedResponse, ApiResponse, DailyActivity, Answer, Comment };

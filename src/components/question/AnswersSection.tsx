@@ -147,7 +147,7 @@ export function AnswersSection({
       setAnswersPagination(result.meta);
       setCurrentAnswersPage(page);
     }
-  }, [fetchAnswersApi, questionId]);
+  }, [fetchAnswersApi, questionId, setPaginatedAnswers, setAnswersPagination, setCurrentAnswersPage]);
 
   const loadMoreAnswers = async () => {
     if (!hasMoreAnswers || isLoadingMoreAnswers) return;
@@ -164,7 +164,7 @@ export function AnswersSection({
       setUsePagination(true);
       await fetchPaginatedAnswers();
     }
-  }, [answers.length, questionId]); // Remove fetchPaginatedAnswers from dependencies to prevent infinite loop
+  }, [answers.length, fetchPaginatedAnswers]);
 
   const toggleFilterDropdown = () => {
     setShowFilters(!showFilters);
@@ -186,7 +186,7 @@ export function AnswersSection({
 
   useEffect(() => {
     initializePagination();
-  }, [answers.length]); // Remove initializePagination from dependencies to prevent infinite loop
+  }, [initializePagination]);
 
   const submitAnswer = async () => {
     if (!newAnswer.trim()) return;

@@ -42,7 +42,7 @@ import { useQuestionDetails } from '@/hooks/useQuestionDetails';
 import { useSweetAlert } from '@/hooks/useSweetAlert';
 import { apiService } from '@/services/api';
 import { useRouter } from 'next/navigation';
-import { Answer, VoteChangedData, AnswerCorrectnessData, CommentData, Question } from '@/services/types';
+import { Answer, VoteChangedData, CommentData, Question } from '@/services/types';
 
 interface QuestionDetailsContentProps {
   slug: string;
@@ -133,7 +133,7 @@ export default function QuestionDetailsContent({ slug, initialQuestion, initialA
     }
   };
 
-  const handleAnswerCorrectnessChanged = (data: AnswerCorrectnessData) => {
+  const handleAnswerCorrectnessChanged = () => {
     if (question) {
       const hasCorrectAnswer = answers.some((answer) => answer.is_correct);
       question.is_solved = hasCorrectAnswer;

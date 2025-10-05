@@ -21,7 +21,7 @@ export default async function Home() {
         initialActiveUsers={activeUsers}
       />
     );
-  } catch (error) {
+  } catch {
     // Return error state to client component
     return (
       <HomeContent 

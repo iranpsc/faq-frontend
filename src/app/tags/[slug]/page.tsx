@@ -27,7 +27,7 @@ export default async function TagPage({ params }: TagPageProps) {
         initialPagination={pagination}
       />
     );
-  } catch (error) {
+  } catch {
     // Return error state to client component - it will handle the error display
     return (
       <TagContent 
