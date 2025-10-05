@@ -45,18 +45,22 @@ export function QuestionCard({ question, onClick }: QuestionCardProps) {
     }
   };
 
-  // Conditional styling based on pinned/featured status
+  // Conditional styling based on pinned/featured status - matching Vue implementation
   const cardClassName = clsx(
     'mb-4 hover:shadow-md transition-all duration-300',
     {
+      // Both pinned and featured - gradient with green and orange
       'bg-gradient-to-r from-green-50 to-orange-50 dark:from-green-900/20 dark:to-orange-900/20 border-green-300 dark:border-green-700': 
         question.is_pinned_by_user && question.is_featured_by_user,
+      // Only pinned - green styling
       'bg-green-100 dark:bg-green-900/20 border-green-400 dark:border-green-800': 
         question.is_pinned_by_user && !question.is_featured_by_user,
+      // Only featured - orange styling
       'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800': 
         question.is_featured_by_user && !question.is_pinned_by_user,
     }
   );
+
 
   return (
     <BaseCard variant="outline" className={cardClassName}>
