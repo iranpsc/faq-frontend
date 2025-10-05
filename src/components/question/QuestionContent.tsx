@@ -62,6 +62,15 @@ export function QuestionContent({
         user_vote: voteData.userVote
       }
     };
+    
+    // Update the local question object's vote state (same as AnswersSection.tsx)
+    question.votes = {
+      upvotes: voteData.upvotes,
+      downvotes: voteData.downvotes,
+      score: voteData.upvotes - voteData.downvotes,
+      user_vote: voteData.userVote
+    };
+    
     onVoteChanged(voteChangedData);
   };
 

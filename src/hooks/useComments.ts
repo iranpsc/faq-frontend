@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { apiService } from '@/services/api';
 import { Comment } from '@/services/types';
 
@@ -9,7 +9,7 @@ export function useComments() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
-  const fetchComments = async (parentId: string, parentType: 'question' | 'answer', page: number = 1) => {
+  const fetchComments = useCallback(async (parentId: string, parentType: 'question' | 'answer', page: number = 1) => {
     setIsLoading(true);
     try {
       const response = await apiService.getComments(parentId, parentType, page);
@@ -21,9 +21,9 @@ export function useComments() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const addComment = async (parentId: string, content: string, parentType: 'question' | 'answer') => {
+  const addComment = useCallback(async (parentId: string, content: string, parentType: 'question' | 'answer') => {
     setIsSubmitting(true);
     try {
       const result = await apiService.addComment(parentId, content, parentType);
@@ -39,9 +39,9 @@ export function useComments() {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, []);
 
-  const updateComment = async (commentId: string, content: string) => {
+  const updateComment = useCallback(async (commentId: string, content: string) => {
     setIsUpdating(true);
     try {
       const result = await apiService.updateComment(commentId, content);
@@ -61,9 +61,9 @@ export function useComments() {
     } finally {
       setIsUpdating(false);
     }
-  };
+  }, []);
 
-  const deleteComment = async (commentId: string) => {
+  const deleteComment = useCallback(async (commentId: string) => {
     setIsDeleting(commentId);
     try {
       const result = await apiService.deleteComment(commentId);
@@ -79,9 +79,9 @@ export function useComments() {
     } finally {
       setIsDeleting(null);
     }
-  };
+  }, []);
 
-  const publishComment = async (commentId: string) => {
+  const publishComment = useCallback(async (commentId: string) => {
     try {
       const result = await apiService.publishComment(commentId);
       if (result.success) {
@@ -98,7 +98,7 @@ export function useComments() {
         error: error instanceof Error ? error.message : 'خطا در انتشار نظر' 
       };
     }
-  };
+  }, []);
 
   return {
     comments,

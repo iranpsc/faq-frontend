@@ -68,7 +68,7 @@ export function useQuestions(
       per_page: number;
     };
   } | null>(initialState?.pagination ?? null);
-  const [isLoading, setIsLoading] = useState<boolean>(fetchOnMount && !initialState);
+  const [isLoading, setIsLoading] = useState<boolean>(fetchOnMount && !initialState?.questions);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

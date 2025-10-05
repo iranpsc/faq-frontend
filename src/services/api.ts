@@ -1,4 +1,4 @@
-import { fallbackCategories, fallbackQuestions, fallbackUsers } from './fallbackData';
+// Removed fallback data imports - API should fail gracefully without mock data
 import { 
   ApiResponse, 
   Question, 
@@ -16,6 +16,9 @@ import {
 } from './types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const SERVER_API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://api.faqhub.ir/api'
+  : 'http://localhost:8000/api';
 
 // Development mode check
 const isDevelopment = process.env.NODE_ENV === 'development';
@@ -71,7 +74,30 @@ class ApiService {
           }
           throw new Error('Authentication required. Please log in again.');
         }
-        throw new Error(`HTTP error! status: ${response.status}`);
+        
+        // Try to parse error response body for more details
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        let errorData: any = null;
+        
+        try {
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            errorData = await response.json();
+            if (errorData.message) {
+              errorMessage = errorData.message;
+            }
+          }
+        } catch (parseError) {
+          // If we can't parse the error response, use the default message
+        }
+        
+        // Create a custom error object that preserves response data
+        const error = new Error(errorMessage) as any;
+        error.response = {
+          status: response.status,
+          data: errorData
+        };
+        throw error;
       }
       
       // Check if response has content before parsing JSON
@@ -110,215 +136,66 @@ class ApiService {
 
   // Categories API
   async getPopularCategories(limit: number = 15): Promise<Category[]> {
-    try {
-      const response = await this.request<{data: Category[]}>(`/categories/popular?limit=${limit}`);
-      return response.data;
-    } catch (error) {
-      console.warn('Using fallback data for categories. Error:', error);
-      return fallbackCategories.slice(0, limit);
-    }
+    const response = await this.request<{data: Category[]}>(`/categories/popular?limit=${limit}`);
+    return response.data;
   }
 
   async getCategories(): Promise<Category[]> {
-    try {
-      const response = await this.request<{data: Category[]}>('/categories');
-      return response.data;
-    } catch (error) {
-      console.warn('Using fallback data for all categories. Error:', error);
-      return fallbackCategories;
-    }
+    const response = await this.request<{data: Category[]}>('/categories');
+    return response.data;
   }
 
   async getCategoriesPaginated(page: number = 1): Promise<PaginatedResponse<Category>> {
-    try {
-      const response = await this.request<PaginatedResponse<Category>>(`/categories?page=${page}`);
-      return response;
-    } catch (error) {
-      console.warn('Using fallback data for paginated categories. Error:', error);
-      // Simulate pagination with fallback data
-      const perPage = 15;
-      const startIndex = (page - 1) * perPage;
-      const endIndex = startIndex + perPage;
-      const paginatedCategories = fallbackCategories.slice(startIndex, endIndex);
-      
-      return {
-        data: paginatedCategories,
-        meta: {
-          current_page: page,
-          last_page: Math.ceil(fallbackCategories.length / perPage),
-          per_page: perPage,
-          total: fallbackCategories.length,
-        },
-        links: {
-          first: '/categories?page=1',
-          last: `/categories?page=${Math.ceil(fallbackCategories.length / perPage)}`,
-          prev: page > 1 ? `/categories?page=${page - 1}` : null,
-          next: page < Math.ceil(fallbackCategories.length / perPage) ? `/categories?page=${page + 1}` : null,
-        },
-      };
-    }
+    const response = await this.request<PaginatedResponse<Category>>(`/categories?page=${page}`);
+    return response;
   }
 
   async getCategory(slug: string): Promise<Category & { children?: Category[] }> {
-    try {
-      const response = await this.request<{data: Category & { children?: Category[] }}>(`/categories/${slug}`);
-      return response.data;
-    } catch (error) {
-      console.warn('Using fallback data for category. Error:', error);
-      // Find category in fallback data by slug and add children
-      const fallbackCategory = fallbackCategories.find(cat => cat.slug === slug);
-      if (fallbackCategory) {
-        // Add children based on category hierarchy
-        const children = this.getCategoryChildren(fallbackCategory.id);
-        return {
-          ...fallbackCategory,
-          children: children
-        };
-      }
-      throw new Error('Category not found');
-    }
+    const response = await this.request<{data: Category & { children?: Category[] }}>(`/categories/${slug}`);
+    return response.data;
   }
 
-  private getCategoryChildren(parentId: string): Category[] {
-    // Define parent-child relationships for fallback data
-    const relationships: { [key: string]: string[] } = {
-      '1': ['9', '10', '11', '12'], // Programming -> Python, JavaScript, PHP, Java
-      '2': ['13', '14', '15'], // Web Design -> React, Vue.js, Node.js
-      '7': ['16', '17'], // Mobile -> Android, iOS
-    };
-
-    const childIds = relationships[parentId] || [];
-    return childIds.map(id => fallbackCategories.find(cat => cat.id === id)).filter(Boolean) as Category[];
-  }
 
   async getCategoryQuestions(slug: string, page: number = 1): Promise<PaginatedResponse<Question>> {
-    try {
-      const response = await this.request<PaginatedResponse<Question>>(`/categories/${slug}/questions?page=${page}`);
-      return response;
-    } catch (error) {
-      console.warn('Using fallback data for category questions. Error:', error);
-      // For fallback data, get questions from category and its subcategories
-      const category = await this.getCategory(slug);
-      
-      // If category has children, get questions from all subcategories
-      if (category.children && category.children.length > 0) {
-        return this.getQuestionsFromParentCategory(category, page);
-      } else {
-        // If no children, get questions directly from this category
-        return this.getQuestions({ category_id: category.id, page });
-      }
-    }
+    const response = await this.request<PaginatedResponse<Question>>(`/categories/${slug}/questions?page=${page}`);
+    return response;
   }
 
-  private async getQuestionsFromParentCategory(category: Category & { children?: Category[] }, page: number): Promise<PaginatedResponse<Question>> {
-    // Get all questions from subcategories
-    const allQuestions: Question[] = [];
-    
-    for (const child of category.children || []) {
-      const childQuestions = await this.getQuestions({ category_id: child.id, page: 1 });
-      allQuestions.push(...childQuestions.data);
-    }
-    
-    // Also get questions directly from the parent category
-    const parentQuestions = await this.getQuestions({ category_id: category.id, page: 1 });
-    allQuestions.push(...parentQuestions.data);
-    
-    // Sort by creation date (newest first)
-    allQuestions.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    
-    // Implement pagination manually
-    const perPage = 10;
-    const startIndex = (page - 1) * perPage;
-    const endIndex = startIndex + perPage;
-    const paginatedQuestions = allQuestions.slice(startIndex, endIndex);
-    
-    return {
-      data: paginatedQuestions,
-      meta: {
-        current_page: page,
-        last_page: Math.ceil(allQuestions.length / perPage),
-        per_page: perPage,
-        total: allQuestions.length,
-      },
-      links: {
-        first: `/categories/${category.slug}?page=1`,
-        last: `/categories/${category.slug}?page=${Math.ceil(allQuestions.length / perPage)}`,
-        prev: page > 1 ? `/categories/${category.slug}?page=${page - 1}` : null,
-        next: page < Math.ceil(allQuestions.length / perPage) ? `/categories/${category.slug}?page=${page + 1}` : null,
-      },
-    };
-  }
 
   // Questions API
   async getQuestions(params: Record<string, unknown> = {}): Promise<PaginatedResponse<Question>> {
-    try {
-      const stringParams = Object.fromEntries(
-        Object.entries(params).map(([key, value]) => [key, String(value)])
-      );
-      const queryString = new URLSearchParams(stringParams).toString();
-      const endpoint = queryString ? `/questions?${queryString}` : '/questions';
-      const response = await this.request<PaginatedResponse<Question>>(endpoint);
-      return response;
-    } catch (error) {
-      console.warn('Using fallback data for questions. Error:', error);
-      return {
-        data: fallbackQuestions,
-        meta: {
-          current_page: 1,
-          last_page: 1,
-          per_page: 10,
-          total: fallbackQuestions.length,
-        },
-        links: {
-          first: '/questions?page=1',
-          last: '/questions?page=1',
-          prev: null,
-          next: null,
-        },
-      };
-    }
+    const stringParams = Object.fromEntries(
+      Object.entries(params).map(([key, value]) => [key, String(value)])
+    );
+    const queryString = new URLSearchParams(stringParams).toString();
+    const endpoint = queryString ? `/questions?${queryString}` : '/questions';
+    const response = await this.request<PaginatedResponse<Question>>(endpoint);
+    return response;
   }
 
   async getRecommendedQuestions(limit: number = 15): Promise<Question[]> {
-    try {
-      const response = await this.request<{data: Question[]}>(`/questions/recommended?limit=${limit}`);
-      return response.data;
-    } catch (error) {
-      console.warn('Using fallback data for recommended questions. Error:', error);
-      return fallbackQuestions.slice(0, limit);
-    }
+    const response = await this.request<{data: Question[]}>(`/questions/recommended?limit=${limit}`);
+    return response.data;
   }
 
   async getPopularQuestions(limit: number = 15, period: string = 'week'): Promise<Question[]> {
-    try {
-      const response = await this.request<{data: Question[]}>(`/questions/popular?period=${period}&limit=${limit}`);
-      return response.data;
-    } catch (error) {
-      console.warn('Using fallback data for popular questions. Error:', error);
-      return fallbackQuestions.slice(0, limit);
-    }
+    const response = await this.request<{data: Question[]}>(`/questions/popular?period=${period}&limit=${limit}`);
+    return response.data;
   }
 
   async searchQuestions(query: string, limit: number = 50): Promise<Question[]> {
-    try {
-      const q = encodeURIComponent(query);
-      const response = await this.request<{ success: boolean; data: Record<string, unknown> | Question[]; message?: string }>(`/questions/search?q=${q}&limit=${limit}`);
-      // The backend returns { success, data: ResourceCollection, message }
-      // ResourceCollection for non-paginated collections is typically { data: Question[] }
-      const payload = response.data;
-      if (Array.isArray(payload)) {
-        return payload as Question[];
-      }
-      if (payload && Array.isArray(payload.data)) {
-        return payload.data as Question[];
-      }
-      return [];
-    } catch (error) {
-      console.warn('Falling back to unfiltered questions for search. Error:', error);
-      // As a safe fallback, return at most `limit` questions
-      const res = await this.getQuestions({ per_page: limit });
-      return res.data;
+    const q = encodeURIComponent(query);
+    const response = await this.request<{ success: boolean; data: Record<string, unknown> | Question[]; message?: string }>(`/questions/search?q=${q}&limit=${limit}`);
+    // The backend returns { success, data: ResourceCollection, message }
+    // ResourceCollection for non-paginated collections is typically { data: Question[] }
+    const payload = response.data;
+    if (Array.isArray(payload)) {
+      return payload as Question[];
     }
+    if (payload && Array.isArray(payload.data)) {
+      return payload.data as Question[];
+    }
+    return [];
   }
 
   async getQuestion(id: string): Promise<Question> {
@@ -327,18 +204,8 @@ class ApiService {
   }
 
   async getQuestionBySlug(slug: string): Promise<Question> {
-    try {
-      const response = await this.request<{data: Question}>(`/questions/${slug}`);
-      return response.data;
-    } catch (error) {
-      console.warn('Using fallback data for question. Error:', error);
-      // Find question in fallback data by slug
-      const fallbackQuestion = fallbackQuestions.find(q => q.slug === slug);
-      if (fallbackQuestion) {
-        return fallbackQuestion;
-      }
-      throw new Error('Question not found');
-    }
+    const response = await this.request<{data: Question}>(`/questions/${slug}`);
+    return response.data;
   }
 
   async createQuestion(questionData: {
@@ -397,19 +264,14 @@ class ApiService {
 
   // Users API
   async getActiveUsers(limit: number = 10): Promise<User[]> {
-    try {
-      const response = await this.request<{data: User[]}>(`/dashboard/active-users?limit=${limit}`);
-      // Map the response to match our User interface
-      return response.data.map(user => ({
-        ...user,
-        image_url: user.image_url || (user as Record<string, unknown>).image as string, // Map 'image' to 'image_url'
-        online: true, // Default to online since we don't have this data
-        created_at: user.created_at || new Date().toISOString()
-      }));
-    } catch (error) {
-      console.warn('Using fallback data for users. Error:', error);
-      return fallbackUsers.slice(0, limit);
-    }
+    const response = await this.request<{data: User[]}>(`/dashboard/active-users?limit=${limit}`);
+    // Map the response to match our User interface
+    return response.data.map(user => ({
+      ...user,
+      image_url: user.image_url || (user as Record<string, unknown>).image as string, // Map 'image' to 'image_url'
+      online: true, // Default to online since we don't have this data
+      created_at: user.created_at || new Date().toISOString()
+    }));
   }
 
   async getUser(id: string): Promise<User> {
@@ -419,95 +281,33 @@ class ApiService {
 
   // Tags API
   async getTags(params: Record<string, unknown> = {}): Promise<Tag[]> {
-    try {
-      const stringParams = Object.fromEntries(
-        Object.entries(params).map(([key, value]) => [key, String(value)])
-      );
-      const queryString = new URLSearchParams(stringParams).toString();
-      const endpoint = queryString ? `/tags?${queryString}` : '/tags';
-      const response = await this.request<{data: Tag[]}>(endpoint);
-      return response.data;
-    } catch (error) {
-      console.warn('Using fallback data for tags. Error:', error);
-      return [];
-    }
+    const stringParams = Object.fromEntries(
+      Object.entries(params).map(([key, value]) => [key, String(value)])
+    );
+    const queryString = new URLSearchParams(stringParams).toString();
+    const endpoint = queryString ? `/tags?${queryString}` : '/tags';
+    const response = await this.request<{data: Tag[]}>(endpoint);
+    return response.data;
   }
 
   async getTagsPaginated(params: ApiParams = {}): Promise<{ success: boolean; data: PaginatedResponse<Tag>; error?: string }> {
-    try {
-      const stringParams = Object.fromEntries(
-        Object.entries(params).map(([key, value]) => [key, String(value)])
-      );
-      const queryString = new URLSearchParams(stringParams).toString();
-      const endpoint = queryString ? `/tags?${queryString}` : '/tags';
-      const response = await this.request<PaginatedResponse<Tag>>(endpoint);
-      return { success: true, data: response };
-    } catch (error) {
-      console.warn('Using fallback data for paginated tags. Error:', error);
-      // Return empty paginated response for fallback
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'خطا در بارگذاری برچسب‌ها',
-        data: {
-          data: [],
-          meta: {
-            current_page: 1,
-            last_page: 1,
-            per_page: 12,
-            total: 0,
-          },
-          links: {
-            first: '/tags?page=1',
-            last: '/tags?page=1',
-            prev: null,
-            next: null,
-          },
-        },
-      };
-    }
+    const stringParams = Object.fromEntries(
+      Object.entries(params).map(([key, value]) => [key, String(value)])
+    );
+    const queryString = new URLSearchParams(stringParams).toString();
+    const endpoint = queryString ? `/tags?${queryString}` : '/tags';
+    const response = await this.request<PaginatedResponse<Tag>>(endpoint);
+    return { success: true, data: response };
   }
 
   async getTag(slug: string): Promise<Tag> {
-    try {
-      const response = await this.request<Tag>(`/tags/${slug}`);
-      return response;
-    } catch (error) {
-      console.warn('Using fallback data for tag. Error:', error);
-      throw new Error('Tag not found');
-    }
+    const response = await this.request<Tag>(`/tags/${slug}`);
+    return response;
   }
 
   async getTagQuestions(slug: string, page: number = 1): Promise<PaginatedResponse<Question> & { tag: Tag }> {
-    try {
-      const response = await this.request<PaginatedResponse<Question> & { tag: Tag }>(`/tags/${slug}/questions?page=${page}`);
-      return response;
-    } catch (error) {
-      console.warn('Using fallback data for tag questions. Error:', error);
-      // Return empty paginated response for fallback
-      return {
-        data: [],
-        tag: {
-          id: slug,
-          name: slug,
-          slug: slug,
-          questions_count: 0,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-        meta: {
-          current_page: 1,
-          last_page: 1,
-          per_page: 10,
-          total: 0,
-        },
-        links: {
-          first: `/tags/${slug}/questions?page=1`,
-          last: `/tags/${slug}/questions?page=1`,
-          prev: null,
-          next: null,
-        },
-      };
-    }
+    const response = await this.request<PaginatedResponse<Question> & { tag: Tag }>(`/tags/${slug}/questions?page=${page}`);
+    return response;
   }
 
   async createTag(name: string): Promise<{ success: boolean; data?: Tag; error?: string }> {
@@ -527,70 +327,23 @@ class ApiService {
 
   // Authors API
   async getAuthors(params: Record<string, unknown> = {}): Promise<PaginatedResponse<User>> {
-    try {
-      const stringParams = Object.fromEntries(
-        Object.entries(params).map(([key, value]) => [key, String(value)])
-      );
-      const queryString = new URLSearchParams(stringParams).toString();
-      const endpoint = queryString ? `/authors?${queryString}` : '/authors';
-      const response = await this.request<PaginatedResponse<User>>(endpoint);
-      return response;
-    } catch (error) {
-      console.warn('Using fallback data for authors. Error:', error);
-      return {
-        data: fallbackUsers,
-        meta: {
-          current_page: 1,
-          last_page: 1,
-          per_page: 20,
-          total: fallbackUsers.length,
-        },
-        links: {
-          first: '/authors?page=1',
-          last: '/authors?page=1',
-          prev: null,
-          next: null,
-        },
-      };
-    }
+    const stringParams = Object.fromEntries(
+      Object.entries(params).map(([key, value]) => [key, String(value)])
+    );
+    const queryString = new URLSearchParams(stringParams).toString();
+    const endpoint = queryString ? `/authors?${queryString}` : '/authors';
+    const response = await this.request<PaginatedResponse<User>>(endpoint);
+    return response;
   }
 
   async getAuthor(id: string): Promise<User> {
-    try {
-      const response = await this.request<{data: User}>(`/authors/${id}`);
-      return response.data;
-    } catch (error) {
-      console.warn('Using fallback data for author. Error:', error);
-      const fallbackAuthor = fallbackUsers.find(user => user.id === id);
-      if (fallbackAuthor) {
-        return fallbackAuthor;
-      }
-      throw new Error('Author not found');
-    }
+    const response = await this.request<{data: User}>(`/authors/${id}`);
+    return response.data;
   }
 
   async getAuthorQuestions(id: string, page: number = 1): Promise<PaginatedResponse<Question>> {
-    try {
-      const response = await this.request<PaginatedResponse<Question>>(`/authors/${id}/questions?page=${page}`);
-      return response;
-    } catch (error) {
-      console.warn('Using fallback data for author questions. Error:', error);
-      return {
-        data: [],
-        meta: {
-          current_page: 1,
-          last_page: 1,
-          per_page: 10,
-          total: 0,
-        },
-        links: {
-          first: `/authors/${id}/questions?page=1`,
-          last: `/authors/${id}/questions?page=1`,
-          prev: null,
-          next: null,
-        },
-      };
-    }
+    const response = await this.request<PaginatedResponse<Question>>(`/authors/${id}/questions?page=${page}`);
+    return response;
   }
 
   // Dashboard API
@@ -621,76 +374,44 @@ class ApiService {
 
   // User Profile API
   async getUserProfile(): Promise<User> {
-    try {
-      const response = await this.request<{
-        id: string;
-        name: string;
-        email: string;
-        mobile?: string;
-        image: string | null;
-        score: number;
-        online: boolean;
-        login_notification_enabled: boolean;
-        created_at: string;
-      }>('/user/profile');
-      
-      // Map the response to match our User interface
-      return {
-        id: response.id,
-        name: response.name,
-        email: response.email,
-        mobile: response.mobile,
-        image_url: response.image || '', // Map 'image' to 'image_url'
-        online: response.online,
-        score: response.score,
-        login_notification_enabled: response.login_notification_enabled,
-        level_name: 'تازه کار', // Default value
-        questions_count: 0, // Default value
-        answers_count: 0, // Default value
-        comments_count: 0, // Default value
-        created_at: response.created_at,
-      };
-    } catch (error) {
-      console.warn('Using fallback data for user profile. Error:', error);
-      // Return fallback user data
-      return {
-        id: '1',
-        name: 'کاربر نمونه',
-        email: 'user@example.com',
-        image_url: '',
-        online: true,
-        score: 0,
-        level_name: 'تازه کار',
-        questions_count: 0,
-        answers_count: 0,
-        comments_count: 0,
-        created_at: new Date().toISOString(),
-      };
-    }
+    const response = await this.request<{
+      id: string;
+      name: string;
+      email: string;
+      mobile?: string;
+      image: string | null;
+      score: number;
+      online: boolean;
+      login_notification_enabled: boolean;
+      created_at: string;
+    }>('/user/profile');
+    
+    // Map the response to match our User interface
+    return {
+      id: response.id,
+      name: response.name,
+      email: response.email,
+      mobile: response.mobile,
+      image_url: response.image || '', // Map 'image' to 'image_url'
+      online: response.online,
+      score: response.score,
+      login_notification_enabled: response.login_notification_enabled,
+      level_name: 'تازه کار', // Default value
+      questions_count: 0, // Default value
+      answers_count: 0, // Default value
+      comments_count: 0, // Default value
+      created_at: response.created_at,
+    };
   }
 
   async getUserStats(): Promise<{questionsCount: number; answersCount: number; commentsCount: number}> {
-    try {
-      const response = await this.request<{questionsCount: number; answersCount: number; commentsCount: number}>('/user/stats');
-      return response;
-    } catch (error) {
-      console.warn('Using fallback data for user stats. Error:', error);
-      return {
-        questionsCount: 0,
-        answersCount: 0,
-        commentsCount: 0,
-      };
-    }
+    const response = await this.request<{questionsCount: number; answersCount: number; commentsCount: number}>('/user/stats');
+    return response;
   }
 
   async getUserActivity(): Promise<Array<{id: string; type: 'question' | 'answer' | 'comment' | 'vote'; description: string; created_at: string; question_slug?: string}>> {
-    try {
-      const response = await this.request<Array<{id: string; type: 'question' | 'answer' | 'comment' | 'vote'; description: string; created_at: string; question_slug?: string}>>('/user/activity');
-      return response;
-    } catch (error) {
-      console.warn('Using fallback data for user activity. Error:', error);
-      return [];
-    }
+    const response = await this.request<Array<{id: string; type: 'question' | 'answer' | 'comment' | 'vote'; description: string; created_at: string; question_slug?: string}>>('/user/activity');
+    return response;
   }
 
   async updateUserImage(file: File): Promise<{success: boolean; data?: {image_url: string}; error?: string}> {
@@ -736,27 +457,8 @@ class ApiService {
 
   // Answers API
   async getQuestionAnswers(questionId: string, page: number = 1): Promise<PaginatedResponse<Answer>> {
-    try {
-      const response = await this.request<PaginatedResponse<Answer>>(`/questions/${questionId}/answers?page=${page}`);
-      return response;
-    } catch (error) {
-      console.warn('Using fallback data for answers. Error:', error);
-      return {
-        data: [],
-        meta: {
-          current_page: 1,
-          last_page: 1,
-          per_page: 10,
-          total: 0,
-        },
-        links: {
-          first: `/questions/${questionId}/answers?page=1`,
-          last: `/questions/${questionId}/answers?page=1`,
-          prev: null,
-          next: null,
-        },
-      };
-    }
+    const response = await this.request<PaginatedResponse<Answer>>(`/questions/${questionId}/answers?page=${page}`);
+    return response;
   }
 
   async addAnswer(questionId: string, content: string): Promise<{ success: boolean; data?: Record<string, unknown>; error?: string }> {
@@ -833,27 +535,8 @@ class ApiService {
 
   // Comments API
   async getComments(parentId: string, parentType: 'question' | 'answer', page: number = 1): Promise<PaginatedResponse<Comment>> {
-    try {
-      const response = await this.request<PaginatedResponse<Comment>>(`/${parentType}s/${parentId}/comments?page=${page}`);
-      return response;
-    } catch (error) {
-      console.warn('Using fallback data for comments. Error:', error);
-      return {
-        data: [],
-        meta: {
-          current_page: 1,
-          last_page: 1,
-          per_page: 10,
-          total: 0,
-        },
-        links: {
-          first: `/${parentType}s/${parentId}/comments?page=1`,
-          last: `/${parentType}s/${parentId}/comments?page=1`,
-          prev: null,
-          next: null,
-        },
-      };
-    }
+    const response = await this.request<PaginatedResponse<Comment>>(`/${parentType}s/${parentId}/comments?page=${page}`);
+    return response;
   }
 
   async addComment(parentId: string, content: string, parentType: 'question' | 'answer'): Promise<{ success: boolean; data?: Record<string, unknown>; error?: string }> {
@@ -923,11 +606,24 @@ class ApiService {
       });
       return { success: true, data: response.data };
     } catch (error: unknown) {
+      const errorObj = error as any;
+      
+      // Handle 409 Conflict specifically
+      if (errorObj.response?.status === 409) {
+        return {
+          success: false,
+          error: 'conflict',
+          message: errorObj.response?.data?.message || 'شما قبلا به این مورد رای داده‌اید',
+          status: 409
+        };
+      }
+      
+      // Handle other errors
       return { 
         success: false, 
         error: error instanceof Error ? error.message : 'خطا در رای دادن',
-        message: (error as ApiError)?.response?.data?.message || (error as ApiError)?.message,
-        status: (error as ApiError)?.response?.status
+        message: errorObj.response?.data?.message || (error instanceof Error ? error.message : 'خطا در رای دادن'),
+        status: errorObj.response?.status
       };
     }
   }
@@ -1081,6 +777,178 @@ class ApiService {
     }
   }
 
+  // Server-side compatible methods (no browser APIs)
+  async serverRequest<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<T> {
+    const url = `${SERVER_API_BASE_URL}${endpoint}`;
+    
+    const config: RequestInit = {
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        ...options.headers,
+      },
+      ...options,
+    };
+
+    try {
+      const response = await fetch(url, config);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const contentType = response.headers.get('content-type');
+      const hasJsonContent = contentType && contentType.includes('application/json');
+      const hasContent = response.status !== 204 && response.headers.get('content-length') !== '0';
+      
+      if (hasJsonContent && hasContent) {
+        const data = await response.json();
+        return data as T;
+      } else {
+        return { success: true } as T;
+      }
+    } catch (error) {
+      console.error('Server API request failed:', error);
+      throw error;
+    }
+  }
+
+  // Server-side question methods
+  async getQuestionBySlugServer(slug: string): Promise<Question> {
+    const response = await this.serverRequest<{data: Question}>(`/questions/${slug}`);
+    return response.data;
+  }
+
+  async getQuestionAnswersServer(questionId: string): Promise<PaginatedResponse<Answer>> {
+    const response = await this.serverRequest<PaginatedResponse<Answer>>(`/questions/${questionId}/answers`);
+    return response;
+  }
+
+  async getQuestionsServer(params: Record<string, unknown> = {}): Promise<PaginatedResponse<Question>> {
+    const stringParams = Object.fromEntries(
+      Object.entries(params).map(([key, value]) => [key, String(value)])
+    );
+    const queryString = new URLSearchParams(stringParams).toString();
+    const endpoint = queryString ? `/questions?${queryString}` : '/questions';
+    const response = await this.serverRequest<PaginatedResponse<Question>>(endpoint);
+    return response;
+  }
+
+  async getActiveUsersServer(limit: number = 10): Promise<User[]> {
+    const response = await this.serverRequest<{data: User[]}>(`/dashboard/active-users?limit=${limit}`);
+    return response.data.map(user => ({
+      ...user,
+      image_url: user.image_url || (user as Record<string, unknown>).image as string,
+      online: true,
+      created_at: user.created_at || new Date().toISOString()
+    }));
+  }
+
+  async getTagQuestionsServer(slug: string, page: number = 1): Promise<PaginatedResponse<Question> & { tag: Tag }> {
+    const response = await this.serverRequest<PaginatedResponse<Question> & { tag: Tag }>(`/tags/${slug}/questions?page=${page}`);
+    return response;
+  }
+
+  async getTagsPaginatedServer(params: Record<string, unknown> = {}): Promise<PaginatedResponse<Tag>> {
+    const stringParams = Object.fromEntries(
+      Object.entries(params).map(([key, value]) => [key, String(value)])
+    );
+    const queryString = new URLSearchParams(stringParams).toString();
+    const endpoint = queryString ? `/tags?${queryString}` : '/tags';
+    const response = await this.serverRequest<PaginatedResponse<Tag>>(endpoint);
+    return response;
+  }
+
+  // Server-side category methods
+  async getCategoriesPaginatedServer(params: Record<string, unknown> = {}): Promise<PaginatedResponse<Category>> {
+    const stringParams = Object.fromEntries(
+      Object.entries(params).map(([key, value]) => [key, String(value)])
+    );
+    const queryString = new URLSearchParams(stringParams).toString();
+    const endpoint = queryString ? `/categories?${queryString}` : '/categories';
+    const response = await this.serverRequest<PaginatedResponse<Category>>(endpoint);
+    return response;
+  }
+
+  async getCategoryServer(slug: string): Promise<Category & { children?: Category[] }> {
+    const response = await this.serverRequest<Category & { children?: Category[] }>(`/categories/${slug}`);
+    return response;
+  }
+
+  async getCategoryQuestionsServer(slug: string, page: number = 1): Promise<PaginatedResponse<Question> & { category: Category }> {
+    const response = await this.serverRequest<PaginatedResponse<Question> & { category: Category }>(`/categories/${slug}/questions?page=${page}`);
+    return response;
+  }
+
+  // Server-side author methods
+  async getAuthorsServer(params: Record<string, unknown> = {}): Promise<PaginatedResponse<User>> {
+    const stringParams = Object.fromEntries(
+      Object.entries(params).map(([key, value]) => [key, String(value)])
+    );
+    const queryString = new URLSearchParams(stringParams).toString();
+    const endpoint = queryString ? `/authors?${queryString}` : '/authors';
+    const response = await this.serverRequest<PaginatedResponse<User>>(endpoint);
+    return response;
+  }
+
+  async getAuthorServer(id: string): Promise<User> {
+    const response = await this.serverRequest<User>(`/authors/${id}`);
+    return response;
+  }
+
+  async getAuthorQuestionsServer(id: string, page: number = 1): Promise<PaginatedResponse<Question> & { author: User }> {
+    const response = await this.serverRequest<PaginatedResponse<Question> & { author: User }>(`/authors/${id}/questions?page=${page}`);
+    return response;
+  }
+
+  // Server-side activity methods
+  async getActivityServer(params: { 
+    months?: number; 
+    offset?: number; 
+    questions_limit?: number;
+    answers_limit?: number;
+    comments_limit?: number;
+  } = {}): Promise<{
+    success: boolean;
+    data: DailyActivity[];
+    grouped_data: { [month: string]: DailyActivity[] };
+    error?: string;
+  }> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params.months) queryParams.append('months', params.months.toString());
+      if (params.offset) queryParams.append('offset', params.offset.toString());
+      if (params.questions_limit) queryParams.append('questions_limit', params.questions_limit.toString());
+      if (params.answers_limit) queryParams.append('answers_limit', params.answers_limit.toString());
+      if (params.comments_limit) queryParams.append('comments_limit', params.comments_limit.toString());
+
+      const response = await this.serverRequest<{
+        success: boolean;
+        data: DailyActivity[];
+        grouped_data: { [month: string]: DailyActivity[] };
+        error?: string;
+      }>(`/dashboard/activity?${queryParams.toString()}`);
+
+      // Ensure response has the expected structure
+      return {
+        success: response.success || false,
+        data: Array.isArray(response.data) ? response.data : [],
+        grouped_data: response.grouped_data && typeof response.grouped_data === 'object' ? response.grouped_data : {},
+        error: response.error
+      };
+    } catch (error: unknown) {
+      console.error('Activity server request failed:', error);
+      return { 
+        success: false,
+        data: [] as DailyActivity[],
+        grouped_data: {},
+        error: (error as ApiError)?.response?.data?.message || (error as ApiError)?.message || 'خطا در دریافت فعالیت‌ها'
+      };
+    }
+  }
 }
 
 export const apiService = new ApiService();

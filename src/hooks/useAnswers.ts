@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { apiService } from '@/services/api';
 
 export function useAnswers() {
@@ -6,7 +6,7 @@ export function useAnswers() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
-  const addAnswer = async (questionId: string, content: string) => {
+  const addAnswer = useCallback(async (questionId: string, content: string) => {
     setIsSubmitting(true);
     try {
       const result = await apiService.addAnswer(questionId, content);
@@ -19,9 +19,9 @@ export function useAnswers() {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, []);
 
-  const updateAnswer = async (answerId: string, content: string) => {
+  const updateAnswer = useCallback(async (answerId: string, content: string) => {
     setIsUpdating(true);
     try {
       const result = await apiService.updateAnswer(answerId, content);
@@ -34,9 +34,9 @@ export function useAnswers() {
     } finally {
       setIsUpdating(false);
     }
-  };
+  }, []);
 
-  const deleteAnswer = async (answerId: string) => {
+  const deleteAnswer = useCallback(async (answerId: string) => {
     setIsDeleting(answerId);
     try {
       const result = await apiService.deleteAnswer(answerId);
@@ -49,9 +49,9 @@ export function useAnswers() {
     } finally {
       setIsDeleting(null);
     }
-  };
+  }, []);
 
-  const publishAnswer = async (answerId: string) => {
+  const publishAnswer = useCallback(async (answerId: string) => {
     try {
       const result = await apiService.publishAnswer(answerId);
       return result;
@@ -61,9 +61,9 @@ export function useAnswers() {
         error: error instanceof Error ? error.message : 'خطا در انتشار پاسخ' 
       };
     }
-  };
+  }, []);
 
-  const toggleAnswerCorrectness = async (answerId: string) => {
+  const toggleAnswerCorrectness = useCallback(async (answerId: string) => {
     try {
       const result = await apiService.toggleAnswerCorrectness(answerId);
       return result;
@@ -73,9 +73,9 @@ export function useAnswers() {
         error: error instanceof Error ? error.message : 'خطا در تغییر وضعیت صحیح بودن پاسخ' 
       };
     }
-  };
+  }, []);
 
-  const fetchAnswers = async (questionId: string, page: number = 1) => {
+  const fetchAnswers = useCallback(async (questionId: string, page: number = 1) => {
     try {
       const response = await apiService.getQuestionAnswers(questionId, page);
       return { success: true, data: response.data, meta: response.meta };
@@ -85,7 +85,7 @@ export function useAnswers() {
         error: error instanceof Error ? error.message : 'خطا در بارگذاری پاسخ‌ها' 
       };
     }
-  };
+  }, []);
 
   return {
     isSubmitting,

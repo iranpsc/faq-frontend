@@ -164,7 +164,7 @@ export function AnswersSection({
       setUsePagination(true);
       await fetchPaginatedAnswers();
     }
-  }, [answers.length, fetchPaginatedAnswers]);
+  }, [answers.length, questionId]); // Remove fetchPaginatedAnswers from dependencies to prevent infinite loop
 
   const toggleFilterDropdown = () => {
     setShowFilters(!showFilters);
@@ -186,7 +186,7 @@ export function AnswersSection({
 
   useEffect(() => {
     initializePagination();
-  }, [answers.length, initializePagination]);
+  }, [answers.length]); // Remove initializePagination from dependencies to prevent infinite loop
 
   const submitAnswer = async () => {
     if (!newAnswer.trim()) return;

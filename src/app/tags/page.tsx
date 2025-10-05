@@ -1,113 +1,39 @@
-'use client';
-
-import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { Metadata } from 'next';
 import { ContentArea } from '@/components/ContentArea';
 import { HomeSidebar } from '@/components/HomeSidebar';
-import { BasePagination } from '@/components/ui/BasePagination';
 import { BaseAlert } from '@/components/ui/BaseAlert';
+import { PaginationHandler } from '@/components/PaginationHandler';
 import { apiService } from '@/services/api';
-import { Tag } from '@/services/types';
+import { Tag, PaginatedResponse } from '@/services/types';
 
-function TagsContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [currentPage, setCurrentPage] = useState(1);
-  const [tags, setTags] = useState<Tag[]>([]);
-  const [pagination, setPagination] = useState<{ meta: Record<string, unknown> | null; links: Record<string, unknown> | null }>({ meta: null, links: null });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+// Metadata for SEO
+export const metadata: Metadata = {
+  title: 'برچسب ها - سوالات متداول',
+  description: 'مشاهده تمام برچسب‌های موجود در سیستم سوالات متداول',
+  keywords: 'برچسب, تگ, سوالات متداول, FAQ',
+  openGraph: {
+    title: 'برچسب ها - سوالات متداول',
+    description: 'مشاهده تمام برچسب‌های موجود در سیستم سوالات متداول',
+    type: 'website',
+  },
+};
 
-  // Update current page when URL changes
-  useEffect(() => {
-    const page = parseInt(searchParams.get('page') || '1');
-    if (page !== currentPage) {
-      setCurrentPage(page);
-    }
-  }, [searchParams, currentPage]);
+interface TagsPageProps {
+  searchParams: { [key: string]: string | string[] | undefined };
+}
 
-  // Fetch tags data function
-  const fetchTagsData = async (page = 1) => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const result = await apiService.getTagsPaginated({
-        page,
-        per_page: 12
-      });
 
-      if (result.success) {
-        // Handle different response structures (same as Vue.js version)
-        if (result.data.data) {
-          // Laravel paginated response
-          setTags(result.data.data);
-          setPagination({
-            meta: result.data.meta,
-            links: result.data.links
-          });
-        } else if (Array.isArray(result.data)) {
-          // Simple array response
-          setTags(result.data);
-          setPagination({
-            meta: {
-              current_page: page,
-              last_page: 1,
-              total: result.data.length,
-              per_page: 12
-            },
-            links: null
-          });
-        } else {
-          // Single object response - this shouldn't happen with tags API, but handle it
-          setTags([]);
-          setPagination({
-            meta: {
-              current_page: page,
-              last_page: 1,
-              total: 0,
-              per_page: 12
-            },
-            links: null
-          });
-        }
-      } else {
-        setError(result.error || 'Failed to load tags');
-      }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load tags');
-      console.error('Failed to fetch tags:', e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fetch tags when page changes
-  useEffect(() => {
-    fetchTagsData(currentPage);
-  }, [currentPage]);
-
-  const handlePageChange = async (page: number) => {
-    if (pagination.meta && page === pagination.meta.current_page) return;
-
-    // Update URL with page parameter
-    const params = new URLSearchParams(searchParams.toString());
-    if (page > 1) {
-      params.set('page', page.toString());
-    } else {
-      params.delete('page');
-    }
-
-    const newUrl = params.toString() ? `?${params.toString()}` : '';
-    router.push(`/tags${newUrl}`);
-
-    // Scroll to top smoothly
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    await fetchTagsData(page);
-  };
-
+// Server component for tags display
+function TagsContent({ 
+  tags, 
+  pagination, 
+  error 
+}: { 
+  tags: Tag[]; 
+  pagination: PaginatedResponse<Tag>['meta']; 
+  error?: string; 
+}) {
   return (
     <ContentArea 
       layout="with-sidebar" 
@@ -120,31 +46,19 @@ function TagsContent() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
             <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">برچسب ها</h1>
             <div className="mt-2 sm:mt-0 text-sm text-gray-600 dark:text-gray-400">
-              {pagination.meta && !loading && (
-                <>مجموع {pagination.meta.total} برچسب</>
+              {pagination && (
+                <>مجموع {pagination.total} برچسب</>
               )}
             </div>
           </div>
 
-          {/* Loading State */}
-          {loading && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {Array.from({ length: 12 }).map((_, n) => (
-                <div key={n} className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 animate-pulse">
-                  <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-                </div>
-              ))}
-            </div>
-          )}
-
           {/* Error State */}
-          {!loading && error && (
+          {error && (
             <BaseAlert variant="error" message={error} />
           )}
 
           {/* Tags Grid */}
-          {!loading && !error && (
+          {!error && (
             <div>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
                 {tags.map((tag) => (
@@ -174,20 +88,10 @@ function TagsContent() {
               </div>
 
               {/* Pagination */}
-              {pagination.meta && (pagination.meta.last_page as number) > 1 && (
-                <div className="mt-8">
-                  <BasePagination
-                    currentPage={pagination.meta.current_page as number}
-                    totalPages={pagination.meta.last_page as number}
-                    total={pagination.meta.total as number}
-                    perPage={pagination.meta.per_page as number}
-                    onPageChange={handlePageChange}
-                  />
-                </div>
-              )}
+              <PaginationHandler pagination={pagination} currentPage={pagination?.current_page || 1} />
 
               {/* Empty State */}
-              {tags.length === 0 && !loading && !error && (
+              {tags.length === 0 && !error && (
                 <div className="text-center py-16">
                   <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
@@ -205,17 +109,43 @@ function TagsContent() {
   );
 }
 
-export default function TagsPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">در حال بارگذاری...</p>
-        </div>
-      </div>
-    }>
-      <TagsContent />
-    </Suspense>
-  );
+// Main server component
+export default async function TagsPage({ searchParams }: TagsPageProps) {
+  try {
+    const page = parseInt(searchParams.page as string) || 1;
+    
+    // Fetch tags data from the API
+    const response = await apiService.getTagsPaginatedServer({
+      page,
+      per_page: 12
+    });
+
+    return (
+      <TagsContent 
+        tags={response.data || []}
+        pagination={response.meta || {
+          current_page: 1,
+          last_page: 1,
+          per_page: 12,
+          total: 0
+        }}
+      />
+    );
+  } catch (error) {
+    console.error('Failed to fetch tags in server component:', error);
+    
+    // Return error state
+    return (
+      <TagsContent 
+        tags={[]}
+        pagination={{
+          current_page: 1,
+          last_page: 1,
+          per_page: 12,
+          total: 0
+        }}
+        error={error instanceof Error ? error.message : 'خطا در بارگذاری برچسب‌ها'}
+      />
+    );
+  }
 }

@@ -2,10 +2,19 @@ import { useState, useEffect, useCallback } from 'react';
 import { apiService } from '@/services/api';
 import { Question, Answer } from '@/services/types';
 
-export function useQuestionDetails(slug: string) {
-  const [question, setQuestion] = useState<Question | null>(null);
-  const [answers, setAnswers] = useState<Answer[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+type InitialQuestionDetails = {
+  question?: Question | null;
+  answers?: Answer[];
+};
+
+export function useQuestionDetails(
+  slug: string,
+  fetchOnMount: boolean = true,
+  initialState?: InitialQuestionDetails
+) {
+  const [question, setQuestion] = useState<Question | null>(initialState?.question ?? null);
+  const [answers, setAnswers] = useState<Answer[]>(initialState?.answers ?? []);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchQuestion = useCallback(async () => {
@@ -44,9 +53,12 @@ export function useQuestionDetails(slug: string) {
     }
   }, [question?.id]);
 
+  // Only fetch on mount if we don't have initial data and fetchOnMount is true
   useEffect(() => {
-    fetchQuestion();
-  }, [fetchQuestion]);
+    if (fetchOnMount && !initialState) {
+      fetchQuestion();
+    }
+  }, [fetchQuestion, fetchOnMount, initialState]); // Include all dependencies
 
   return {
     question,
