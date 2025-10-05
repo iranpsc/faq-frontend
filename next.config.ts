@@ -47,7 +47,8 @@ const nextConfig: NextConfig = {
     ];
   },
   
-  // Webpack configuration
+  // Webpack configuration (also used when not using --turbopack)
+  // Note: Turbopack will ignore this config when using --turbopack flag
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {

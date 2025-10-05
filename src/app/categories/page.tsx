@@ -19,8 +19,10 @@ export const metadata: Metadata = {
   },
 };
 
+export const dynamic = 'force-dynamic';
+
 interface CategoriesPageProps {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 // Server component for categories display
@@ -111,7 +113,8 @@ function CategoriesContent({
 // Main server component
 export default async function CategoriesPage({ searchParams }: CategoriesPageProps) {
   try {
-    const page = parseInt(searchParams.page as string) || 1;
+    const params = await searchParams;
+    const page = parseInt(params.page as string) || 1;
     
     // Fetch categories data from the API
     const response = await apiService.getCategoriesPaginatedServer({

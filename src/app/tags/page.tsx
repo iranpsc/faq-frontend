@@ -19,8 +19,10 @@ export const metadata: Metadata = {
   },
 };
 
+export const dynamic = 'force-dynamic';
+
 interface TagsPageProps {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 
@@ -112,7 +114,8 @@ function TagsContent({
 // Main server component
 export default async function TagsPage({ searchParams }: TagsPageProps) {
   try {
-    const page = parseInt(searchParams.page as string) || 1;
+    const params = await searchParams;
+    const page = parseInt(params.page as string) || 1;
     
     // Fetch tags data from the API
     const response = await apiService.getTagsPaginatedServer({
