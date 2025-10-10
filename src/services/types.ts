@@ -1,6 +1,7 @@
 // Type definitions for API responses
 
 export interface Question {
+  [x: string]: string;
   id: string;
   title: string;
   content: string;

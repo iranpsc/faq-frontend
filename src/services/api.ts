@@ -817,7 +817,7 @@ class ApiService {
   }
 
   // Server-side question methods
-  async getQuestionBySlugServer(slug: string): Promise<Question> {
+  async getQuestionBySlugServer(slug: string, p0?: { includeAnswers: boolean; }): Promise<Question> {
     const response = await this.serverRequest<{data: Question}>(`/questions/${slug}`);
     return response.data;
   }
@@ -894,10 +894,11 @@ class ApiService {
     return response;
   }
 
-  async getAuthorServer(id: string): Promise<User> {
-    const response = await this.serverRequest<User>(`/authors/${id}`);
-    return response;
-  }
+async getAuthorServer(id: string): Promise<User> {
+  const response = await this.serverRequest<{ data: User }>(`/authors/${id}`);
+  return response.data;
+}
+
 
   async getAuthorQuestionsServer(id: string, page: number = 1): Promise<PaginatedResponse<Question> & { author: User }> {
     const response = await this.serverRequest<PaginatedResponse<Question> & { author: User }>(`/authors/${id}/questions?page=${page}`);

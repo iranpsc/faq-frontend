@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Metadata } from 'next';
+import Script from 'next/script';
 import { ContentArea } from '@/components/ContentArea';
 import { HomeSidebar } from '@/components/HomeSidebar';
 import { BaseAlert } from '@/components/ui/BaseAlert';
@@ -9,11 +10,11 @@ import { Tag, PaginatedResponse } from '@/services/types';
 
 // Metadata for SEO
 export const metadata: Metadata = {
-  title: 'برچسب ها - سوالات متداول',
+  title: 'برچسب‌ها - سوالات متداول',
   description: 'مشاهده تمام برچسب‌های موجود در سیستم سوالات متداول',
   keywords: 'برچسب, تگ, سوالات متداول, FAQ',
   openGraph: {
-    title: 'برچسب ها - سوالات متداول',
+    title: 'برچسب‌ها - سوالات متداول',
     description: 'مشاهده تمام برچسب‌های موجود در سیستم سوالات متداول',
     type: 'website',
   },
@@ -25,106 +26,118 @@ interface TagsPageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
+function TagsContent({ tags, pagination, error }: { tags: Tag[]; pagination: PaginatedResponse<Tag>['meta']; error?: string; }) {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://faqhub.ir';
 
-// Server component for tags display
-function TagsContent({ 
-  tags, 
-  pagination, 
-  error 
-}: { 
-  tags: Tag[]; 
-  pagination: PaginatedResponse<Tag>['meta']; 
-  error?: string; 
-}) {
+  // Schema for tags list with mainEntityOfPage
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "برچسب‌های سایت",
+    "description": "تمام برچسب‌های موجود در سیستم سوالات متداول",
+    "url": `${siteUrl}/tags`,
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": `${siteUrl}/tags`
+    },
+    "numberOfItems": tags.length,
+    "itemListElement": tags.map((tag, index) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "url": `${siteUrl}/tags/${tag.slug}`,
+      "name": tag.name,
+      "description": `${tag.questions_count} سوال مرتبط`
+    }))
+  };
+
   return (
-    <ContentArea 
-      layout="with-sidebar" 
-      showSidebar={true} 
-      mainWidth="3/4" 
-      sidebarWidth="1/4"
-      main={
-        <div>
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">برچسب ها</h1>
-            <div className="mt-2 sm:mt-0 text-sm text-gray-600 dark:text-gray-400">
-              {pagination && (
-                <>مجموع {pagination.total} برچسب</>
-              )}
-            </div>
-          </div>
+    <>
+      {/* Schema Script */}
+      <script
+  type="application/ld+json"
+  dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+/>
 
-          {/* Error State */}
-          {error && (
-            <BaseAlert variant="error" message={error} />
-          )}
-
-          {/* Tags Grid */}
-          {!error && (
-            <div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-                {tags.map((tag) => (
-                  <Link
-                    key={tag.id}
-                    href={`/tags/${tag.slug}`}
-                    className="block bg-gradient-to-br from-blue-50 via-white to-blue-100 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300 border border-blue-100 dark:border-gray-700 group"
-                  >
-                    <div className="p-6 flex flex-col h-full">
-                      <h2 className="text-2xl font-bold text-blue-900 dark:text-blue-200 mb-2 group-hover:text-blue-700 transition-colors duration-200">
-                        {tag.name}
-                      </h2>
-                      <div className="flex-1"></div>
-                      <div className="flex flex-col gap-2 mt-4">
-                        {tag.questions_count > 0 && (
-                          <div className="flex items-center text-sm text-blue-600 dark:text-blue-300">
-                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            {tag.questions_count} سوال
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </Link>
-                ))}
+      <ContentArea
+        layout="with-sidebar"
+        showSidebar={true}
+        mainWidth="3/4"
+        sidebarWidth="1/4"
+        main={
+          <div>
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+              <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">برچسب‌ها</h1>
+              <div className="mt-2 sm:mt-0 text-sm text-gray-600 dark:text-gray-400">
+                {pagination && <>مجموع {pagination.total} برچسب</>}
               </div>
-
-              {/* Pagination */}
-              <PaginationHandler pagination={pagination} currentPage={pagination?.current_page || 1} />
-
-              {/* Empty State */}
-              {tags.length === 0 && !error && (
-                <div className="text-center py-16">
-                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                    <path vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                  </svg>
-                  <h2 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">برچسبی یافت نشد</h2>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">هنوز برچسبی ایجاد نشده است.</p>
-                </div>
-              )}
             </div>
-          )}
-        </div>
-      }
-      sidebar={<HomeSidebar />}
-    />
+
+            {/* Error State */}
+            {error && <BaseAlert variant="error" message={error} />}
+
+            {/* Tags Grid */}
+            {!error && (
+              <div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                  {tags.map((tag) => (
+                    <Link
+                      key={tag.id}
+                      href={`/tags/${tag.slug}`}
+                      className="block bg-gradient-to-br from-blue-50 via-white to-blue-100 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300 border border-blue-100 dark:border-gray-700 group"
+                    >
+                      <div className="p-6 flex flex-col h-full">
+                        <h2 className="text-2xl font-bold text-blue-900 dark:text-blue-200 mb-2 group-hover:text-blue-700 transition-colors duration-200">
+                          {tag.name}
+                        </h2>
+                        <div className="flex-1"></div>
+                        <div className="flex flex-col gap-2 mt-4">
+                          {tag.questions_count > 0 && (
+                            <div className="flex items-center text-sm text-blue-600 dark:text-blue-300">
+                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                              </svg>
+                              {tag.questions_count} سوال
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                <PaginationHandler pagination={pagination} currentPage={pagination?.current_page || 1} />
+
+                {/* Empty State */}
+                {tags.length === 0 && !error && (
+                  <div className="text-center py-16">
+                    <h2 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">برچسبی یافت نشد</h2>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">هنوز برچسبی ایجاد نشده است.</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        }
+        sidebar={<HomeSidebar />}
+      />
+    </>
   );
 }
 
-// Main server component
 export default async function TagsPage({ searchParams }: TagsPageProps) {
   try {
     const params = await searchParams;
     const page = parseInt(params.page as string) || 1;
-    
-    // Fetch tags data from the API
+
     const response = await apiService.getTagsPaginatedServer({
       page,
       per_page: 12
     });
 
     return (
-      <TagsContent 
+      <TagsContent
         tags={response.data || []}
         pagination={response.meta || {
           current_page: 1,
@@ -136,10 +149,9 @@ export default async function TagsPage({ searchParams }: TagsPageProps) {
     );
   } catch (error) {
     console.error('Failed to fetch tags in server component:', error);
-    
-    // Return error state
+
     return (
-      <TagsContent 
+      <TagsContent
         tags={[]}
         pagination={{
           current_page: 1,

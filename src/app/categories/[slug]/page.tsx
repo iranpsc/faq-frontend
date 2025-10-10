@@ -1,6 +1,7 @@
 import CategoryContent from '@/components/CategoryContent';
 import { apiService } from '@/services/api';
 import { Question, PaginatedResponse } from '@/services/types';
+import { Metadata } from 'next';
 
 interface CategoryPageProps {
   params: Promise<{
@@ -12,37 +13,70 @@ export const dynamic = 'force-dynamic';
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { slug } = await params;
-  
+
   try {
-    // First, fetch the category information
+    // Fetch category info
     const category = await apiService.getCategoryServer(slug);
-    
-    // Then, try to fetch questions for the category
+
+    // Fetch questions
     let questions: Question[] = [];
     let pagination: PaginatedResponse<Question>['meta'] | null = null;
-    
+
     try {
       const categoryData = await apiService.getCategoryQuestionsServer(slug, 1);
       questions = categoryData.data || [];
       pagination = categoryData.meta || null;
     } catch {
-      // If questions fetch fails, it might be because there are no questions
-      // This is not a critical error, we can still show the category
       console.log('No questions found for category:', slug);
     }
 
+    // Metadata برای SEO
+    const metadata: Metadata = {
+      title: `${category.name} - سوالات متداول`,
+      description: `مشاهده سوالات متداول در دسته‌بندی ${category.name}`,
+      keywords: `${category.name}, سوالات متداول, FAQ`,
+      openGraph: {
+        title: `${category.name} - سوالات متداول`,
+        description: `مشاهده سوالات متداول در دسته‌بندی ${category.name}`,
+        type: 'website',
+        url: `${process.env.NEXT_PUBLIC_SITE_URL}/categories/${slug}`,
+      },
+    };
+
+    // Schema برای FAQPage
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": questions.map(q => ({
+        "@type": "Question",
+        "name": q.title,
+        "url": `${process.env.NEXT_PUBLIC_SITE_URL}/questions/${q.slug}`,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": q.content || "پاسخی برای این سوال هنوز ثبت نشده است."
+        }
+      }))
+    };
+
     return (
-      <CategoryContent 
-        slug={slug}
-        initialCategory={category}
-        initialQuestions={questions}
-        initialPagination={pagination}
-      />
+      <>
+        {/* Inject JSON-LD for FAQ */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+
+        <CategoryContent
+          slug={slug}
+          initialCategory={category}
+          initialQuestions={questions}
+          initialPagination={pagination}
+        />
+      </>
     );
   } catch {
-    // Return error state to client component - it will handle the error display
     return (
-      <CategoryContent 
+      <CategoryContent
         slug={slug}
         initialCategory={null}
         initialQuestions={[]}
