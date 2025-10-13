@@ -180,8 +180,8 @@ export function ContentArea({
             <div className={clsx(
               sidebarClasses, 
               'h-fit', 
-              'hidden lg:block lg:self-start',
-              isSidebarFixed ? 'lg:sticky lg:top-5' : 'lg:relative'
+              'hidden lg:block lg:sticky top-5',
+             
             )}>
               {sidebar}
             </div>

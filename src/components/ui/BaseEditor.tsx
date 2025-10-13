@@ -3,16 +3,23 @@
 import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 
-// Dynamically import CKEditor to avoid SSR issues
-const CKEditor = dynamic(() => import('@ckeditor/ckeditor5-react').then(mod => ({ default: mod.CKEditor })), {
-  ssr: false,
-  loading: () => <div className="flex items-center justify-center h-48 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600">
-    <div className="text-gray-500 dark:text-gray-400">در حال بارگذاری ویرایشگر...</div>
-  </div>
-});
+const CKEditor = dynamic(
+  () =>
+    import('@ckeditor/ckeditor5-react').then((mod) => ({
+      default: mod.CKEditor,
+    })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-48 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600">
+        <div className="text-gray-500 dark:text-gray-400">
+          در حال بارگذاری ویرایشگر...
+        </div>
+      </div>
+    ),
+  }
+);
 
-// Import ClassicEditor directly but handle SSR
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let ClassicEditor: any = null;
 
 interface BaseEditorProps {
@@ -30,64 +37,53 @@ export function BaseEditor({
   placeholder = 'متن خود را بنویسید...',
   imageUpload = false,
   className = '',
-  rtl = true
+  rtl = true,
 }: BaseEditorProps) {
   const [isClient, setIsClient] = useState(false);
   const [editorLoaded, setEditorLoaded] = useState(false);
-  const editorRef = useRef<HTMLDivElement>(null);
 
-  // Get responsive height for editor configuration
   const getResponsiveHeight = () => {
     if (typeof window !== 'undefined') {
-      return window.innerWidth < 768 ? 200 : 500; // Mobile: 200px, Desktop: 500px
+      return window.innerWidth < 768 ? 200 : 400; // Mobile: 200px, Desktop: 500px
     }
-    return 500; // Default to desktop height during SSR
+    return 400;
   };
 
-  // Custom Base64 upload adapter for image uploads
+  // Base64 Upload Adapter (برای آپلود تصویر)
   class Base64UploadAdapter {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     loader: any;
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(loader: any) {
       this.loader = loader;
     }
-
     upload() {
-      return this.loader.file
-        .then((file: File) => new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.addEventListener('load', () => {
-            resolve({ default: reader.result });
-          });
-          reader.addEventListener('error', () => {
-            reject(reader.error);
-          });
-          reader.readAsDataURL(file);
-        }));
+      return this.loader.file.then(
+        (file: File) =>
+          new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.addEventListener('load', () => {
+              resolve({ default: reader.result });
+            });
+            reader.addEventListener('error', () => {
+              reject(reader.error);
+            });
+            reader.readAsDataURL(file);
+          })
+      );
     }
-
-    abort() {
-      // This method is required by the upload adapter interface
-    }
+    abort() {}
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function uploadPlugin(editor: any) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     editor.plugins.get('FileRepository').createUploadAdapter = (loader: any) => {
       return new Base64UploadAdapter(loader);
     };
   }
 
-  // Configure CKEditor with image upload functionality, RTL support, and default height
   const editorConfiguration = {
     placeholder,
     extraPlugins: imageUpload ? [uploadPlugin] : [],
     language: rtl ? 'fa' : 'en',
     direction: rtl ? 'rtl' : 'ltr',
-    height: getResponsiveHeight(),
     toolbar: [
       'heading',
       '|',
@@ -117,14 +113,12 @@ export function BaseEditor({
       ...(imageUpload ? ['imageUpload'] : []),
       '|',
       'undo',
-      'redo'
-    ]
+      'redo',
+    ],
   };
 
   useEffect(() => {
     setIsClient(true);
-    
-    // Load ClassicEditor on client side
     const loadEditor = async () => {
       try {
         const editorModule = await import('@ckeditor/ckeditor5-build-classic');
@@ -132,24 +126,16 @@ export function BaseEditor({
         setEditorLoaded(true);
       } catch (error) {
         console.error('Failed to load CKEditor:', error);
-        setEditorLoaded(true); // Still set to true to avoid infinite loading
+        setEditorLoaded(true);
       }
     };
-
     loadEditor();
   }, []);
 
-  const handleEditorReady = () => {
-    // Editor is ready
+  const handleEditorChange = (_event: any, editor: any) => {
+    onChange(editor.getData());
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleEditorChange = (event: any, editor: any) => {
-    const data = editor.getData();
-    onChange(data);
-  };
-
-  // CKEditor component
   if (!isClient || !editorLoaded) {
     return (
       <div className={`border border-gray-300 dark:border-gray-600 rounded-lg ${className}`}>
@@ -162,21 +148,23 @@ export function BaseEditor({
 
   return (
     <div className={`border border-gray-300 dark:border-gray-600 rounded-lg ${className}`}>
-      <div 
-        ref={editorRef} 
-        dir={rtl ? 'rtl' : 'ltr'}
-        className={rtl ? 'text-right' : 'text-left'}
-      >
-        {ClassicEditor && (
-          <CKEditor
-            editor={ClassicEditor}
-            config={editorConfiguration}
-            data={value}
-            onReady={handleEditorReady}
-            onChange={handleEditorChange}
-          />
-        )}
-      </div>
+      {ClassicEditor && (
+        <CKEditor
+          editor={ClassicEditor}
+          config={editorConfiguration}
+          data={value}
+          onReady={(editor: any) => {
+            // ست کردن ارتفاع به صورت واکنش‌گرا
+            editor.ui.view.editable.element.style.minHeight = `${getResponsiveHeight()}px`;
+
+            // آپدیت ارتفاع وقتی ریسایز شد
+            window.addEventListener('resize', () => {
+              editor.ui.view.editable.element.style.minHeight = `${getResponsiveHeight()}px`;
+            });
+          }}
+          onChange={handleEditorChange}
+        />
+      )}
     </div>
   );
 }
