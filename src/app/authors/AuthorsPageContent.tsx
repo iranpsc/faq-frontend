@@ -186,13 +186,14 @@ export function AuthorsPageContent({
                 <div className="relative inline-block w-full">
                   <select
                     value={sortBy}
+                    aria-label='sort'
                     onChange={(e) => {
                       setSortBy(e.target.value);
                       handleSortChange();
                     }}
                     className="px-4 py-3 pl-10 border border-gray-300 dark:border-gray-600 rounded-lg
                            bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                           focus:ring-2 focus:ring-blue-500 appearance-none w-full"
+                           focus:ring-2 focus:ring-blue-500 appearance-none w-full text-xs md:text-base"
                   >
                     <option value="score">مرتب‌سازی بر اساس امتیاز</option>
                     <option value="questions_count">بر اساس تعداد سوالات</option>
@@ -212,13 +213,14 @@ export function AuthorsPageContent({
                 <div className="relative inline-block w-full">
                   <select
                     value={sortOrder}
+                    aria-label='sortOrder'
                     onChange={(e) => {
                       setSortOrder(e.target.value);
                       handleSortChange();
                     }}
                     className="px-4 py-3 pl-10 border border-gray-300 dark:border-gray-600 rounded-lg
                            bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                           focus:ring-2 focus:ring-blue-500 appearance-none w-full"
+                           focus:ring-2 focus:ring-blue-500 appearance-none w-full text-xs md:text-base"
                   >
                     <option value="desc">نزولی</option>
                     <option value="asc">صعودی</option>

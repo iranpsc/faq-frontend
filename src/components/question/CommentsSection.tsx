@@ -54,7 +54,14 @@ export function CommentsSection({
   const parentId = parentType === 'question' ? questionId : answerId;
 
   const hasMoreComments = commentsPagination && commentsPagination.current_page < commentsPagination.last_page;
-
+  const { login } = useAuth();
+  const handleLogin = async () => {
+    try {
+      await login();
+    } catch (error) {
+      console.error('Login error:', error);
+    }
+  };
   const fetchCommentsData = useCallback(async (parentId: string, parentType: 'question' | 'answer', page = 1) => {
     const result = await fetchComments(parentId, parentType);
     if (result && result.success) {
@@ -168,13 +175,13 @@ export function CommentsSection({
         ? 'bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 sm:p-6 mb-6 w-full min-w-0 overflow-hidden'
         : 'mt-4 border-t border-gray-200 dark:border-gray-600 pt-4 w-full min-w-0'
     }`}>
-      <h3 className={`${
+      <h2 className={`${
         parentType === 'question'
           ? 'text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4'
           : 'text-sm font-medium text-gray-900 dark:text-gray-100 mb-3'
       }`}>
         نظرات {parentType === 'question' ? 'کاربران' : ''} ({commentsPagination?.total || comments.length})
-      </h3>
+      </h2>
 
       {/* Comments List */}
       <div className={`${parentType === 'question' ? 'space-y-4 mb-6' : 'space-y-3 mb-4'}`}>
@@ -455,7 +462,7 @@ export function CommentsSection({
               ? 'text-gray-600 dark:text-gray-400 text-sm'
               : 'text-gray-600 dark:text-gray-400 text-xs'
           }`}>
-            برای ثبت نظر، لطفا وارد حساب کاربری خود شوید.
+            برای ثبت نظر، لطفا وارد  <span className='text-blue-500 cursor-pointer' onClick={handleLogin}>حساب کاربری </span> خود شوید.
           </p>
         </div>
       )}

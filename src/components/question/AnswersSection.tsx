@@ -77,7 +77,14 @@ export function AnswersSection({
 
   // Use either paginated answers or props answers based on mode
   const displayAnswers = usePagination ? paginatedAnswers : answers;
-
+  const { login } = useAuth();
+  const handleLogin = async () => {
+    try {
+      await login();
+    } catch (error) {
+      console.error('Login error:', error);
+    }
+  };
   // Sort answers based on selected filter
   const sortedAnswers = displayAnswers.filter(answer => {
     // Filter for correct answers only
@@ -242,7 +249,7 @@ export function AnswersSection({
     const deleteResult = await deleteAnswerApi(answer.id);
     if (deleteResult.success) {
       onAnswerAdded();
-      
+
       // If using internal pagination, refetch to remove the deleted answer from the list
       if (usePagination) {
         const targetPage = Math.max(1, currentAnswersPage);
@@ -284,7 +291,7 @@ export function AnswersSection({
       const result = await publishAnswerApi(answer.id);
       if (result.success) {
         onAnswerAdded();
-        
+
         // If using internal pagination, refresh list to reflect publish state
         if (usePagination) {
           await fetchPaginatedAnswers(currentAnswersPage, false);
@@ -343,7 +350,7 @@ export function AnswersSection({
             <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
           </svg>
         </button>
-        
+
         {showFilters && (
           <div className="absolute z-30 mt-2 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded shadow-lg overflow-hidden">
             <ul className="py-1 text-sm">
@@ -351,11 +358,10 @@ export function AnswersSection({
                 <li key={option.value}>
                   <button
                     onClick={() => selectFilter(option.value)}
-                    className={`w-full text-right px-4 py-2 flex items-center justify-between gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-                      selectedFilter === option.value 
-                        ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium' 
+                    className={`w-full text-right px-4 py-2 flex items-center justify-between gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${selectedFilter === option.value
+                        ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium'
                         : 'text-gray-700 dark:text-gray-200'
-                    }`}
+                      }`}
                   >
                     <span>{option.label}</span>
                     {selectedFilter === option.value && <span className="text-xs">✓</span>}
@@ -405,7 +411,7 @@ export function AnswersSection({
       ) : (
         <div className="mb-8 border border-gray-200 dark:border-gray-600 rounded-lg p-4 text-center">
           <p className="text-gray-600 dark:text-gray-400">
-            برای ثبت پاسخ، لطفا وارد حساب کاربری خود شوید.
+            برای ثبت پاسخ، لطفا وارد <span className='text-blue-500 cursor-pointer' onClick={handleLogin} > حساب کاربری</span> خود شوید.
           </p>
         </div>
       )}
@@ -445,7 +451,7 @@ export function AnswersSection({
                       className="flex-shrink-0"
                     />
                   )}
-                  
+
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                       <div className="flex flex-col justify-start min-w-0">
@@ -461,7 +467,7 @@ export function AnswersSection({
                             کاربر ناشناس
                           </span>
                         )}
-                        <span className="text-xs text-blue-600 whitespace-nowrap">
+                        <span className="text-xs md:text-sm text-blue-600 whitespace-nowrap">
                           امتیاز: {formatNumber(answer.user?.score || 0)}
                         </span>
                       </div>
@@ -473,8 +479,8 @@ export function AnswersSection({
                     {/* Answer Content */}
                     {editingAnswer !== answer.id ? (
                       <div className="mt-4 sm:mt-6 overflow-hidden">
-                        <div 
-                          className="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 break-words" 
+                        <div
+                          className="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 break-words"
                           dangerouslySetInnerHTML={{ __html: answer.content }}
                         />
                       </div>
@@ -558,11 +564,10 @@ export function AnswersSection({
                       />
                       <label
                         htmlFor={`correctness-${answer.id}`}
-                        className={`text-sm cursor-pointer transition-colors select-none ${
-                          answer.is_correct
+                        className={`text-sm cursor-pointer transition-colors select-none ${answer.is_correct
                             ? 'text-green-600 dark:text-green-400 font-medium'
                             : 'text-gray-600 dark:text-gray-400'
-                        } ${isTogglingCorrectness === answer.id ? 'opacity-50' : ''}`}
+                          } ${isTogglingCorrectness === answer.id ? 'opacity-50' : ''}`}
                       >
                         {isTogglingCorrectness === answer.id
                           ? 'در حال تغییر...'

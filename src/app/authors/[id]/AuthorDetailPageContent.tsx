@@ -79,12 +79,17 @@ export function AuthorDetailPageContent({
       sidebarWidth="1/3"
       filters={
         <div className="mb-8">
+                    <div className='lg:hidden mb-8'>
+            <AuthorCard author={author} />
+          </div>
           {/* Added h1 for main page heading accessibility (previously missing) */}
           <h1 className="sr-only">پروفایل {author.name}</h1>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
             سوالات پرسیده شده توسط {author.name}
           </h2>
+
         </div>
+        
       }
       main={
         <div>

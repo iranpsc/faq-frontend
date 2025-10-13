@@ -19,6 +19,14 @@ export const metadata: Metadata = {
     type: 'website',
     url: 'https://faqhub.ir/authors',
     siteName: 'FAQ Hub',
+images: [
+        {
+          url: "https://faqhub.ir/main-logo.png",
+          width: 200,
+          height: 200,
+          alt: "تیم متاورس رنگ",
+        },
+      ],
   },
   twitter: {
     card: 'summary_large_image',

@@ -352,7 +352,7 @@ export function Sidebar({ isOpen, mounted = false, theme, themeMode, onToggle, o
                       href="/profile" 
                       onClick={handleMenuItemClick}
                       className={clsx(
-                        'dropdown-item flex items-center gap-3 px-4 py-2 text-xs md:text-sm rounded-lg transition-colors',
+                        'dropdown-item flex items-center gap-3 px-4 py-2 text-xs md:text-sm rounded-lg transition-colors focus:outline-none ',
                         {
                           'text-gray-700 hover:bg-gray-100': theme === 'light',
                           'text-gray-300 hover:bg-gray-700': theme === 'dark'
@@ -478,6 +478,7 @@ export function Sidebar({ isOpen, mounted = false, theme, themeMode, onToggle, o
             size="lg" 
             block
             className="mb-4 flex justify-between"
+            aria-label='login '
           >
             <LogIn className="w-4 h-4 md:w-7 md:h-7" />
             <span>ورود</span>
@@ -492,6 +493,7 @@ export function Sidebar({ isOpen, mounted = false, theme, themeMode, onToggle, o
             size="lg" 
             block
             className="mb-4 flex justify-between"
+            aria-label='log out '
           >
             <LogOut className="w-4 h-4 md:w-7 md:h-7" />
             <span>خروج</span>
@@ -506,6 +508,7 @@ export function Sidebar({ isOpen, mounted = false, theme, themeMode, onToggle, o
               variant={themeMode === 'light' ? 'primary' : 'ghost'}
               size="sm" 
               className="flex-1 rounded-full"
+              aria-label='theme mode'
             >
               <Sun className="w-4 h-4" />
             </BaseButton>
@@ -514,6 +517,7 @@ export function Sidebar({ isOpen, mounted = false, theme, themeMode, onToggle, o
               variant={themeMode === 'auto' ? 'primary' : 'ghost'}
               size="sm" 
               className="flex-1 rounded-full"
+              aria-label='theme mode'
             >
               <Monitor className="w-4 h-4" />
             </BaseButton>
@@ -522,6 +526,7 @@ export function Sidebar({ isOpen, mounted = false, theme, themeMode, onToggle, o
               variant={themeMode === 'dark' ? 'primary' : 'ghost'}
               size="sm" 
               className="flex-1 rounded-full"
+              aria-label='theme mode'
             >
               <Moon className="w-4 h-4" />
             </BaseButton>
@@ -553,7 +558,7 @@ export function Sidebar({ isOpen, mounted = false, theme, themeMode, onToggle, o
             <div className="flex flex-col gap-2">
               {/* Theme Toggle (Collapsed) */}
               <div className="flex justify-center">
-                <button 
+                <button  aria-label='theme mode'
                   onClick={cycleCollapsedTheme}
                   className="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >

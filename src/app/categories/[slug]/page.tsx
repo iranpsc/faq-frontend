@@ -40,6 +40,14 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         description: `مشاهده سوالات متداول در دسته‌بندی ${category.name}`,
         type: 'website',
         url: `${process.env.NEXT_PUBLIC_SITE_URL}/categories/${slug}`,
+        images: [
+        {
+          url: "https://faqhub.ir/main-logo.png",
+          width: 100,
+          height: 100,
+          alt: "تیم متاورس رنگ",
+        },
+      ],
       },
     };
 

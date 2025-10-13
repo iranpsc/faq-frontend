@@ -118,9 +118,9 @@ export function QuestionCard({ question, onClick }: QuestionCardProps) {
         {/* Section 2: Title and Content Preview */}
         <div className="mb-4 cursor-pointer" onClick={() => onClick?.(question)}>
           <Link href={`/questions/${question.slug}`}>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2 leading-relaxed hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2 leading-relaxed hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
               {question.title}
-            </h3>
+            </h2>
           </Link>
           <div 
             className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed"
@@ -163,9 +163,9 @@ export function QuestionCard({ question, onClick }: QuestionCardProps) {
         )}
 
         {/* Section 3: User Info (right), Stats (right), Publish/Unpublished (left) */}
-        <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 pt-4 text-sm text-gray-500 dark:text-gray-400">
+        <div className="flex  w-full items-center justify-between border-t border-gray-200 dark:border-gray-700 pt-4 text-sm text-gray-500 dark:text-gray-400">
           {/* User Info and Stats (right) */}
-          <div className="flex items-center gap-6 text-xs md:text-sm">
+          <div className="flex items-center flex-wrap gap-6 text-xs md:text-sm">
             {/* User Info */}
             {question.user && (
               <Link
@@ -206,7 +206,7 @@ export function QuestionCard({ question, onClick }: QuestionCardProps) {
             
             {/* Solved Badge */}
             {question.is_solved && (
-              <span className="flex items-center gap-1 text-green-600 dark:text-green-400 font-medium">
+              <span className="flex items-center gap-1 text-green-700 dark:text-green-400 font-medium">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>

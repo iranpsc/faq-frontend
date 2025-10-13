@@ -17,6 +17,14 @@ export const metadata: Metadata = {
     description: 'مشاهده تمام دسته‌بندی‌های موجود در سیستم سوالات متداول',
     type: 'website',
     url: 'https://faqhub.ir/categories',
+    images: [
+        {
+          url: "https://faqhub.ir/main-logo.png",
+          width: 200,
+          height: 200,
+          alt: "تیم متاورس رنگ",
+        },
+      ],
   },
 };
 

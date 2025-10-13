@@ -255,7 +255,7 @@ export function QuestionContent({
       {/* Top Row: User Info & Category (right), Creation Date (left) */}
       <div className="flex items-center justify-between mb-4 gap-2 min-w-0">
         {/* Right: User Info & Category */}
-        <div className="flex items-center gap-3 min-w-0 flex-shrink-0">
+        <div className="flex items-center gap-3 min-w-0 flex-wrap">
           {/* User Info */}
           {question.user ? (
             <Link
@@ -275,7 +275,7 @@ export function QuestionContent({
                     {question.user.name}
                   </span>
                   {question.user.score && (
-                    <div className="text-xs text-blue-600 whitespace-nowrap">
+                    <div className="text-xs md:text-sm text-blue-600 whitespace-nowrap">
                       امتیاز: {formatNumber(question.user.score)}
                     </div>
                   )}

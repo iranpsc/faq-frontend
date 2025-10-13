@@ -338,7 +338,7 @@ export function Footer({ onAskQuestion }: FooterProps) {
             <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-transparent"></div>
             <div className="relative z-10 py-6 flex flex-col md:flex-row md:items-center md:justify-between md:text-right text-center">
               <div className="md:mb-0 mb-6 md:mr-4 flex-1">
-                <h3 className="text-3xl font-bold mb-4 text-white">پرسیدن سوال</h3>
+                <p className="text-3xl font-bold mb-4 text-white">پرسیدن سوال</p>
                 <p className="text-blue-100 dark:text-blue-200 text-lg leading-relaxed">
                   هر سوالی که بخوای میتونی بپرسی...
                 </p>
@@ -368,7 +368,7 @@ export function Footer({ onAskQuestion }: FooterProps) {
             <div className="absolute inset-0 bg-gradient-to-br from-green-300/20 to-transparent"></div>
             <div className="relative z-10 py-6 flex flex-col md:flex-row md:items-center md:justify-between md:text-right text-center">
               <div className="md:mb-0 mb-6 md:mr-4 flex-1">
-                <h3 className="text-2xl font-bold mb-4 text-white">نحوه امتیازدهی</h3>
+                <p className="text-2xl font-bold mb-4 text-white">نحوه امتیازدهی</p>
                 <p className="text-green-50 dark:text-green-100 text-sm leading-relaxed">
                   راهنمای چگونگی امتیازدهی به شهروندان
                 </p>
@@ -411,7 +411,7 @@ export function Footer({ onAskQuestion }: FooterProps) {
           {/* Social Media Icons */}
           <div className="flex justify-center items-center gap-4 mb-4">
             <a 
-              href="#"
+              href="#" aria-label='pintrest'
               className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
             >
               <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -419,7 +419,7 @@ export function Footer({ onAskQuestion }: FooterProps) {
               </svg>
             </a>
             <a 
-              href="#"
+              href="#" aria-label='x'
               className="w-10 h-10 bg-gray-500 rounded-full flex items-center justify-center hover:bg-gray-600 transition-colors"
             >
               <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -427,7 +427,7 @@ export function Footer({ onAskQuestion }: FooterProps) {
               </svg>
             </a>
             <a 
-              href="#"
+              href="#" aria-label='whatsapp'
               className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center hover:bg-green-600 transition-colors"
             >
               <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -435,7 +435,7 @@ export function Footer({ onAskQuestion }: FooterProps) {
               </svg>
             </a>
             <a 
-              href="#"
+              href="#" aria-label='pintrest'
               className="w-10 h-10 bg-pink-500 rounded-full flex items-center justify-center hover:bg-pink-600 transition-colors"
             >
               <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -443,7 +443,7 @@ export function Footer({ onAskQuestion }: FooterProps) {
               </svg>
             </a>
             <a 
-              href="#"
+              href="#" aria-label='telegram'
               className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors"
             >
               <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -451,7 +451,7 @@ export function Footer({ onAskQuestion }: FooterProps) {
               </svg>
             </a>
             <a 
-              href="#"
+              href="#" aria-label='youtube'
               className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center hover:bg-red-700 transition-colors"
             >
               <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">

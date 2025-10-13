@@ -202,9 +202,9 @@ export function FilterQuestion({ onFiltersChanged }: FilterQuestionProps) {
 
   return (
     <div className="flex flex-col items-start justify-between mb-6">
-      <h5 className="font-bold text-gray-900 dark:text-gray-100 mb-4">
+      <p className="font-bold text-gray-900 dark:text-gray-100 mb-4">
         فیلترها
-      </h5>
+      </p>
 
       {/* Filter Section */}
       <div className="w-full space-y-4">

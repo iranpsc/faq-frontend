@@ -61,9 +61,9 @@ export function AuthorCard({ author, onClick }: AuthorCardProps) {
           </div>
 
           {/* Author Name */}
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate mb-1 text-center">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white truncate mb-1 text-center">
             {author.name}
-          </h3>
+          </h2>
 
           {/* Score */}
           <div className="flex items-center">
@@ -112,9 +112,9 @@ export function AuthorCard({ author, onClick }: AuthorCardProps) {
 
       {/* Recent Questions Preview */}
       <div className="border-t border-gray-200 dark:border-gray-700 px-6 py-4">
-        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+        <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
           آخرین سوالات:
-        </h4>
+        </p>
         <div className="space-y-2">
           {author.recent_questions && author.recent_questions.length > 0 ? (
             <>

@@ -73,7 +73,7 @@ export function Header({ sidebarOpen, onToggleSidebar, onMainAction, mobileSearc
           {/* Main action button */}
           <BaseButton
             variant="primary"
-            size="lg"
+            className=' py-2 md:py-3'
             rounded="xl"
             onClick={onMainAction}
           >
