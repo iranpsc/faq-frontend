@@ -36,7 +36,7 @@ export function ContentArea({
   sidebar,
   footer
 }: ContentAreaProps) {
-  const [isSidebarFixed, setIsSidebarFixed] = useState(true);
+  // const [isSidebarFixed, setIsSidebarFixed] = useState(true);
   const footerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -47,7 +47,7 @@ export function ContentArea({
         const [entry] = entries;
         // When footer comes into view, make sidebar follow normal flow
         // When footer goes out of view, make sidebar fixed
-        setIsSidebarFixed(!entry.isIntersecting);
+        // setIsSidebarFixed(!entry.isIntersecting);
       },
       {
         threshold: 0.1, // Trigger when 10% of footer is visible

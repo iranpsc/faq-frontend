@@ -3,7 +3,7 @@ export default async function CitizensLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: any;
+  params?: any;
 }) {
   return (
     <main

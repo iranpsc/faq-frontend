@@ -1,6 +1,5 @@
 import TagContent from '@/components/TagContent';
 import { apiService } from '@/services/api';
-import Script from 'next/script';
 import { Metadata } from 'next';
 
 interface TagPageProps {

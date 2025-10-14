@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { Metadata } from 'next';
-import Script from 'next/script';
 import { ContentArea } from '@/components/ContentArea';
 import { HomeSidebar } from '@/components/HomeSidebar';
 import { BaseAlert } from '@/components/ui/BaseAlert';

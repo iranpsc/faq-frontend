@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: AuthorDetailPageProps): Promi
         images: avatar ? [avatar] : undefined,
       },
     };
-  } catch (err) {
+  } catch {
     return {
       title: 'نویسنده یافت نشد',
       description: 'نویسنده مورد نظر وجود ندارد یا حذف شده است.',

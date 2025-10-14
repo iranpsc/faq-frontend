@@ -133,26 +133,26 @@ export function ActivityPageContent({
     return variants[type as keyof typeof variants] || 'secondary' as const;
   };
 
-  const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-
-    if (diffInHours < 1) {
-      const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-      return diffInMinutes < 1 ? 'همین الان' : `${diffInMinutes} دقیقه پیش`;
-    } else if (diffInHours < 24) {
-      return `${diffInHours} ساعت پیش`;
-    } else {
-      return date.toLocaleDateString('fa-IR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    }
-  };
+  // const formatTime = (timestamp: string) => {
+  //   const date = new Date(timestamp);
+  //   const now = new Date();
+  //   const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+  //
+  //   if (diffInHours < 1) {
+  //     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+  //     return diffInMinutes < 1 ? 'همین الان' : `${diffInMinutes} دقیقه پیش`;
+  //   } else if (diffInHours < 24) {
+  //     return `${diffInHours} ساعت پیش`;
+  //   } else {
+  //     return date.toLocaleDateString('fa-IR', {
+  //       year: 'numeric',
+  //       month: 'long',
+  //       day: 'numeric',
+  //       hour: '2-digit',
+  //       minute: '2-digit'
+  //     });
+  //   }
+  // };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">

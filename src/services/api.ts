@@ -817,7 +817,7 @@ class ApiService {
   }
 
   // Server-side question methods
-  async getQuestionBySlugServer(slug: string, p0?: { includeAnswers: boolean; }): Promise<Question> {
+  async getQuestionBySlugServer(slug: string, _options?: { includeAnswers: boolean; }): Promise<Question> {
     const response = await this.serverRequest<{data: Question}>(`/questions/${slug}`);
     return response.data;
   }
