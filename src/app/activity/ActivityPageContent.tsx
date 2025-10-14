@@ -133,26 +133,26 @@ export function ActivityPageContent({
     return variants[type as keyof typeof variants] || 'secondary' as const;
   };
 
-  // const formatTime = (timestamp: string) => {
-  //   const date = new Date(timestamp);
-  //   const now = new Date();
-  //   const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-  //
-  //   if (diffInHours < 1) {
-  //     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-  //     return diffInMinutes < 1 ? 'همین الان' : `${diffInMinutes} دقیقه پیش`;
-  //   } else if (diffInHours < 24) {
-  //     return `${diffInHours} ساعت پیش`;
-  //   } else {
-  //     return date.toLocaleDateString('fa-IR', {
-  //       year: 'numeric',
-  //       month: 'long',
-  //       day: 'numeric',
-  //       hour: '2-digit',
-  //       minute: '2-digit'
-  //     });
-  //   }
-  // };
+  const formatTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+
+    if (diffInHours < 1) {
+      const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+      return diffInMinutes < 1 ? 'همین الان' : `${diffInMinutes} دقیقه پیش`;
+    } else if (diffInHours < 24) {
+      return `${diffInHours} ساعت پیش`;
+    } else {
+      return date.toLocaleDateString('fa-IR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -199,7 +199,7 @@ export function ActivityPageContent({
                   {monthActivities.map((activity, index) => (
                     <div
                       key={`${activity.id}_${activity.type}_${index}`}
-                      className="bg-white flex flex-col gap-3 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow duration-200 hover:transform hover:-translate-y-1"
+                      className="bg-white flex flex-col gap-4 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow duration-200 hover:transform hover:-translate-y-1"
                     >
                       <div className="flex  items-start gap-4">
                         {/* User Avatar */}
