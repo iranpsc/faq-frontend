@@ -199,7 +199,7 @@ export function ActivityPageContent({
                   {monthActivities.map((activity, index) => (
                     <div
                       key={`${activity.id}_${activity.type}_${index}`}
-                      className="bg-white flex dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow duration-200 hover:transform hover:-translate-y-1"
+                      className="bg-white flex flex-col gap-3 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow duration-200 hover:transform hover:-translate-y-1"
                     >
                       <div className="flex  items-start gap-4">
                         {/* User Avatar */}
@@ -243,14 +243,14 @@ export function ActivityPageContent({
                         {activity.category_name && (
                           <span className="flex items-center gap-1">
                             <TagIcon className="w-4 h-4" />
-                            sdfgsdfgsdfgsdfg
+                            {activity.category_name}
                           </span>
                         )}
 
                         {/* Time */}
                         <span className="flex items-center gap-1">
                           <Clock className="w-4 h-4" />
-                          gsdfgsdfg sdfg sdfg sdfg sd
+                           {formatTime(activity.created_at)}
                         </span>
                       </div>
 
