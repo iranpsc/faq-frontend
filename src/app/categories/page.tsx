@@ -5,7 +5,6 @@ import { HomeSidebar } from '@/components/HomeSidebar';
 import { BaseAlert } from '@/components/ui/BaseAlert';
 import { PaginationHandler } from '@/components/PaginationHandler';
 import { apiService } from '@/services/api';
-import { Category, PaginatedResponse } from '@/services/types';
 
 // ✅ SEO Metadata
 export const metadata: Metadata = {

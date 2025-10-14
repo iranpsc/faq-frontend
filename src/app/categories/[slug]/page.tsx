@@ -1,7 +1,6 @@
 import CategoryContent from '@/components/CategoryContent';
 import { apiService } from '@/services/api';
 import { Question, PaginatedResponse } from '@/services/types';
-import { Metadata } from 'next';
 
 interface CategoryPageProps {
   params: Promise<{
@@ -31,25 +30,25 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     }
 
     // Metadata برای SEO
-    const metadata: Metadata = {
-      title: `${category.name} - سوالات متداول`,
-      description: `مشاهده سوالات متداول در دسته‌بندی ${category.name}`,
-      keywords: `${category.name}, سوالات متداول, FAQ`,
-      openGraph: {
-        title: `${category.name} - سوالات متداول`,
-        description: `مشاهده سوالات متداول در دسته‌بندی ${category.name}`,
-        type: 'website',
-        url: `${process.env.NEXT_PUBLIC_SITE_URL}/categories/${slug}`,
-        images: [
-        {
-          url: "https://faqhub.ir/main-logo.png",
-          width: 100,
-          height: 100,
-          alt: "تیم متاورس رنگ",
-        },
-      ],
-      },
-    };
+    // const metadata: Metadata = {
+    //   title: `${category.name} - سوالات متداول`,
+    //   description: `مشاهده سوالات متداول در دسته‌بندی ${category.name}`,
+    //   keywords: `${category.name}, سوالات متداول, FAQ`,
+    //   openGraph: {
+    //     title: `${category.name} - سوالات متداول`,
+    //     description: `مشاهده سوالات متداول در دسته‌بندی ${category.name}`,
+    //     type: 'website',
+    //     url: `${process.env.NEXT_PUBLIC_SITE_URL}/categories/${slug}`,
+    //     images: [
+    //     {
+    //       url: "https://faqhub.ir/main-logo.png",
+    //       width: 100,
+    //       height: 100,
+    //       alt: "تیم متاورس رنگ",
+    //     },
+    //   ],
+    //   },
+    // };
 
     // Schema برای FAQPage
     const schema = {

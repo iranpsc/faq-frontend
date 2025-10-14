@@ -1,7 +1,7 @@
 import Form from "./components/form";
 import Head from "next/head";
 
-export async function generateMetadata({ params }: { params: any }) {
+export async function generateMetadata({ params }: { params?: any }) {
   const url = `https://faqhub.ir/contact`;
 
   return {

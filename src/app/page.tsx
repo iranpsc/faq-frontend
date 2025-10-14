@@ -1,6 +1,5 @@
 import HomeContent from '@/components/HomeContent';
 import { apiService } from '@/services/api';
-import Script from 'next/script';
 
 export const dynamic = 'force-dynamic';
 

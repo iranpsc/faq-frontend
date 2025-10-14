@@ -1,5 +1,4 @@
 import { Suspense } from 'react';
-import Script from 'next/script';
 import { apiService } from '@/services/api';
 import { AuthorsPageContent } from './AuthorsPageContent';
 import { Metadata } from 'next';

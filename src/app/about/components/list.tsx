@@ -1,14 +1,21 @@
 "use client";
 import dynamic from "next/dynamic";
 import React, { useState, useEffect, useRef } from "react";
-const UserCard = dynamic(() => import("@/components/shared/UserCard"));
+const UserCard = dynamic(() => import("@/components/UserCard").then(mod => ({ default: mod.UserCard })));
+
+interface AboutListProps {
+  params: any;
+  citizenListArrayContent: any[];
+  levelListArrayContent: any[];
+}
 
 export default function AboutList({
   params,
   citizenListArrayContent,
   levelListArrayContent,
-}: any) {
+}: AboutListProps) {
   const [inView, setInView] = useState(false);
+  // inView is used for intersection observer but not in current implementation
   // *HINT* useRef WON'T trigger re-render unlike useState.
   const aboutUsRef = useRef<HTMLDivElement | null>(null);
 
@@ -166,14 +173,14 @@ export default function AboutList({
       levels: { current: { name: "توسعه دهنده" } },
     },
   ];
-  function localFind1(_name: any) {
-    return citizenListArrayContent.find((item: any) => item.name == _name)
-      ?.translation;
-  }
-  function localFind2(_name: any) {
-    return levelListArrayContent.find((item: any) => item.name == _name)
-      ?.translation;
-  }
+  // function localFind1(_name: string) {
+  //   return citizenListArrayContent.find((item: any) => item.name == _name)
+  //     ?.translation;
+  // }
+  // function localFind2(_name: string) {
+  //   return levelListArrayContent.find((item: any) => item.name == _name)
+  //     ?.translation;
+  // }
 
   // IntersectionObserver to load iframe when it's in view
   useEffect(() => {
@@ -195,8 +202,9 @@ export default function AboutList({
     }
 
     return () => {
-      if (aboutUsRef.current) {
-        observer.unobserve(aboutUsRef.current); // Cleanup observer
+      const currentRef = aboutUsRef.current;
+      if (currentRef) {
+        observer.unobserve(currentRef); // Cleanup observer
       }
     };
   }, []);
@@ -205,15 +213,11 @@ export default function AboutList({
       ref={aboutUsRef}
       className="flex flex-row flex-wrap justify-center md:justify-center w-full no-scrollbar overflow-y-auto py-[20px]"
     >
-      {staticUsers.map((item: any, index: any) => (
+      {staticUsers.map((item: any, index: number) => (
         <UserCard
           key={index}
-          item={item}
-          index={index}
-          params={params}
-          minWidth={`260px`}
-          levelText={localFind2("developer")}
-          buttonText={localFind1("citizen page")}
+          user={item}
+          className="min-w-[260px]"
         />
       ))}
     </div>
