@@ -1,3 +1,4 @@
+// app/activities/page.tsx
 import { Suspense } from "react";
 import { ActivityPageContent } from "./ActivityPageContent";
 import { apiService } from "@/services/api";
@@ -36,56 +37,67 @@ export default async function ActivityPage() {
   const response = await apiService.getActivity({
     months: 3,
     offset: 0,
-    questions_limit: 10,
-    answers_limit: 8,
-    comments_limit: 5,
+    questions_limit: 5, // بهتره تعداد کم باشه چون QAPage
+    answers_limit: 3,
+    comments_limit: 0, // ❌ Comment توی Rich Result ساپورت نمی‌شه
   });
 
   const activities = response.success ? response.data : [];
 
-  const groupedActivities: Record<string, any[]> = {};
-  activities.forEach((activity: any) => {
-    if (activity.month) {
-      if (!groupedActivities[activity.month]) {
-        groupedActivities[activity.month] = [];
-      }
-      groupedActivities[activity.month].push(activity);
-    }
-  });
-
-  // 🟢 ساختن اسکیمای داینامیک بر اساس محتوای ActivityPageContent
-  const schemaData = {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    name: "فعالیت‌های کاربران",
-    description: "لیست سوالات، پاسخ‌ها و نظرات کاربران در انجمن",
-    itemListElement: activities.map((a: any, index: number) => {
-      let itemType = "Article";
-      if (a.type === "question") itemType = "Question";
-      if (a.type === "answer") itemType = "Answer";
-      if (a.type === "comment") itemType = "Comment";
+  // 🟢 ساختن اسکیمای داینامیک (QAPage)
+  const questions = activities
+    .filter((a: any) => a.type === "question")
+    .map((q: any) => {
+      const answers = activities.filter(
+        (a: any) => a.type === "answer" && a.parent_id === q.id
+      );
 
       return {
-        "@type": "ListItem",
-        position: index + 1,
-        item: {
-          "@type": itemType,
-          name: a.description,
-          author: {
-            "@type": "Person",
-            name: a.user_name,
-          },
-          datePublished: a.created_at,
-          url: a.url ? `https://example.com${a.url}` : "https://example.com/activities",
-          ...(a.category_name && {
-            about: {
-              "@type": "Thing",
-              name: a.category_name,
-            },
-          }),
+        "@type": "Question",
+        name: q.title || q.description,
+        text: q.description,
+        author: {
+          "@type": "Person",
+          name: q.user_name,
         },
+        dateCreated: q.created_at,
+        url: q.url ? `https://example.com${q.url}` : "https://example.com/activities",
+        answerCount: answers.length,
+        ...(answers.length > 0 && {
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: answers[0].description,
+            dateCreated: answers[0].created_at,
+            author: {
+              "@type": "Person",
+              name: answers[0].user_name,
+            },
+            url: answers[0].url
+              ? `https://example.com${answers[0].url}`
+              : "https://example.com/activities",
+          },
+        }),
+        ...(answers.length > 1 && {
+          suggestedAnswer: answers.slice(1).map((ans: any) => ({
+            "@type": "Answer",
+            text: ans.description,
+            dateCreated: ans.created_at,
+            author: {
+              "@type": "Person",
+              name: ans.user_name,
+            },
+            url: ans.url
+              ? `https://example.com${ans.url}`
+              : "https://example.com/activities",
+          })),
+        }),
       };
-    }),
+    });
+
+  const schemaData = {
+    "@context": "https://schema.org",
+    "@type": "QAPage",
+    mainEntity: questions,
   };
 
   return (
@@ -110,7 +122,7 @@ export default async function ActivityPage() {
       >
         <ActivityPageContent
           initialActivities={activities}
-          initialGroupedActivities={groupedActivities}
+          initialGroupedActivities={{}}
         />
       </Suspense>
     </>

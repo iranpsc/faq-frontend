@@ -11,30 +11,30 @@ export async function generateMetadata({ params }: { params?: any }) {
     alternates: {
       canonical: url,
     },
-    openGraph: {
-      type: "website",
-      title: "تماس با ما | انجمن حم",
-      description:
-        "ما در انجمن حم و متاورس رنگ معتقدیم که توسعه این دنیای موازی و مجازی تنها با مشارکت و همفکری عمومی امکان‌پذیر است.",
-      url,
-      images: [
-        {
-          url: "https://faqhub.ir/main-logo.png",
-          width: 1200,
-          height: 630,
-          alt: "تیم متاورس رنگ",
-        },
-      ],
-      locale: "fa_IR",
-    },
-    twitter: {
-      card: "summary_large_image",
-      site: "@rgb_irpsc",
-      title: "تماس با ما | انجمن حم",
-      description:
-        "انجمن حم؛ محلی برای پرسشگری، نوآوری و ارتباط با جامعه‌ی متاورس ایران.",
-      images: ["https://faqhub.ir/main-logo.png"],
-    },
+    // openGraph: {
+    //   type: "website",
+    //   title: "تماس با ما | انجمن حم",
+    //   description:
+    //     "ما در انجمن حم و متاورس رنگ معتقدیم که توسعه این دنیای موازی و مجازی تنها با مشارکت و همفکری عمومی امکان‌پذیر است.",
+    //   url,
+    //   images: [
+    //     {
+    //       url: "https://faqhub.ir/main-logo.png",
+    //       width: 1200,
+    //       height: 630,
+    //       alt: "تیم متاورس رنگ",
+    //     },
+    //   ],
+    //   locale: "fa_IR",
+    // },
+    // twitter: {
+    //   card: "summary_large_image",
+    //   site: "@rgb_irpsc",
+    //   title: "تماس با ما | انجمن حم",
+    //   description:
+    //     "انجمن حم؛ محلی برای پرسشگری، نوآوری و ارتباط با جامعه‌ی متاورس ایران.",
+    //   images: ["https://faqhub.ir/main-logo.png"],
+    // },
   };
 }
 

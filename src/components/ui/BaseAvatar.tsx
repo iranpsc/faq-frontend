@@ -103,7 +103,7 @@ export const BaseAvatar = forwardRef<HTMLDivElement, BaseAvatarProps>(
         {validSrc ? (
           <Image
             src={validSrc}
-            alt={name || ''}
+            alt={'picture' + name || 'picture'}
             width={sizeMap[size]}
             height={sizeMap[size]}
             className="w-full h-full rounded-full object-cover"

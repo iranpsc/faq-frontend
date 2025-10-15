@@ -11,9 +11,7 @@ export async function generateMetadata() {
   return {
     title,
     description,
-    alternates: {
-      canonical: url
-    },
+    alternates: { canonical: url },
     openGraph: {
       title,
       description,
@@ -21,86 +19,68 @@ export async function generateMetadata() {
       siteName: "انجمن حم",
       type: "website",
       images: [
-        {
-          url: "https://faqhub.ir/main-logo.png",
-          width: 200,
-          height: 200,
-          alt: "تیم متاورس رنگ",
-        },
+        { url: "https://faqhub.ir/main-logo.png", width: 200, height: 200, alt: "تیم متاورس رنگ" },
       ],
     },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-    }
+    twitter: { card: "summary_large_image", title, description },
   };
 }
 
-export default async function Home() {
+export default async function HomePage() {
   try {
     const [questionsData, activeUsers] = await Promise.all([
       apiService.getQuestionsServer(),
       apiService.getActiveUsersServer(5)
     ]);
 
-    const initialQuestions = questionsData.data || [];
+    const initialQuestions = Array.isArray(questionsData.data) ? questionsData.data : [];
     const initialPaginationMeta = questionsData.meta || null;
+    const initialActiveUsers = Array.isArray(activeUsers) ? activeUsers : [];
 
-    const topQuestions = initialQuestions.slice(0, 5);
+    // Prepare top questions for FAQ schema
+    const topQuestions = initialQuestions
+      .filter(q => q && typeof q.title === 'string' && typeof q.content === 'string')
+      .slice(0, 5)
+      .map(q => ({
+        "@type": "Question",
+        name: q.title.trim(),
+        url: `https://faqhub.ir/questions/${q.slug}`,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: q.content.replace(/<[^>]*>/g, '').trim().substring(0, 500),
+        },
+      }));
 
     const siteSchema = {
       "@context": "https://schema.org",
       "@type": "WebSite",
-      "url": "https://faqhub.ir",
-      "name": "انجمن حم",
-      "description": "بزرگترین انجمن پرسش و پاسخ ایران",
-      "publisher": {
-        "@type": "Organization",
-        "name": "انجمن حم",
-        "url": "https://faqhub.ir"
-      },
-      "potentialAction": {
+      url: "https://faqhub.ir",
+      name: "انجمن حم",
+      description: "بزرگترین انجمن پرسش و پاسخ ایران",
+      publisher: { "@type": "Organization", name: "انجمن حم", url: "https://faqhub.ir" },
+      potentialAction: {
         "@type": "SearchAction",
-        "target": "https://faqhub.ir/search?q={search_term_string}",
-        "query-input": "required name=search_term_string"
-      }
+        target: "https://faqhub.ir/search?q={search_term_string}",
+        "query-input": "required name=search_term_string",
+      },
     };
 
     const faqSchema = {
       "@context": "https://schema.org",
       "@type": "FAQPage",
-      "mainEntity": topQuestions
-        .filter(q => q.title && q.content) // حذف سوالات ناقص
-        .map(q => ({
-          "@type": "Question",
-          "name": q.title.trim(),
-          "url": `https://faqhub.ir/questions/${q.slug}`,
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": q.content
-              ? q.content.replace(/<[^>]*>/g, '').trim().substring(0, 500)
-              : "پاسخ این سوال هنوز ثبت نشده است."
-          }
-        }))
+      mainEntity: topQuestions,
     };
 
     return (
       <>
-        {/* Schema SSR */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(siteSchema) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-        />
+        {/* JSON-LD Schemas */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(siteSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
         <HomeContent
           initialQuestions={initialQuestions}
           initialPaginationMeta={initialPaginationMeta}
-          initialActiveUsers={activeUsers}
+          initialActiveUsers={initialActiveUsers}
         />
       </>
     );

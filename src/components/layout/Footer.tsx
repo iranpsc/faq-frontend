@@ -312,7 +312,7 @@ export function Footer({ onAskQuestion }: FooterProps) {
             referrerPolicy="no-referrer"
           />
         </a>
-        <a title="خانه" style={{ width: '55px', height: '55px' }}>
+        <a href="#" title="خانه" style={{ width: '55px', height: '55px' }}>
           <Image 
             src="https://irpsc.com/img-icon/home-soon.png" 
             alt="خانه" 
