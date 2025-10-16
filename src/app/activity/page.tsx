@@ -1,4 +1,3 @@
-// app/activities/page.tsx
 import { Suspense } from "react";
 import { ActivityPageContent } from "./ActivityPageContent";
 import { apiService } from "@/services/api";
@@ -37,75 +36,92 @@ export default async function ActivityPage() {
   const response = await apiService.getActivity({
     months: 3,
     offset: 0,
-    questions_limit: 5, // بهتره تعداد کم باشه چون QAPage
-    answers_limit: 3,
-    comments_limit: 0, // ❌ Comment توی Rich Result ساپورت نمی‌شه
+    questions_limit: 10,
+    answers_limit: 8,
+    comments_limit: 5,
   });
 
   const activities = response.success ? response.data : [];
 
-  // 🟢 ساختن اسکیمای داینامیک (QAPage)
-  const questions = activities
-    .filter((a: any) => a.type === "question")
-    .map((q: any) => {
-      const answers = activities.filter(
-        (a: any) => a.type === "answer" && a.parent_id === q.id
-      );
+  const groupedActivities: Record<string, any[]> = {};
+  activities.forEach((activity: any) => {
+    if (activity.month) {
+      if (!groupedActivities[activity.month]) {
+        groupedActivities[activity.month] = [];
+      }
+      groupedActivities[activity.month].push(activity);
+    }
+  });
+
+  // 🟢 Schema: ItemList (برای فهم کلی لیست توسط گوگل)
+  const itemListSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "فعالیت‌های کاربران",
+    description: "لیست سوالات، پاسخ‌ها و نظرات کاربران در انجمن",
+    itemListElement: activities.map((a: any, index: number) => {
+      let itemType = "Article";
+      if (a.type === "question") itemType = "Question";
+      if (a.type === "answer") itemType = "Answer";
+      if (a.type === "comment") itemType = "Comment";
 
       return {
-        "@type": "Question",
-        name: q.title || q.description,
-        text: q.description,
-        author: {
-          "@type": "Person",
-          name: q.user_name,
-        },
-        dateCreated: q.created_at,
-        url: q.url ? `https://example.com${q.url}` : "https://example.com/activities",
-        answerCount: answers.length,
-        ...(answers.length > 0 && {
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: answers[0].description,
-            dateCreated: answers[0].created_at,
-            author: {
-              "@type": "Person",
-              name: answers[0].user_name,
-            },
-            url: answers[0].url
-              ? `https://example.com${answers[0].url}`
-              : "https://example.com/activities",
+        "@type": "ListItem",
+        position: index + 1,
+        item: {
+          "@type": itemType,
+          name: a.description,
+          author: {
+            "@type": "Person",
+            name: a.user_name,
           },
-        }),
-        ...(answers.length > 1 && {
-          suggestedAnswer: answers.slice(1).map((ans: any) => ({
-            "@type": "Answer",
-            text: ans.description,
-            dateCreated: ans.created_at,
-            author: {
-              "@type": "Person",
-              name: ans.user_name,
+          datePublished: a.created_at,
+          url: a.url
+            ? `https://example.com${a.url}`
+            : "https://example.com/activities",
+          ...(a.category_name && {
+            about: {
+              "@type": "Thing",
+              name: a.category_name,
             },
-            url: ans.url
-              ? `https://example.com${ans.url}`
-              : "https://example.com/activities",
-          })),
-        }),
+          }),
+        },
       };
-    });
+    }),
+  };
 
-  const schemaData = {
+  // 🟢 Schema: FAQPage (برای Rich Result)
+  const faqSchema = {
     "@context": "https://schema.org",
-    "@type": "QAPage",
-    mainEntity: questions,
+    "@type": "FAQPage",
+    mainEntity: activities
+      .filter((a: any) => a.type === "question")
+      .map((q: any) => ({
+        "@type": "Question",
+        name: q.description,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text:
+            q.answer_text ||
+            "هنوز پاسخی برای این سوال ثبت نشده است.",
+        },
+      })),
   };
 
   return (
     <>
-      {/* 🟢 تزریق JSON-LD Schema داینامیک */}
+      {/* 🟢 تزریق JSON-LD Schema */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(itemListSchema),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(faqSchema),
+        }}
       />
 
       <Suspense
@@ -122,7 +138,7 @@ export default async function ActivityPage() {
       >
         <ActivityPageContent
           initialActivities={activities}
-          initialGroupedActivities={{}}
+          initialGroupedActivities={groupedActivities}
         />
       </Suspense>
     </>
