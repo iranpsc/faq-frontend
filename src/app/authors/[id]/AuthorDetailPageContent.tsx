@@ -40,23 +40,44 @@ export function AuthorDetailPageContent({
     }
   }, [authorId]);
 
-  const handlePageChange = useCallback(async (page: number) => {
-    if (pagination && page === pagination.current_page) return;
+  // const handlePageChange = useCallback(async (page: number) => {
+  //   if (pagination && page === pagination.current_page) return;
     
-    const target = Math.max(1, page);
-    await fetchAuthorQuestions(target);
+  //   const target = Math.max(1, page);
+  //   await fetchAuthorQuestions(target);
     
-    // Update URL
-    const urlParams = new URLSearchParams(searchParams);
-    if (target > 1) {
-      urlParams.set('page', target.toString());
-    } else {
-      urlParams.delete('page');
-    }
+  //   // Update URL
+  //   const urlParams = new URLSearchParams(searchParams);
+  //   if (target > 1) {
+  //     urlParams.set('page', target.toString());
+  //   } else {
+  //     urlParams.delete('page');
+  //   }
     
-    const newUrl = `/authors/${authorId}?${urlParams.toString()}`;
-    router.push(newUrl);
-  }, [pagination, fetchAuthorQuestions, searchParams, router, authorId]);
+  //   const newUrl = `/authors/${authorId}?${urlParams.toString()}`;
+  //   router.push(newUrl);
+  // }, [pagination, fetchAuthorQuestions, searchParams, router, authorId]);
+const handlePageChange = useCallback(async (page: number) => {
+  if (pagination && page === pagination.current_page) return;
+
+  const target = Math.max(1, page);
+  await fetchAuthorQuestions(target);
+
+  // Update URL
+  const urlParams = new URLSearchParams(searchParams.toString());
+  if (target > 1) {
+    urlParams.set('page', target.toString());
+  } else {
+    urlParams.delete('page');
+  }
+
+  const queryString = urlParams.toString();
+  const newUrl = queryString
+    ? `/authors/${authorId}?${queryString}`
+    : `/authors/${authorId}`;
+
+  router.push(newUrl);
+}, [pagination, fetchAuthorQuestions, searchParams, router, authorId]);
 
   const navigateToQuestion = useCallback((question: Question) => {
     router.push(`/questions/${question.slug}`);

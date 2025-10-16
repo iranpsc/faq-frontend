@@ -142,7 +142,7 @@ export function ContentArea({
 
   return (
     <main className={clsx(
-      'flex-grow p-4 sm:p-6 lg:p-8 relative main-content-container',
+      ' flex-grow  p-4 sm:p-6 lg:p-8 relative main-content-container',
       backgroundClasses[background]
     )}>
       {/* Hero Section */}
@@ -180,7 +180,7 @@ export function ContentArea({
             <div className={clsx(
               sidebarClasses, 
               'h-fit', 
-              'hidden lg:block lg:sticky top-5',
+              'block lg:sticky top-5',
              
             )}>
               {sidebar}

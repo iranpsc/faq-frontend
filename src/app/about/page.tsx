@@ -90,8 +90,8 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <div className="dark:text-white flex flex-col md:flex-row gap-5 mb-20">
-            <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 ">
+          <div className="dark:text-white flex flex-col md:flex-row gap-5 mb-20 w-full">
+            <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 w-full lg:w-[70%] xl:w-[85%]">
               <p className="mt-3 font-bold">چرا انجمن حم ؟</p>
               <ul className="list-disc ps-5 mt-3">
                 <li>
@@ -121,7 +121,7 @@ export default function AboutPage() {
               </p>
             </div>
 
-            <div className="w-[15%] p-4 py-6 flex flex-col items-center justify-center bg-gray-100 rounded-2xl dark:bg-gray-800">
+            <div className=" w-full lg:w-[30%] xl:w-[15%] p-4 py-6 flex flex-col items-center justify-center bg-gray-100 rounded-2xl dark:bg-gray-800">
               <div className="w-[70%] flex justify-center">
                 <Image
                   src={Tamin}
