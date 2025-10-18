@@ -53,7 +53,7 @@ export default async function ActivityPage() {
     }
   });
 
-  // 🟢 Schema: ItemList (برای فهم کلی لیست توسط گوگل)
+  // 🟢 فقط Schema: ItemList
   const itemListSchema = {
     "@context": "https://schema.org",
     "@type": "ItemList",
@@ -74,6 +74,10 @@ export default async function ActivityPage() {
           author: {
             "@type": "Person",
             name: a.user_name,
+            // 🟢 لینک پروفایل کاربر برای رفع خطای "Missing field 'url'"
+            url: a.user_url
+              ? `https://example.com${a.user_url}`
+              : "https://example.com/users/unknown",
           },
           datePublished: a.created_at,
           url: a.url
@@ -90,37 +94,13 @@ export default async function ActivityPage() {
     }),
   };
 
-  // 🟢 Schema: FAQPage (برای Rich Result)
-  const faqSchema = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: activities
-      .filter((a: any) => a.type === "question")
-      .map((q: any) => ({
-        "@type": "Question",
-        name: q.description,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text:
-            q.answer_text ||
-            "هنوز پاسخی برای این سوال ثبت نشده است.",
-        },
-      })),
-  };
-
   return (
     <>
-      {/* 🟢 تزریق JSON-LD Schema */}
+      {/* 🟢 تزریق JSON-LD فقط ItemList */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(itemListSchema),
-        }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(faqSchema),
         }}
       />
 
