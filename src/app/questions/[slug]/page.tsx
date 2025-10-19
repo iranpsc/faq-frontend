@@ -54,50 +54,54 @@ export default async function QuestionDetailsPage({ params }: { params: { slug: 
 
   const clean = (text: string) => text?.replace(/<[^>]*>/g, "").trim()
 
-  const qaSchema = {
-    "@context": "https://schema.org",
-    "@type": "QAPage",
-    mainEntity: {
-      "@type": "Question",
-      name: question?.title || "",
-      text: clean(question?.content || ""),
-      dateCreated: question?.created_at || "",
-      url: `https://faqhub.ir/questions/${slug}`,
-      author: {
-        "@type": "Person",
-        name: question?.user?.name || "کاربر ناشناس",
-        ...(question?.user?.image_url ? { image: question.user.image_url } : {}),
-      },
-      answerCount: answers.length,
-      acceptedAnswer: answers
-        .filter((a: any) => a.is_correct)
-        .map((a: any) => ({
-          "@type": "Answer",
-          text: clean(a.content),
-          dateCreated: a.created_at,
-          url: `https://faqhub.ir/questions/${slug}#answer-${a.id}`,
-          author: {
-            "@type": "Person",
-            name: a.user?.name || "کاربر ناشناس",
-            ...(a.user?.image_url ? { image: a.user.image_url } : {}),
-          },
-        })),
-      suggestedAnswer: answers
-        .filter((a: any) => !a.is_correct)
-        .slice(0, 3)
-        .map((a: any) => ({
-          "@type": "Answer",
-          text: clean(a.content),
-          dateCreated: a.created_at,
-          url: `https://faqhub.ir/questions/${slug}#answer-${a.id}`,
-          author: {
-            "@type": "Person",
-            name: a.user?.name || "کاربر ناشناس",
-            ...(a.user?.image_url ? { image: a.user.image_url } : {}),
-          },
-        })),
+const qaSchema = {
+  "@context": "https://schema.org",
+  "@type": "QAPage",
+  mainEntity: {
+    "@type": "Question",
+    name: question?.title || "",
+    text: clean(question?.content || ""),
+    dateCreated: question?.created_at || "",
+    url: `https://faqhub.ir/questions/${slug}`,
+    upvoteCount: question?.votes_count || 0, // 👈 اضافه شد
+    author: {
+      "@type": "Person",
+      name: question?.user?.name || "کاربر ناشناس",
+      ...(question?.user?.image_url ? { image: question.user.image_url } : {}),
     },
-  }
+    answerCount: answers.length,
+    acceptedAnswer: answers
+      .filter((a: any) => a.is_correct)
+      .map((a: any) => ({
+        "@type": "Answer",
+        text: clean(a.content),
+        dateCreated: a.created_at,
+        url: `https://faqhub.ir/questions/${slug}#answer-${a.id}`,
+        upvoteCount: a.votes_count || 0, // 👈 اضافه شد
+        author: {
+          "@type": "Person",
+          name: a.user?.name || "کاربر ناشناس",
+          ...(a.user?.image_url ? { image: a.user.image_url } : {}),
+        },
+      })),
+    suggestedAnswer: answers
+      .filter((a: any) => !a.is_correct)
+      .slice(0, 3)
+      .map((a: any) => ({
+        "@type": "Answer",
+        text: clean(a.content),
+        dateCreated: a.created_at,
+        url: `https://faqhub.ir/questions/${slug}#answer-${a.id}`,
+        upvoteCount: a.votes_count || 0, // 👈 اضافه شد
+        author: {
+          "@type": "Person",
+          name: a.user?.name || "کاربر ناشناس",
+          ...(a.user?.image_url ? { image: a.user.image_url } : {}),
+        },
+      })),
+  },
+}
+
 
   return (
     <>
