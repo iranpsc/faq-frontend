@@ -5,9 +5,11 @@ import { BaseAvatar } from '@/components/ui/BaseAvatar';
 import { BaseBadge } from '@/components/ui/BaseBadge';
 import { BaseButton } from '@/components/ui/BaseButton';
 import { BaseAlert } from '@/components/ui/BaseAlert';
+import { ContentArea } from '@/components/ContentArea';
+import { HomeSidebar } from '@/components/HomeSidebar';
 import { apiService, DailyActivity } from '@/services/api';
 import Link from 'next/link';
-import { Eye, Clock, Tag as TagIcon, Calendar } from 'lucide-react';
+import { Clock, Tag as TagIcon, Calendar } from 'lucide-react';
 
 interface ActivityWithMonth extends DailyActivity {
   month?: string;
@@ -155,8 +157,14 @@ export function ActivityPageContent({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-4xl mx-auto px-4 py-8">
+    <ContentArea 
+      layout="with-sidebar" 
+      showSidebar={true} 
+      mainWidth="3/4" 
+      sidebarWidth="1/4" 
+      sidebar={<HomeSidebar />}
+    >
+      <div className="w-full">
         {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">فعالیت ها</h1>
@@ -211,12 +219,19 @@ export function ActivityPageContent({
 
                         {/* Activity Content */}
                         <div className="flex-1 min-w-0">
-                          {/* Activity Description */}
-                          <p className="text-gray-900 dark:text-gray-100 mb-2">
-                            {activity.description}
-                          </p>
-
-
+                          {/* Activity Description - Make all activities clickable */}
+                          {activity.url ? (
+                            <Link 
+                              href={activity.url}
+                              className="block text-gray-900 dark:text-gray-100 mb-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
+                            >
+                              {activity.description}
+                            </Link>
+                          ) : (
+                            <p className="text-gray-900 dark:text-gray-100 mb-2">
+                              {activity.description}
+                            </p>
+                          )}
                         </div>
                       </div>
                       {/* Activity Meta */}
@@ -254,18 +269,6 @@ export function ActivityPageContent({
                         </span>
                       </div>
 
-                      {/* View Link */}
-                      {activity.url && (
-                        <div className="mt-3">
-                          <Link
-                            href={activity.url}
-                            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium transition-colors"
-                          >
-                            مشاهده
-                            <Eye className="w-4 h-4" />
-                          </Link>
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div>
@@ -323,6 +326,6 @@ export function ActivityPageContent({
           </BaseAlert>
         )}
       </div>
-    </div>
+    </ContentArea>
   );
 }

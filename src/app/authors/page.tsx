@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'فعالان انجمن - نویسندگان',
   description: 'لیست تمام نویسندگان فعال در انجمن سوالات متداول',
   keywords: 'نویسنده, کاربران, فعالان انجمن, سوالات متداول',
-  
+
   alternates: {
     canonical: 'https://faqhub.ir/authors',
   },
@@ -18,14 +18,14 @@ export const metadata: Metadata = {
     type: 'website',
     url: 'https://faqhub.ir/authors',
     siteName: 'FAQ Hub',
-images: [
-        {
-          url: "https://faqhub.ir/main-logo.png",
-          width: 200,
-          height: 200,
-          alt: "تیم متاورس رنگ",
-        },
-      ],
+    images: [
+      {
+        url: "https://faqhub.ir/main-logo.png",
+        width: 200,
+        height: 200,
+        alt: "تیم متاورس رنگ",
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
@@ -89,10 +89,10 @@ export default async function AuthorsPage({ searchParams }: AuthorsPageProps) {
 
     return (
       <>
-<script
-  type="application/ld+json"
-  dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-/>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
 
         <Suspense fallback={
           <div className="min-h-screen flex items-center justify-center">

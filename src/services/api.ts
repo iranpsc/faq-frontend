@@ -347,9 +347,9 @@ class ApiService {
   }
 
   // Dashboard API
-  async getDashboardStats(): Promise<{ total_questions: number; total_users: number; total_categories: number; total_answers: number }> {
-    const response = await this.request<{ total_questions: number; total_users: number; total_categories: number; total_answers: number }>('/dashboard/stats');
-    return response;
+  async getDashboardStats(): Promise<{ totalQuestions: number; totalAnswers: number; totalUsers: number; solvedQuestions: number }> {
+    const response = await this.request<{ success: boolean; data: { totalQuestions: number; totalAnswers: number; totalUsers: number; solvedQuestions: number } }>('/dashboard/stats');
+    return response.data;
   }
 
   // Authentication API
@@ -931,7 +931,7 @@ async getAuthorServer(id: string): Promise<User> {
         data: DailyActivity[];
         grouped_data: { [month: string]: DailyActivity[] };
         error?: string;
-      }>(`/dashboard/activity?${queryParams.toString()}`);
+      }>(`/dashboard/activities?${queryParams.toString()}`);
 
       // Ensure response has the expected structure
       return {

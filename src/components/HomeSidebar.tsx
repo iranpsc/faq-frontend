@@ -37,13 +37,21 @@ export function HomeSidebar() {
   const fetchStats = async () => {
     setIsDashboardLoading(true);
     try {
-      // Mock API call - replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const dashboardStats = await apiService.getDashboardStats();
       setStats({
-        totalQuestions: 1234,
-        totalAnswers: 5678,
-        totalUsers: 890,
-        solvedQuestions: 456
+        totalQuestions: dashboardStats.totalQuestions,
+        totalAnswers: dashboardStats.totalAnswers,
+        totalUsers: dashboardStats.totalUsers,
+        solvedQuestions: dashboardStats.solvedQuestions
+      });
+    } catch (error) {
+      console.error('Failed to fetch dashboard stats:', error);
+      // Keep default values on error
+      setStats({
+        totalQuestions: 0,
+        totalAnswers: 0,
+        totalUsers: 0,
+        solvedQuestions: 0
       });
     } finally {
       setIsDashboardLoading(false);
