@@ -13,7 +13,7 @@ export async function generateMetadata() {
       siteName: "انجمن من",
       images: [
         {
-          url: "https://faqhub.ir/main-logo.png",
+          url: "/main-logo.png",
           width: 1200,
           height: 630,
           alt: "فعالیت‌ها",
@@ -26,7 +26,7 @@ export async function generateMetadata() {
       card: "summary_large_image",
       title: "فعالیت‌ها",
       description: "آخرین فعالیت‌های کاربران انجمن",
-      images: ["https://faqhub.ir/main-logo.png"],
+      images: ["/main-logo.png"],
     },
   };
 }

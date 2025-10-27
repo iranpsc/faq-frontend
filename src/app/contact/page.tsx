@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: { params?: any }) {
     //   url,
     //   images: [
     //     {
-    //       url: "https://faqhub.ir/main-logo.png",
+    //       url: "/main-logo.png",
     //       width: 1200,
     //       height: 630,
     //       alt: "تیم متاورس رنگ",
@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: { params?: any }) {
     //   title: "تماس با ما | انجمن حم",
     //   description:
     //     "انجمن حم؛ محلی برای پرسشگری، نوآوری و ارتباط با جامعه‌ی متاورس ایران.",
-    //   images: ["https://faqhub.ir/main-logo.png"],
+    //   images: ["/main-logo.png"],
     // },
   };
 }
@@ -53,7 +53,7 @@ export default async function ContactPage({ params }: { params: any }) {
       "@type": "Organization",
       name: "انجمن حم",
       url: "https://faqhub.ir",
-      logo: "https://faqhub.ir/main-logo.png",
+      logo: "/main-logo.png",
       address: {
         "@type": "PostalAddress",
         streetAddress: "میرداماد، 824H+JG2",

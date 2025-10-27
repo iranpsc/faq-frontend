@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       siteName: "FAQHub",
       images: [
         {
-          url: question?.user?.image_url || "https://faqhub.ir/default-thumbnail.jpg",
+          url: "/main-logo.png",
           width: 800,
           height: 600,
           alt: title,

@@ -19,7 +19,7 @@ export const metadata = {
   //   type: "website",
   //   images: [
   //     {
-  //       url: "https://faqhub.ir/main-logo.png",
+  //       url: "/main-logo.png",
   //       width: 1200,
   //       height: 630,
   //       alt: "لوگوی انجمن حم",
@@ -31,7 +31,7 @@ export const metadata = {
   //   title: "درباره ما | انجمن حم",
   //   description:
   //     "پلتفرمی برای تبادل دانش، پرسش و گفت‌وگو درباره موضوعات علمی، هنری و فناوری.",
-  //   images: ["https://faqhub.ir/main-logo.png"],
+  //   images: ["/main-logo.png"],
   // },
 };
 
@@ -51,13 +51,13 @@ export default function AboutPage() {
       "@type": "Organization",
       name: "انجمن حم",
       url: "https://faqhub.ir",
-      logo: "https://faqhub.ir/main-logo.png",
+      logo: "/main-logo.png",
       sameAs: [
         "https://www.instagram.com/rgb.irpsc",
         "https://uni.irpsc.com/teacher/paradise-supply-chain/",
       ],
     },
-    image: "https://faqhub.ir/main-logo.png",
+    image: "/main-logo.png",
   };
 
   const Tamin = "/assets/images/tamin.jpg";

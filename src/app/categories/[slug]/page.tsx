@@ -41,7 +41,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     //     url: `${process.env.NEXT_PUBLIC_SITE_URL}/categories/${slug}`,
     //     images: [
     //     {
-    //       url: "https://faqhub.ir/main-logo.png",
+    //       url: "/main-logo.png",
     //       width: 100,
     //       height: 100,
     //       alt: "تیم متاورس رنگ",

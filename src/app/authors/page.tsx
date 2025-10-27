@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     siteName: 'FAQ Hub',
     images: [
       {
-        url: "https://faqhub.ir/main-logo.png",
+        url: "/main-logo.png",
         width: 200,
         height: 200,
         alt: "تیم متاورس رنگ",

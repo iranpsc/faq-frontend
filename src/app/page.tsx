@@ -19,7 +19,7 @@ export async function generateMetadata() {
       siteName: "انجمن حم",
       type: "website",
       images: [
-        { url: "https://faqhub.ir/main-logo.png", width: 200, height: 200, alt: "تیم متاورس رنگ" },
+        { url: "/main-logo.png", width: 200, height: 200, alt: "تیم متاورس رنگ" },
       ],
     },
     twitter: { card: "summary_large_image", title, description },
