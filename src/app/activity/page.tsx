@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { ActivityPageContent } from "./ActivityPageContent";
 import { apiService } from "@/services/api";
+import { DailyActivity } from "@/services/types";
 
 export async function generateMetadata() {
   return {
@@ -41,10 +42,10 @@ export default async function ActivityPage() {
     comments_limit: 5,
   });
 
-  const activities = response.success ? response.data : [];
+  const activities: DailyActivity[] = response.success ? response.data : [];
 
-  const groupedActivities: Record<string, any[]> = {};
-  activities.forEach((activity: any) => {
+  const groupedActivities: Record<string, DailyActivity[]> = {};
+  activities.forEach((activity) => {
     if (activity.month) {
       if (!groupedActivities[activity.month]) {
         groupedActivities[activity.month] = [];
@@ -59,34 +60,34 @@ export default async function ActivityPage() {
     "@type": "ItemList",
     name: "فعالیت‌های کاربران",
     description: "لیست سوالات، پاسخ‌ها و نظرات کاربران در انجمن",
-    itemListElement: activities.map((a: any, index: number) => {
-      let itemType = "Article";
-      if (a.type === "question") itemType = "Question";
-      if (a.type === "answer") itemType = "Answer";
-      if (a.type === "comment") itemType = "Comment";
+    itemListElement: activities.map((activityItem, index) => {
+      let itemType: "Article" | "Question" | "Answer" | "Comment" = "Article";
+      if (activityItem.type === "question") itemType = "Question";
+      if (activityItem.type === "answer") itemType = "Answer";
+      if (activityItem.type === "comment") itemType = "Comment";
 
       return {
         "@type": "ListItem",
         position: index + 1,
         item: {
           "@type": itemType,
-          name: a.description,
+          name: activityItem.description,
           author: {
             "@type": "Person",
-            name: a.user_name,
+            name: activityItem.user_name,
             // 🟢 لینک پروفایل کاربر برای رفع خطای "Missing field 'url'"
-            url: a.user_url
-              ? `https://example.com${a.user_url}`
+            url: activityItem.user_url
+              ? `https://example.com${activityItem.user_url}`
               : "https://example.com/users/unknown",
           },
-          datePublished: a.created_at,
-          url: a.url
-            ? `https://example.com${a.url}`
+          datePublished: activityItem.created_at,
+          url: activityItem.url
+            ? `https://example.com${activityItem.url}`
             : "https://example.com/activities",
-          ...(a.category_name && {
+          ...(activityItem.category_name && {
             about: {
               "@type": "Thing",
-              name: a.category_name,
+              name: activityItem.category_name,
             },
           }),
         },

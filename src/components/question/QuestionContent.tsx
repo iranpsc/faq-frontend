@@ -77,18 +77,33 @@ export function QuestionContent({
   const publishQuestion = async () => {
     if (isPublishing) return;
 
+    const confirmationResult = await swalFire({
+      title: 'انتشار سوال',
+      text: 'آیا از انتشار این سوال اطمینان دارید؟',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'بله، منتشر شود',
+      cancelButtonText: 'انصراف',
+      reverseButtons: true,
+      focusCancel: true
+    });
+
+    if (!confirmationResult?.isConfirmed) {
+      return;
+    }
+
     try {
       setIsPublishing(true);
 
       const response = await apiService.publishQuestion(question.id);
 
-      if (response.success) {
-        // Update the question object
-        question.published = true;
+      if (response.success && response.data) {
+        // Update the question object with the response data
+        Object.assign(question, response.data);
 
-        // Emit event to parent
+        // Emit event to parent with updated question
         if (onQuestionPublished) {
-          onQuestionPublished(question);
+          onQuestionPublished(response.data);
         }
 
         // Show success message

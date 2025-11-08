@@ -273,6 +273,10 @@ export default function QuestionDetailsContent({ slug, initialQuestion, initialA
               onEdit={handleEdit}
               onDelete={handleDelete}
               onVoteChanged={handleVoteChanged}
+              onQuestionPublished={async () => {
+                await refetchQuestion();
+                setComponentKey(Date.now());
+              }}
             />
 
             <DynamicCommentsSection 

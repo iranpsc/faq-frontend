@@ -1,7 +1,7 @@
 // Type definitions for API responses
 
 export interface Question {
-  [x: string]: any;
+  [key: string]: unknown;
   id: string;
   title: string;
   content: string;
@@ -110,6 +110,7 @@ export interface Answer {
   updated_at: string;
   published: boolean;
   is_correct: boolean;
+  votes_count?: number;
   comments?: Comment[];
   comments_count?: number;
   user: {
@@ -170,6 +171,8 @@ export interface DailyActivity {
   created_at: string;
   url?: string;
   is_correct?: boolean;
+  month?: string;
+  user_url?: string;
 }
 
 export interface ApiResponse<T> {

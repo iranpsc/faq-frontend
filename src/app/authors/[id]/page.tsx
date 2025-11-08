@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { Metadata } from 'next';
 import { apiService } from '@/services/api';
 import { AuthorDetailPageContent } from './AuthorDetailPageContent';
+import { Question, User } from '@/services/types';
 
 interface AuthorDetailPageProps {
   params: Promise<{ id: string }>;
@@ -16,10 +17,10 @@ export async function generateMetadata({ params }: AuthorDetailPageProps): Promi
     const author = await apiService.getAuthorServer(authorId);
 
     const title = ` سوالات پرسیده شده توسط | ${author.name ?? 'نویسنده'} `;
-    const description =
-      typeof author.bio === 'string' && author.bio.trim()
-        ? author.bio
-        : `مطالب و فعالیت‌های ${author.name ?? 'نویسنده'}`;
+    const authorBio = typeof author.bio === 'string' ? author.bio : undefined;
+    const description = authorBio && authorBio.trim()
+      ? authorBio
+      : `مطالب و فعالیت‌های ${author.name ?? 'نویسنده'}`;
 
     const baseUrl = 'https://faqhub.ir';
     const url = `${baseUrl}/authors/${author.id}`;
@@ -31,8 +32,10 @@ export async function generateMetadata({ params }: AuthorDetailPageProps): Promi
         : undefined;
 
     // --- 2) ساخت آرایه او‌جی‌ایمِیج با تایپ پایدار
-    const openGraphImages: Metadata['openGraph'] extends { images?: infer I } ? I : unknown =
-      avatar ? [{ url: avatar, alt: author.name ?? undefined }] : undefined;
+    type OpenGraphImages = NonNullable<NonNullable<Metadata['openGraph']>['images']>;
+    const openGraphImages: OpenGraphImages | undefined = avatar
+      ? [{ url: avatar, alt: author.name ?? undefined }]
+      : undefined;
 
     return {
       title,
@@ -43,8 +46,7 @@ export async function generateMetadata({ params }: AuthorDetailPageProps): Promi
         description,
         url,
         type: 'profile',
-        // اگر TypeScript باز هم ایراد گرفت، از "as any" استفاده کن (فقط آخرین راه)
-        images: openGraphImages as any,
+        images: openGraphImages,
       },
       twitter: {
         card: 'summary_large_image',
@@ -63,14 +65,18 @@ export async function generateMetadata({ params }: AuthorDetailPageProps): Promi
 }
 
 
+type AuthorSchemaQuestion = Question & { answer?: string };
 
-function AuthorSchema({ author, questions }: { author: any; questions: any[] }) {
+function AuthorSchema({ author, questions }: { author: User; questions: AuthorSchemaQuestion[] }) {
+  const authorDescription = typeof author.bio === 'string' ? author.bio : '';
+  const authorAvatar = typeof author.avatar === 'string' ? author.avatar : '';
+
   const authorSchema = {
     "@context": "https://schema.org",
     "@type": "Person",
     "name": author.name,
-    "description": author.bio || "",
-    "image": author.avatar || "",
+    "description": authorDescription,
+    "image": authorAvatar,
     "url": `https://faqhub.ir/authors/${author.id}`,
     "mainEntityOfPage": `https://faqhub.ir/authors/${author.id}`,
   };
@@ -108,7 +114,7 @@ export default async function AuthorDetailPage({ params, searchParams }: AuthorD
   const resolvedParams = await params;
   const searchParamsData = await searchParams;
   const authorId = resolvedParams.id;
-  const page = parseInt(searchParamsData.page || '1');
+  const page = parseInt(searchParamsData.page || '1', 10);
 
   try {
     const [authorResponse, questionsResponse] = await Promise.all([
@@ -116,7 +122,7 @@ export default async function AuthorDetailPage({ params, searchParams }: AuthorD
       apiService.getAuthorQuestionsServer(authorId, page),
     ]);
 
-    const questions = questionsResponse.data || [];
+    const questions: AuthorSchemaQuestion[] = questionsResponse.data || [];
 
     return (
       <Suspense

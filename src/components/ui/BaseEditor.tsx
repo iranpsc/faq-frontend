@@ -2,6 +2,34 @@
 
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
+import type { Editor } from '@ckeditor/ckeditor5-core';
+
+interface CKEditorFileLoader {
+  file: Promise<File>;
+}
+
+type CKEditorConstructor = {
+  create: (...args: unknown[]) => Promise<Editor>;
+  EditorWatchdog: unknown;
+  ContextWatchdog: unknown;
+};
+
+const ensureFileLoader = (loader: unknown): CKEditorFileLoader => {
+  if (!loader || typeof (loader as CKEditorFileLoader).file === 'undefined') {
+    throw new Error('Invalid CKEditor file loader');
+  }
+  return loader as CKEditorFileLoader;
+};
+
+type EditorWithExtras = Editor & {
+  getData: () => string;
+  ui: {
+    view: {
+      editable: { element: HTMLElement | null };
+      toolbar: { element: HTMLElement | null };
+    };
+  };
+};
 
 const CKEditor = dynamic(
   () =>
@@ -20,7 +48,7 @@ const CKEditor = dynamic(
   }
 );
 
-let ClassicEditor: any = null;
+let ClassicEditor: CKEditorConstructor | null = null;
 
 interface BaseEditorProps {
   value: string;
@@ -52,8 +80,8 @@ export function BaseEditor({
 
   // Base64 Upload Adapter (برای آپلود تصویر)
   class Base64UploadAdapter {
-    loader: any;
-    constructor(loader: any) {
+    loader: CKEditorFileLoader;
+    constructor(loader: CKEditorFileLoader) {
       this.loader = loader;
     }
     upload() {
@@ -74,13 +102,14 @@ export function BaseEditor({
     abort() {}
   }
 
-  function uploadPlugin(editor: any) {
-    editor.plugins.get('FileRepository').createUploadAdapter = (loader: any) => {
-      return new Base64UploadAdapter(loader);
+  function uploadPlugin(editor: Editor) {
+    const fileRepository = editor.plugins.get('FileRepository') as unknown as {
+      createUploadAdapter: (loader: unknown) => unknown;
     };
+    fileRepository.createUploadAdapter = (loader: unknown) => new Base64UploadAdapter(ensureFileLoader(loader));
   }
 
-  const editorConfiguration = {
+  const editorConfiguration: Record<string, unknown> = {
     placeholder,
     extraPlugins: imageUpload ? [uploadPlugin] : [],
     language: rtl ? 'fa' : 'en',
@@ -190,7 +219,7 @@ export function BaseEditor({
     const loadEditor = async () => {
       try {
         const editorModule = await import('@ckeditor/ckeditor5-build-classic');
-        ClassicEditor = editorModule.default;
+        ClassicEditor = editorModule.default as unknown as CKEditorConstructor;
         setEditorLoaded(true);
       } catch (error) {
         console.error('Failed to load CKEditor:', error);
@@ -229,8 +258,9 @@ export function BaseEditor({
     }
   }, []);
 
-  const handleEditorChange = (_event: any, editor: any) => {
-    onChange(editor.getData());
+  const handleEditorChange = (_event: unknown, editor: Editor) => {
+    const enhancedEditor = editor as EditorWithExtras;
+    onChange(enhancedEditor.getData());
   };
 
   if (!isClient || !editorLoaded) {
@@ -244,41 +274,50 @@ export function BaseEditor({
   }
 
   return (
-    <div className={`border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 transition-colors duration-200 ${className}`}>
-      {ClassicEditor && (
+     <div className={`border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 transition-colors duration-200 ${className}`}>
+      {ClassicEditor != null ? (
         <CKEditor
-          editor={ClassicEditor}
+          editor={ClassicEditor as never}
           config={editorConfiguration}
           data={value}
-          onReady={(editor: any) => {
+          onReady={(editor: Editor) => {
+            const enhancedEditor = editor as EditorWithExtras;
             // ست کردن ارتفاع به صورت واکنش‌گرا
-            editor.ui.view.editable.element.style.minHeight = `${getResponsiveHeight()}px`;
+            const editableElement = enhancedEditor.ui.view.editable.element;
+            if (editableElement) {
+              editableElement.style.minHeight = `${getResponsiveHeight()}px`;
+            }
 
             // Apply dark theme styles to editor
-            const editorElement = editor.ui.view.editable.element;
-            const toolbarElement = editor.ui.view.toolbar.element;
+            const editorElement = enhancedEditor.ui.view.editable.element;
+            const toolbarElement = enhancedEditor.ui.view.toolbar.element;
             
-            if (isDarkMode) {
-              editorElement.style.backgroundColor = '#1f2937';
-              editorElement.style.color = '#f9fafb';
-              editorElement.style.borderColor = '#374151';
-              if (toolbarElement) {
-                toolbarElement.style.backgroundColor = '#374151';
-                toolbarElement.style.borderColor = '#4b5563';
-              }
-            } else {
-              editorElement.style.backgroundColor = '#ffffff';
-              editorElement.style.color = '#000000';
-              editorElement.style.borderColor = '#c4c4c4';
-              if (toolbarElement) {
-                toolbarElement.style.backgroundColor = '#f8f9fa';
-                toolbarElement.style.borderColor = '#c4c4c4';
+            if (editorElement) {
+              if (isDarkMode) {
+                editorElement.style.backgroundColor = '#1f2937';
+                editorElement.style.color = '#f9fafb';
+                editorElement.style.borderColor = '#374151';
+                if (toolbarElement) {
+                  toolbarElement.style.backgroundColor = '#374151';
+                  toolbarElement.style.borderColor = '#4b5563';
+                }
+              } else {
+                editorElement.style.backgroundColor = '#ffffff';
+                editorElement.style.color = '#000000';
+                editorElement.style.borderColor = '#c4c4c4';
+                if (toolbarElement) {
+                  toolbarElement.style.backgroundColor = '#f8f9fa';
+                  toolbarElement.style.borderColor = '#c4c4c4';
+                }
               }
             }
 
             // آپدیت ارتفاع وقتی ریسایز شد
             const handleResize = () => {
-              editor.ui.view.editable.element.style.minHeight = `${getResponsiveHeight()}px`;
+              const editable = enhancedEditor.ui.view.editable.element;
+              if (editable) {
+                editable.style.minHeight = `${getResponsiveHeight()}px`;
+              }
             };
             
             window.addEventListener('resize', handleResize);
@@ -290,7 +329,7 @@ export function BaseEditor({
           }}
           onChange={handleEditorChange}
         />
-      )}
+      ) : null}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import Form from "./components/form";
 import Head from "next/head";
 
-export async function generateMetadata({ params }: { params?: any }) {
+export async function generateMetadata() {
   const url = `https://faqhub.ir/contact`;
 
   return {
@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: { params?: any }) {
   };
 }
 
-export default async function ContactPage({ params }: { params: any }) {
+export default async function ContactPage() {
   const url = `https://faqhub.ir/contact`;
 
   // ✅ Schema بهینه‌شده
@@ -120,7 +120,7 @@ export default async function ContactPage({ params }: { params: any }) {
                     <p className="lg:text-right text-darkGray dark:text-Field py-1 text-center text-sm md:text-base mt-1">
                       پیام شما می‌تواند شروع یک مکالمه سازنده باشد.
                     </p>
-                    <Form params={params} />
+                    <Form />
                   </div>
 
                   {/* اطلاعات تماس + نقشه */}

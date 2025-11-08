@@ -3,9 +3,14 @@
 import { Metadata } from "next"
 import { apiService } from "@/services/api"
 import QuestionDetailsContent from "@/components/QuestionDetailsContent"
+import { Answer, Question } from "@/services/types"
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const slug = params.slug
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}): Promise<Metadata> {
+  const { slug } = await params
   const question = await apiService.getQuestionBySlugServer(slug)
 
   const title = question?.title || "سؤال بدون عنوان"
@@ -46,13 +51,17 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   }
 }
 
-export default async function QuestionDetailsPage({ params }: { params: { slug: string } }) {
-  const slug = params.slug
-  const question = await apiService.getQuestionBySlugServer(slug)
+export default async function QuestionDetailsPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}) {
+  const { slug } = await params
+  const question: Question = await apiService.getQuestionBySlugServer(slug)
   const answersResponse = await apiService.getQuestionAnswersServer(question.id)
-  const answers = answersResponse?.data || []
+  const answers: Answer[] = answersResponse?.data || []
 
-  const clean = (text: string) => text?.replace(/<[^>]*>/g, "").trim()
+  const clean = (text: string) => text.replace(/<[^>]*>/g, "").trim()
 
 const qaSchema = {
   "@context": "https://schema.org",
@@ -71,32 +80,32 @@ const qaSchema = {
     },
     answerCount: answers.length,
     acceptedAnswer: answers
-      .filter((a: any) => a.is_correct)
-      .map((a: any) => ({
+      .filter((answer) => answer.is_correct)
+      .map((answer) => ({
         "@type": "Answer",
-        text: clean(a.content),
-        dateCreated: a.created_at,
-        url: `https://faqhub.ir/questions/${slug}#answer-${a.id}`,
-        upvoteCount: a.votes_count || 0, // 👈 اضافه شد
+        text: clean(answer.content),
+        dateCreated: answer.created_at,
+        url: `https://faqhub.ir/questions/${slug}#answer-${answer.id}`,
+        upvoteCount: answer.votes_count || 0, // 👈 اضافه شد
         author: {
           "@type": "Person",
-          name: a.user?.name || "کاربر ناشناس",
-          ...(a.user?.image_url ? { image: a.user.image_url } : {}),
+          name: answer.user?.name || "کاربر ناشناس",
+          ...(answer.user?.image_url ? { image: answer.user.image_url } : {}),
         },
       })),
     suggestedAnswer: answers
-      .filter((a: any) => !a.is_correct)
+      .filter((answer) => !answer.is_correct)
       .slice(0, 3)
-      .map((a: any) => ({
+      .map((answer) => ({
         "@type": "Answer",
-        text: clean(a.content),
-        dateCreated: a.created_at,
-        url: `https://faqhub.ir/questions/${slug}#answer-${a.id}`,
-        upvoteCount: a.votes_count || 0, // 👈 اضافه شد
+        text: clean(answer.content),
+        dateCreated: answer.created_at,
+        url: `https://faqhub.ir/questions/${slug}#answer-${answer.id}`,
+        upvoteCount: answer.votes_count || 0, // 👈 اضافه شد
         author: {
           "@type": "Person",
-          name: a.user?.name || "کاربر ناشناس",
-          ...(a.user?.image_url ? { image: a.user.image_url } : {}),
+          name: answer.user?.name || "کاربر ناشناس",
+          ...(answer.user?.image_url ? { image: answer.user.image_url } : {}),
         },
       })),
   },

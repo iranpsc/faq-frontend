@@ -1,9 +1,7 @@
 export default async function CitizensLayout({
   children,
-  params,
 }: {
   children: React.ReactNode;
-  params?: any;
 }) {
   return (
     <main

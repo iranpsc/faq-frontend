@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useEffect, useRef, useState } from 'react';
+import { ReactNode, useEffect, useRef } from 'react';
 import clsx from 'clsx';
 
 interface ContentAreaProps {
@@ -43,8 +43,7 @@ export function ContentArea({
     if (!footerRef.current || !footer) return;
 
     const observer = new IntersectionObserver(
-      (entries) => {
-        const [entry] = entries;
+      () => {
         // When footer comes into view, make sidebar follow normal flow
         // When footer goes out of view, make sidebar fixed
         // setIsSidebarFixed(!entry.isIntersecting);

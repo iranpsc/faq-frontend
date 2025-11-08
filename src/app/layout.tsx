@@ -19,6 +19,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "انجمن حم - بزرگترین انجمن پرسش و پاسخ ایران",
   description: "انجمن حم بزرگترین انجمن پرسش و پاسخ ایران",
+  metadataBase: new URL("https://faqhub.ir"),
 };
 
 export default function RootLayout({

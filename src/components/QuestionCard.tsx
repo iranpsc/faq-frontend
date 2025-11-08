@@ -32,19 +32,6 @@ export function QuestionCard({ question, onClick }: QuestionCardProps) {
     return text.length > 200 ? text.substring(0, 200) + '...' : text;
   };
 
-  const publishQuestion = async () => {
-    try {
-      // This would need to be implemented with your API service
-      // const response = await api.post(`/questions/${question.id}/publish`);
-      // if (response.data.success) {
-      //   onPublished?.(question);
-      // }
-      console.log('Publishing question:', question.id);
-    } catch (error) {
-      console.error('Error publishing question:', error);
-    }
-  };
-
   // Conditional styling based on pinned/featured status - matching Vue implementation
   const cardClassName = clsx(
     'mb-4 hover:shadow-md transition-all duration-300',
@@ -76,7 +63,7 @@ export function QuestionCard({ question, onClick }: QuestionCardProps) {
                 </span>
               </Link>
             )}
-            
+
             {/* Pin Badge */}
             {question.is_pinned_by_user && (
               <BaseBadge 
@@ -162,9 +149,9 @@ export function QuestionCard({ question, onClick }: QuestionCardProps) {
           </div>
         )}
 
-        {/* Section 3: User Info (right), Stats (right), Publish/Unpublished (left) */}
-        <div className="flex  w-full items-center justify-between border-t border-gray-200 dark:border-gray-700 pt-4 text-sm text-gray-500 dark:text-gray-400">
-          {/* User Info and Stats (right) */}
+        {/* Section 3: User Info and Stats */}
+        <div className="flex w-full items-center border-t border-gray-200 dark:border-gray-700 pt-4 text-sm text-gray-500 dark:text-gray-400">
+          {/* User Info and Stats */}
           <div className="flex items-center flex-wrap gap-6 text-xs md:text-sm">
             {/* User Info */}
             {question.user && (
@@ -214,26 +201,24 @@ export function QuestionCard({ question, onClick }: QuestionCardProps) {
               </span>
             )}
           </div>
-          
-          {/* Publish/Unpublished (left) */}
-          <div className="flex items-center">
-            {!question.published && (
-              <BaseBadge variant="warning" size="sm" className="ml-2">
-                منتشر نشده
-              </BaseBadge>
-            )}
-            {question.can?.publish && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  publishQuestion();
-                }}
-                className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors ml-2"
-              >
-                انتشار
-              </button>
-            )}
-          </div>
+
+          {/* Unpublished Badge */}
+          {!question.published && (
+            <BaseBadge
+              variant="warning"
+              size="sm"
+              className="flex items-center gap-1 border border-yellow-300 dark:border-yellow-500 ml-auto mr-2"
+            >
+              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.981-1.743 2.981H4.42c-1.53 0-2.493-1.647-1.743-2.981l5.58-9.92zM11 13a1 1 0 10-2 0 1 1 0 002 0zm-1-6a1 1 0 00-.993.883L9 8v3a1 1 0 001.993.117L11 11V8a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              منتشر نشده
+            </BaseBadge>
+          )}
         </div>
       </div>
     </BaseCard>
