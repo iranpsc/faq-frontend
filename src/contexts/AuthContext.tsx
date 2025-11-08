@@ -1,18 +1,9 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode, useRef, useCallback } from 'react';
+import type { AuthUser } from '@/types/auth';
 
-interface User {
-  id: string;
-  name: string;
-  email?: string;
-  mobile?: string;
-  image_url?: string;
-  score?: number;
-  online?: boolean;
-  login_notification_enabled?: boolean;
-  [key: string]: unknown;
-}
+type User = AuthUser;
 
 interface AuthContextType {
   user: User | null;
@@ -23,29 +14,31 @@ interface AuthContextType {
   updateUser: (userData: Partial<User>) => void;
   can: (permission: string, resource?: unknown) => boolean;
   getInitials: (name?: string) => string;
-  fetchUser: () => Promise<User | null>;
+  fetchUser: (tokenOverride?: string) => Promise<User | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
   children: ReactNode;
+  initialUser?: User | null;
+  initialToken?: string | null;
 }
 
-export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export function AuthProvider({ children, initialUser = null, initialToken = null }: AuthProviderProps) {
+  const [user, setUser] = useState<User | null>(initialUser);
+  const [token, setTokenState] = useState<string | null>(initialToken);
+  const [isLoading, setIsLoading] = useState(() => !(initialUser && initialToken));
   
   // Track prior auth state to emit login/logout only on transitions
-  const wasAuthenticatedRef = useRef(false);
+  const wasAuthenticatedRef = useRef(Boolean(initialToken && initialUser));
   // Deduplicate in-flight /me requests
   const fetchUserInFlightRef = useRef<Promise<User | null> | null>(null);
 
   const isAuthenticated = !!token && !!user;
 
   // Custom event system for auth state changes
-  const dispatchAuthEvent = (eventType: string, detail?: unknown) => {
+  const dispatchAuthEvent = useCallback((eventType: string, detail?: unknown) => {
     try {
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent(eventType, { detail }));
@@ -53,20 +46,54 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } catch (error) {
       console.warn('Failed to dispatch auth event:', error);
     }
-  };
+  }, []);
+
+  const syncAuthCookie = useCallback(async (tokenValue: string | null) => {
+    try {
+      if (typeof window === 'undefined') return;
+
+      if (tokenValue) {
+        await fetch('/api/auth/session', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify({ token: tokenValue }),
+        });
+      } else {
+        await fetch('/api/auth/session', {
+          method: 'DELETE',
+          credentials: 'same-origin',
+        });
+      }
+    } catch (error) {
+      console.warn('Failed to sync auth cookie:', error);
+    }
+  }, []);
 
   // Enhanced token setter with events
-  const setTokenWithEvents = useCallback((newToken: string | null) => {
-    setToken(newToken);
-    if (newToken) {
-      localStorage.setItem('auth_token', newToken);
-    } else {
-      localStorage.removeItem('auth_token');
+  const setTokenWithEvents = useCallback((newToken: string | null, options?: { syncCookie?: boolean }) => {
+    const shouldSyncCookie = options?.syncCookie ?? true;
+
+    setTokenState(newToken);
+    try {
+      if (newToken) {
+        localStorage.setItem('auth_token', newToken);
+      } else {
+        localStorage.removeItem('auth_token');
+      }
+    } catch (error) {
+      console.warn('Failed to persist auth token:', error);
     }
-    
+
+    if (shouldSyncCookie) {
+      void syncAuthCookie(newToken);
+    }
+
     // Dispatch token change event
     dispatchAuthEvent('auth:token', { token: newToken });
-  }, []);
+  }, [dispatchAuthEvent, syncAuthCookie]);
 
   // Enhanced user setter with events
   const setUserWithEvents = useCallback((userData: User | null) => {
@@ -87,7 +114,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       dispatchAuthEvent('auth:login', { user: userData });
     }
     wasAuthenticatedRef.current = isNowAuthenticated;
-  }, [token]);
+  }, [dispatchAuthEvent, token]);
 
   // Deduplicated fetchUser function
   const fetchUser = useCallback(async (authToken?: string): Promise<User | null> => {
@@ -132,32 +159,75 @@ export function AuthProvider({ children }: AuthProviderProps) {
     })();
 
     return fetchUserInFlightRef.current;
-  }, [token, setTokenWithEvents, setUserWithEvents]);
+  }, [dispatchAuthEvent, setTokenWithEvents, setUserWithEvents, token]);
 
-  // Initialize auth state from localStorage
+  // Initialize auth state, prioritizing server-provided values and keeping client storage/cookies in sync
   useEffect(() => {
-    const initializeAuth = () => {
+    let isMounted = true;
+
+    const initializeAuth = async () => {
+      if (typeof window === 'undefined') {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+        return;
+      }
+
       try {
-        const storedToken = localStorage.getItem('auth_token');
-        const storedUser = localStorage.getItem('auth_user');
-        
-        if (storedToken && storedUser) {
-          setToken(storedToken);
-          setUser(JSON.parse(storedUser));
-          wasAuthenticatedRef.current = true;
+        if (initialToken) {
+          localStorage.setItem('auth_token', initialToken);
+
+          if (initialUser) {
+            localStorage.setItem('auth_user', JSON.stringify(initialUser));
+            wasAuthenticatedRef.current = true;
+          } else {
+            localStorage.removeItem('auth_user');
+            await fetchUser(initialToken);
+          }
+        } else {
+          const storedToken = localStorage.getItem('auth_token');
+          const storedUser = localStorage.getItem('auth_user');
+
+          if (storedToken) {
+            setTokenWithEvents(storedToken);
+
+            if (storedUser) {
+              try {
+                const parsedUser = JSON.parse(storedUser);
+                setUserWithEvents(parsedUser);
+              } catch (parseError) {
+                console.error('Failed to parse stored user data:', parseError);
+                localStorage.removeItem('auth_user');
+                await fetchUser(storedToken);
+              }
+            } else {
+              await fetchUser(storedToken);
+            }
+          }
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
-        // Clear invalid data
         localStorage.removeItem('auth_token');
         localStorage.removeItem('auth_user');
+        setTokenWithEvents(null);
+        setUserWithEvents(null);
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
-    initializeAuth();
-  }, []);
+    void initializeAuth();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [initialToken, initialUser, fetchUser, setTokenWithEvents, setUserWithEvents]);
+
+  useEffect(() => {
+    wasAuthenticatedRef.current = !!(token && user);
+  }, [token, user]);
 
   // Handle token from URL (for OAuth redirects)
   useEffect(() => {
@@ -170,8 +240,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
           tokenFromFragment = hashParams.get('token');
         }
       } catch (error) {
-      console.warn('Failed to dispatch auth event:', error);
-    }
+        console.warn('Failed to extract auth token from URL fragment:', error);
+      }
 
       // Backward compatibility: still support query param for any old links
       const urlParams = new URLSearchParams(window.location.search);
@@ -352,7 +422,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       window.removeEventListener('auth:logout', handleAuthLogout);
       window.removeEventListener('auth:token', handleAuthToken as EventListener);
     };
-  }, [token, fetchUser, setTokenWithEvents, setUserWithEvents]);
+  }, [dispatchAuthEvent, fetchUser, setTokenWithEvents, setUserWithEvents, token]);
 
   const value: AuthContextType = {
     user,

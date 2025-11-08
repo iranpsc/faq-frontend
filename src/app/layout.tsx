@@ -5,6 +5,7 @@ import "./globals.css";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { NavigationProgress } from "@/components/NavigationProgress";
+import { getServerAuth } from "@/lib/serverAuth";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,15 +23,17 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://faqhub.ir"),
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { user: initialUser, token: initialToken } = await getServerAuth();
+
   return (
     <html lang="fa" dir="rtl">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <AuthProvider>
+        <AuthProvider initialUser={initialUser} initialToken={initialToken}>
           <NavigationProgress />
           <AppLayout>{children}</AppLayout>
         </AuthProvider>
