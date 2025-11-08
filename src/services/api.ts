@@ -763,11 +763,16 @@ class ApiService {
       if (params.answers_limit) queryParams.append('answers_limit', params.answers_limit.toString());
       if (params.comments_limit) queryParams.append('comments_limit', params.comments_limit.toString());
 
-      const response = await this.request<ApiResponse<DailyActivity[]>>(
-        `/dashboard/activity?${queryParams.toString()}`
-      );
+      const queryString = queryParams.toString();
+      const endpoint = queryString
+        ? `/dashboard/activity?${queryString}`
+        : '/dashboard/activity';
 
-      return response;
+      if (typeof window === 'undefined') {
+        return await this.serverRequest<ApiResponse<DailyActivity[]>>(endpoint);
+      }
+
+      return await this.request<ApiResponse<DailyActivity[]>>(endpoint);
     } catch (error: unknown) {
       return { 
         success: false,
@@ -783,14 +788,91 @@ class ApiService {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${SERVER_API_BASE_URL}${endpoint}`;
-    
+
+    const headers = new Headers({
+      'Accept': 'application/json',
+    });
+
+    const applyHeaders = (source?: HeadersInit) => {
+      if (!source) {
+        return;
+      }
+
+      if (source instanceof Headers) {
+        source.forEach((value, key) => {
+          headers.set(key, value);
+        });
+        return;
+      }
+
+      if (Array.isArray(source)) {
+        for (const [key, value] of source) {
+          if (value !== undefined) {
+            headers.set(key, value);
+          }
+        }
+        return;
+      }
+
+      Object.entries(source).forEach(([key, value]) => {
+        if (value !== undefined) {
+          headers.set(key, value as string);
+        }
+      });
+    };
+
+    applyHeaders(options.headers);
+
+    const hasBody = options.body !== undefined && options.body !== null;
+    const shouldSetContentType =
+      hasBody &&
+      !(options.body instanceof FormData) &&
+      !headers.has('Content-Type');
+
+    if (shouldSetContentType) {
+      headers.set('Content-Type', 'application/json');
+    }
+
+    if (typeof window === 'undefined') {
+      try {
+        const { cookies: getCookies, headers: getHeaders } = await import('next/headers');
+        const cookieStore = await getCookies();
+
+        const cookiePairs = cookieStore
+          .getAll()
+          .map(({ name, value }) => `${name}=${value}`);
+
+        if (cookiePairs.length > 0) {
+          headers.set('Cookie', cookiePairs.join('; '));
+        }
+
+        if (!headers.has('Authorization')) {
+          const token =
+            cookieStore.get('auth_token')?.value ??
+            cookieStore.get('AuthToken')?.value ??
+            cookieStore.get('token')?.value ??
+            null;
+
+          if (token) {
+            headers.set('Authorization', 'Bearer ' + token);
+          } else {
+            const incomingHeaders = await getHeaders();
+            const incomingAuthHeader = incomingHeaders.get('authorization');
+            if (incomingAuthHeader) {
+              headers.set('Authorization', incomingAuthHeader);
+            }
+          }
+        }
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Failed to apply server-side auth headers:', error);
+        }
+      }
+    }
+
     const config: RequestInit = {
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        ...options.headers,
-      },
       ...options,
+      headers,
     };
 
     try {
@@ -817,7 +899,7 @@ class ApiService {
   }
 
   // Server-side question methods
-  async getQuestionBySlugServer(slug: string, _options?: { includeAnswers: boolean; }): Promise<Question> {
+  async getQuestionBySlugServer(slug: string): Promise<Question> {
     const response = await this.serverRequest<{data: Question}>(`/questions/${slug}`);
     return response.data;
   }
