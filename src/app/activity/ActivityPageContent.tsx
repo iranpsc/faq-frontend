@@ -7,7 +7,13 @@ import { BaseButton } from '@/components/ui/BaseButton';
 import { BaseAlert } from '@/components/ui/BaseAlert';
 import { ContentArea } from '@/components/ContentArea';
 import { HomeSidebar } from '@/components/HomeSidebar';
-import { apiService, DailyActivity } from '@/services/api';
+import { apiService } from '@/services/api';
+import {
+  DailyActivity,
+  ActivityApiResponse,
+  ActivityGroupedData,
+  ActivityPagination,
+} from '@/services/types';
 import Link from 'next/link';
 import { Clock, Tag as TagIcon, Calendar } from 'lucide-react';
 
@@ -15,26 +21,38 @@ interface ActivityWithMonth extends DailyActivity {
   month?: string;
 }
 
-interface GroupedActivities {
-  [month: string]: ActivityWithMonth[];
-}
+type GroupedActivities = ActivityGroupedData;
 
 interface ActivityPageContentProps {
   initialActivities: ActivityWithMonth[];
   initialGroupedActivities: GroupedActivities;
+  initialPagination?: ActivityPagination | null;
 }
 
 export function ActivityPageContent({
   initialActivities,
-  initialGroupedActivities
+  initialGroupedActivities,
+  initialPagination = null
 }: ActivityPageContentProps) {
   const [activities, setActivities] = useState<ActivityWithMonth[]>(initialActivities);
   const [groupedActivities, setGroupedActivities] = useState<GroupedActivities>(initialGroupedActivities);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentOffset, setCurrentOffset] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
+  const [currentOffset, setCurrentOffset] = useState(() => initialPagination?.next_offset ?? initialPagination?.current_offset ?? 0);
+  const [hasMore, setHasMore] = useState(initialPagination?.has_more ?? true);
+
+  const buildGroupedActivities = useCallback((items: ActivityWithMonth[]): GroupedActivities => {
+    return items.reduce<GroupedActivities>((acc, activity) => {
+      if (activity.month) {
+        if (!acc[activity.month]) {
+          acc[activity.month] = [];
+        }
+        acc[activity.month].push(activity);
+      }
+      return acc;
+    }, {});
+  }, []);
 
   const fetchActivities = useCallback(async (append = false) => {
     try {
@@ -44,26 +62,39 @@ export function ActivityPageContent({
         setLoading(true);
         setActivities([]);
         setGroupedActivities({});
-        setCurrentOffset(0);
       }
 
       setError(null);
 
       const response = await apiService.getActivity({
         months: 3,
-        offset: append ? currentOffset + 3 : 0,
+        offset: append ? currentOffset : 0,
         questions_limit: 10,
         answers_limit: 8,
-        comments_limit: 5
-      });
+        comments_limit: 5,
+        load_more: append
+      }) as ActivityApiResponse;
 
       if (response.success) {
-        const newActivities = response.data as ActivityWithMonth[];
+        const newActivities = (response.data ?? []) as ActivityWithMonth[];
+        const groupedData = response.grouped_data as GroupedActivities | undefined;
+        const pagination = response.pagination as ActivityPagination | undefined;
 
         if (append) {
           setActivities(prev => [...prev, ...newActivities]);
           setGroupedActivities(prev => {
             const newGrouped = { ...prev };
+
+            if (groupedData) {
+              Object.entries(groupedData).forEach(([month, monthActivities]) => {
+                newGrouped[month] = [
+                  ...(newGrouped[month] ?? []),
+                  ...(monthActivities as ActivityWithMonth[])
+                ];
+              });
+              return newGrouped;
+            }
+
             newActivities.forEach(activity => {
               if (activity.month) {
                 if (!newGrouped[activity.month]) {
@@ -74,26 +105,24 @@ export function ActivityPageContent({
             });
             return newGrouped;
           });
-          setCurrentOffset(prev => prev + 3);
         } else {
           setActivities(newActivities);
-          const newGrouped: GroupedActivities = {};
-          newActivities.forEach(activity => {
-            if (activity.month) {
-              if (!newGrouped[activity.month]) {
-                newGrouped[activity.month] = [];
-              }
-              newGrouped[activity.month].push(activity);
-            }
-          });
-          setGroupedActivities(newGrouped);
-          setCurrentOffset(0);
+
+          if (groupedData) {
+            setGroupedActivities(groupedData);
+          } else {
+            setGroupedActivities(buildGroupedActivities(newActivities));
+          }
         }
 
-        // Check if there are more activities to load
-        // Each month should have around 23 activities (10 questions + 8 answers + 5 comments)
-        const expectedActivitiesPerMonth = 23;
-        setHasMore(newActivities.length >= expectedActivitiesPerMonth);
+        setHasMore(pagination?.has_more ?? (append ? newActivities.length > 0 : true));
+        setCurrentOffset(prev => {
+          if (pagination?.next_offset !== undefined) {
+            return pagination.next_offset;
+          }
+          const monthsLoaded = pagination?.months_loaded ?? 3;
+          return append ? prev + monthsLoaded : monthsLoaded;
+        });
       } else {
         throw new Error(response.error || 'خطا در دریافت فعالیت‌ها');
       }
@@ -104,11 +133,14 @@ export function ActivityPageContent({
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [currentOffset]);
+  }, [buildGroupedActivities, currentOffset]);
 
-  const loadMore = () => {
+  const loadMore = useCallback(() => {
+    if (loadingMore || !hasMore) {
+      return;
+    }
     fetchActivities(true);
-  };
+  }, [fetchActivities, hasMore, loadingMore]);
 
   // Load initial data if not provided
   useEffect(() => {
@@ -288,14 +320,14 @@ export function ActivityPageContent({
         )}
 
         {/* Load More Button - Page Bottom */}
-        {activities.length > 0 && hasMore && (
+        {activities.length > 0 && (
           <div className="mt-12 mb-8">
             <div className="flex justify-center">
               <BaseButton
                 onClick={loadMore}
                 variant="ghost"
                 size="lg"
-                disabled={loadingMore}
+                disabled={loadingMore || !hasMore}
                 className="min-w-[200px] h-14 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loadingMore ? (
@@ -304,12 +336,16 @@ export function ActivityPageContent({
                     <span className="text-sm">در حال بارگذاری...</span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                    <span className="text-sm font-bold">بارگذاری بیشتر</span>
-                  </div>
+                  hasMore ? (
+                    <div className="flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                      <span className="text-sm font-bold">بارگذاری بیشتر</span>
+                    </div>
+                  ) : (
+                    <span className="text-sm font-bold">فعالیت بیشتری موجود نیست</span>
+                  )
                 )}
               </BaseButton>
             </div>

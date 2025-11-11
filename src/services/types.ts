@@ -175,6 +175,35 @@ export interface DailyActivity {
   user_url?: string;
 }
 
+export interface ActivityPeriod {
+  start_date: string;
+  end_date: string;
+  months: number;
+  offset: number;
+}
+
+export interface ActivityLimits {
+  questions: number;
+  answers: number;
+  comments: number;
+}
+
+export interface ActivityPagination {
+  current_offset: number;
+  next_offset: number;
+  has_more: boolean;
+  months_loaded: number;
+}
+
+export type ActivityGroupedData = Record<string, DailyActivity[]>;
+
+export interface ActivityApiResponse extends ApiResponse<DailyActivity[]> {
+  grouped_data?: ActivityGroupedData;
+  period?: ActivityPeriod;
+  limits?: ActivityLimits;
+  pagination?: ActivityPagination;
+}
+
 export interface ApiResponse<T> {
   data: T;
   success: boolean;

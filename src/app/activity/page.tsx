@@ -1,7 +1,12 @@
 import { Suspense } from "react";
 import { ActivityPageContent } from "./ActivityPageContent";
 import { apiService } from "@/services/api";
-import { DailyActivity } from "@/services/types";
+import {
+  DailyActivity,
+  ActivityApiResponse,
+  ActivityGroupedData,
+  ActivityPagination,
+} from "@/services/types";
 
 export async function generateMetadata() {
   return {
@@ -40,19 +45,23 @@ export default async function ActivityPage() {
     questions_limit: 10,
     answers_limit: 8,
     comments_limit: 5,
-  });
+  }) as ActivityApiResponse;
 
-  const activities: DailyActivity[] = response.success ? response.data : [];
+  const activities: DailyActivity[] = response.success ? (response.data ?? []) : [];
 
-  const groupedActivities: Record<string, DailyActivity[]> = {};
-  activities.forEach((activity) => {
-    if (activity.month) {
-      if (!groupedActivities[activity.month]) {
-        groupedActivities[activity.month] = [];
-      }
-      groupedActivities[activity.month].push(activity);
-    }
-  });
+  const groupedActivities: ActivityGroupedData = response.success && response.grouped_data
+    ? response.grouped_data
+    : activities.reduce<ActivityGroupedData>((acc, activity) => {
+        if (activity.month) {
+          if (!acc[activity.month]) {
+            acc[activity.month] = [];
+          }
+          acc[activity.month].push(activity);
+        }
+        return acc;
+      }, {});
+
+  const pagination: ActivityPagination | null = response.pagination ?? null;
 
   // 🟢 فقط Schema: ItemList
   const itemListSchema = {
@@ -120,6 +129,7 @@ export default async function ActivityPage() {
         <ActivityPageContent
           initialActivities={activities}
           initialGroupedActivities={groupedActivities}
+          initialPagination={pagination}
         />
       </Suspense>
     </>

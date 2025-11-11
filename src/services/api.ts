@@ -7,6 +7,7 @@ import {
   Tag, 
   PaginatedResponse,
   DailyActivity,
+  ActivityApiResponse,
   Answer,
   Comment,
   ApiParams,
@@ -754,7 +755,8 @@ class ApiService {
     questions_limit?: number;
     answers_limit?: number;
     comments_limit?: number;
-  } = {}): Promise<ApiResponse<DailyActivity[]>> {
+    load_more?: boolean;
+  } = {}): Promise<ActivityApiResponse> {
     try {
       const queryParams = new URLSearchParams();
       if (params.months) queryParams.append('months', params.months.toString());
@@ -762,6 +764,9 @@ class ApiService {
       if (params.questions_limit) queryParams.append('questions_limit', params.questions_limit.toString());
       if (params.answers_limit) queryParams.append('answers_limit', params.answers_limit.toString());
       if (params.comments_limit) queryParams.append('comments_limit', params.comments_limit.toString());
+      if (params.load_more !== undefined) {
+        queryParams.append('load_more', params.load_more ? '1' : '0');
+      }
 
       const queryString = queryParams.toString();
       const endpoint = queryString
@@ -769,10 +774,10 @@ class ApiService {
         : '/dashboard/activity';
 
       if (typeof window === 'undefined') {
-        return await this.serverRequest<ApiResponse<DailyActivity[]>>(endpoint);
+        return await this.serverRequest<ActivityApiResponse>(endpoint);
       }
 
-      return await this.request<ApiResponse<DailyActivity[]>>(endpoint);
+      return await this.request<ActivityApiResponse>(endpoint);
     } catch (error: unknown) {
       return { 
         success: false,
