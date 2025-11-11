@@ -94,7 +94,7 @@ export function HomeSidebar() {
   }, []);
 
   return (
-    <aside className="w-full h-full overflow-y-auto sidebar-scrollbar">
+    <aside className="hidden lg:block w-full h-full overflow-y-auto sidebar-scrollbar">
       <div className="space-y-6">
         {/* Statistics Card */}
         <StatsCard
