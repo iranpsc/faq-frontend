@@ -337,13 +337,13 @@ class ApiService {
     return response;
   }
 
-  async getAuthor(id: string): Promise<User> {
-    const response = await this.request<{data: User}>(`/authors/${id}`);
+  async getAuthor(username: string): Promise<User> {
+    const response = await this.request<{data: User}>(`/authors/${username}`);
     return response.data;
   }
 
-  async getAuthorQuestions(id: string, page: number = 1): Promise<PaginatedResponse<Question>> {
-    const response = await this.request<PaginatedResponse<Question>>(`/authors/${id}/questions?page=${page}`);
+  async getAuthorQuestions(username: string, page: number = 1): Promise<PaginatedResponse<Question>> {
+    const response = await this.request<PaginatedResponse<Question>>(`/authors/${username}/questions?page=${page}`);
     return response;
   }
 
@@ -981,14 +981,14 @@ class ApiService {
     return response;
   }
 
-async getAuthorServer(id: string): Promise<User> {
-  const response = await this.serverRequest<{ data: User }>(`/authors/${id}`);
+async getAuthorServer(username: string): Promise<User> {
+  const response = await this.serverRequest<{ data: User }>(`/authors/${username}`);
   return response.data;
 }
 
 
-  async getAuthorQuestionsServer(id: string, page: number = 1): Promise<PaginatedResponse<Question> & { author: User }> {
-    const response = await this.serverRequest<PaginatedResponse<Question> & { author: User }>(`/authors/${id}/questions?page=${page}`);
+  async getAuthorQuestionsServer(username: string, page: number = 1): Promise<PaginatedResponse<Question> & { author: User }> {
+    const response = await this.serverRequest<PaginatedResponse<Question> & { author: User }>(`/authors/${username}/questions?page=${page}`);
     return response;
   }
 

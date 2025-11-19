@@ -104,7 +104,7 @@ export function AuthorsPageContent({
   }, [loadAuthors]);
 
   const handleAuthorClick = useCallback((author: User) => {
-    router.push(`/authors/${author.id}`);
+    router.push(`/authors/${author.username ?? author.id}`);
   }, [router]);
 
   // Handle URL changes

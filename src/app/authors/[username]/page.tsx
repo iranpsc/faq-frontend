@@ -5,16 +5,16 @@ import { AuthorDetailPageContent } from './AuthorDetailPageContent';
 import { Question, User } from '@/services/types';
 
 interface AuthorDetailPageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ username: string }>;
   searchParams: Promise<{ page?: string }>;
 }
 
 export async function generateMetadata({ params }: AuthorDetailPageProps): Promise<Metadata> {
   const resolvedParams = await params;
-  const authorId = resolvedParams.id;
+  const authorUsername = resolvedParams.username;
 
   try {
-    const author = await apiService.getAuthorServer(authorId);
+    const author = await apiService.getAuthorServer(authorUsername);
 
     const title = ` سوالات پرسیده شده توسط | ${author.name ?? 'نویسنده'} `;
     const authorBio = typeof author.bio === 'string' ? author.bio : undefined;
@@ -23,15 +23,14 @@ export async function generateMetadata({ params }: AuthorDetailPageProps): Promi
       : `مطالب و فعالیت‌های ${author.name ?? 'نویسنده'}`;
 
     const baseUrl = 'https://faqhub.ir';
-    const url = `${baseUrl}/authors/${author.id}`;
+    const authorPathSegment = author.username ?? author.id;
+    const url = `${baseUrl}/authors/${authorPathSegment}`;
 
-    // --- 1) اعتبارسنجی avatar: فقط اگر واقعا string باشد استفاده می‌کنیم
     const avatar =
       typeof author.avatar === 'string' && author.avatar.trim().length > 0
         ? author.avatar.trim()
         : undefined;
 
-    // --- 2) ساخت آرایه او‌جی‌ایمِیج با تایپ پایدار
     type OpenGraphImages = NonNullable<NonNullable<Metadata['openGraph']>['images']>;
     const openGraphImages: OpenGraphImages | undefined = avatar
       ? [{ url: avatar, alt: author.name ?? undefined }]
@@ -52,7 +51,6 @@ export async function generateMetadata({ params }: AuthorDetailPageProps): Promi
         card: 'summary_large_image',
         title,
         description,
-        // twitter.images بعضی ورژن‌ها string[] می‌خوان، بعضی‌ها OGImage[] — این ساده‌ترین امن‌ترین حالت:
         images: avatar ? [avatar] : undefined,
       },
     };
@@ -64,12 +62,12 @@ export async function generateMetadata({ params }: AuthorDetailPageProps): Promi
   }
 }
 
-
 type AuthorSchemaQuestion = Question & { answer?: string };
 
 function AuthorSchema({ author, questions }: { author: User; questions: AuthorSchemaQuestion[] }) {
   const authorDescription = typeof author.bio === 'string' ? author.bio : '';
   const authorAvatar = typeof author.avatar === 'string' ? author.avatar : '';
+  const authorUrl = `https://faqhub.ir/authors/${author.username ?? author.id}`;
 
   const authorSchema = {
     "@context": "https://schema.org",
@@ -77,20 +75,19 @@ function AuthorSchema({ author, questions }: { author: User; questions: AuthorSc
     "name": author.name,
     "description": authorDescription,
     "image": authorAvatar,
-    "url": `https://faqhub.ir/authors/${author.id}`,
-    "mainEntityOfPage": `https://faqhub.ir/authors/${author.id}`,
+    "url": authorUrl,
+    "mainEntityOfPage": authorUrl,
   };
-
 
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
     "mainEntity": questions.map((q) => ({
       "@type": "Question",
-      "name": q.title, // سوال
+      "name": q.title,
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": q.answer || q.content || "پاسخ این سؤال در صفحه موجود است.", // پاسخ
+        "text": q.answer || q.content || "پاسخ این سؤال در صفحه موجود است.",
       },
     })),
   };
@@ -109,20 +106,20 @@ function AuthorSchema({ author, questions }: { author: User; questions: AuthorSc
   );
 }
 
-// ✅ صفحه اصلی
 export default async function AuthorDetailPage({ params, searchParams }: AuthorDetailPageProps) {
   const resolvedParams = await params;
   const searchParamsData = await searchParams;
-  const authorId = resolvedParams.id;
+  const authorUsername = resolvedParams.username;
   const page = parseInt(searchParamsData.page || '1', 10);
 
   try {
     const [authorResponse, questionsResponse] = await Promise.all([
-      apiService.getAuthorServer(authorId),
-      apiService.getAuthorQuestionsServer(authorId, page),
+      apiService.getAuthorServer(authorUsername),
+      apiService.getAuthorQuestionsServer(authorUsername, page),
     ]);
 
     const questions: AuthorSchemaQuestion[] = questionsResponse.data || [];
+    const resolvedAuthorUsername = authorResponse.username ?? authorUsername;
 
     return (
       <Suspense
@@ -140,7 +137,7 @@ export default async function AuthorDetailPage({ params, searchParams }: AuthorD
           initialAuthor={authorResponse}
           initialQuestions={questions}
           initialPagination={questionsResponse.meta}
-          authorId={authorId}
+          authorUsername={resolvedAuthorUsername}
         />
       </Suspense>
     );
@@ -161,3 +158,4 @@ export default async function AuthorDetailPage({ params, searchParams }: AuthorD
     );
   }
 }
+

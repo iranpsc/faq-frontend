@@ -21,6 +21,7 @@ export interface Question {
   updated_at: string;
   user?: {
     id: string;
+    username?: string;
     name: string;
     image_url?: string;
     score?: number;
@@ -48,6 +49,7 @@ export interface Question {
 
 export interface User {
   id: string;
+  username?: string;
   name: string;
   email?: string;
   mobile?: string;
@@ -115,6 +117,7 @@ export interface Answer {
   comments_count?: number;
   user: {
     id: string;
+    username?: string;
     name: string;
     image_url?: string;
     score: number;
@@ -141,6 +144,7 @@ export interface Comment {
   published: boolean;
   user: {
     id: string;
+    username?: string;
     name: string;
     image_url?: string;
     score: number;

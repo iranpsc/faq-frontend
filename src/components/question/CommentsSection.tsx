@@ -206,7 +206,7 @@ export function CommentsSection({
               <div className="flex items-start gap-2 sm:gap-3 min-w-0">
                 {comment.user ? (
                   <Link
-                    href={`/authors/${comment.user.id}`}
+                    href={`/authors/${comment.user?.username ?? comment.user?.id}`}
                     className="flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded group"
                     title={`نمایش پروفایل ${comment.user?.name || ''}`}
                   >
@@ -234,7 +234,7 @@ export function CommentsSection({
                   }`}>
                     {comment.user ? (
                       <Link
-                        href={`/authors/${comment.user.id}`}
+                        href={`/authors/${comment.user?.username ?? comment.user?.id}`}
                         className={`${
                           parentType === 'question'
                             ? 'font-medium text-gray-900 dark:text-gray-100 truncate hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded'

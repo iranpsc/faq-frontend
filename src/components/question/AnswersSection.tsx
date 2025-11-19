@@ -177,19 +177,21 @@ export function AnswersSection({
     setShowFilters(!showFilters);
   };
 
-  const handleClickOutside = (e: MouseEvent) => {
-    if (!filterWrapper.current) return;
-    if (!filterWrapper.current.contains(e.target as Node)) {
-      setShowFilters(false);
-    }
-  };
-
   useEffect(() => {
-    document.addEventListener('click', handleClickOutside);
-    return () => {
-      document.removeEventListener('click', handleClickOutside);
+    if (!showFilters) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!filterWrapper.current) return;
+      if (!filterWrapper.current.contains(e.target as Node)) {
+        setShowFilters(false);
+      }
     };
-  }, []);
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showFilters]);
 
   useEffect(() => {
     initializePagination();
@@ -432,7 +434,7 @@ export function AnswersSection({
                 <div className="flex items-start gap-5 min-w-0">
                   {answer.user ? (
                     <Link
-                      href={`/authors/${answer.user.id}`}
+                      href={`/authors/${answer.user?.username ?? answer.user?.id}`}
                       className="flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded group"
                       title={`نمایش پروفایل ${answer.user?.name || ''}`}
                     >
@@ -457,7 +459,7 @@ export function AnswersSection({
                       <div className="flex flex-col justify-start min-w-0">
                         {answer.user ? (
                           <Link
-                            href={`/authors/${answer.user.id}`}
+                            href={`/authors/${answer.user?.username ?? answer.user?.id}`}
                             className="font-medium text-gray-900 dark:text-gray-100 truncate hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
                           >
                             {answer.user?.name}

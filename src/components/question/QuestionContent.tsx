@@ -274,7 +274,7 @@ export function QuestionContent({
           {/* User Info */}
           {question.user ? (
             <Link
-              href={`/authors/${question.user.id}`}
+              href={`/authors/${question.user?.username ?? question.user?.id}`}
               className="text-right min-w-0 group focus:outline-none focus:ring-2 focus:ring-blue-500 rounded block"
               title={`نمایش پروفایل ${question.user.name || ''}`}
             >
@@ -315,10 +315,14 @@ export function QuestionContent({
           )}
           
           {/* Category */}
-          {question.category?.name && (
-            <span className="px-3 py-1 border text-gray-700 dark:text-gray-300 text-sm rounded-full whitespace-nowrap">
+          {question.category?.name && question.category?.slug && (
+            <Link
+              href={`/categories/${question.category.slug}`}
+              className="px-3 py-1 border text-gray-700 dark:text-gray-300 text-sm rounded-full whitespace-nowrap hover:border-blue-500 hover:text-blue-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              title={`مشاهده سوالات دسته ${question.category.name}`}
+            >
               {question.category.name}
-            </span>
+            </Link>
           )}
         </div>
         
@@ -332,6 +336,22 @@ export function QuestionContent({
       <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 leading-relaxed break-words">
         {question.title}
       </h1>
+
+      {/* Tags */}
+      {Array.isArray(question.tags) && question.tags.length > 0 && (
+        <div className="py-3 mb-4 flex flex-wrap gap-2">
+          {question.tags.map((tag) => (
+            <Link
+              key={tag.id ?? tag.slug}
+              href={`/tags/${tag.slug}`}
+              className="px-3 py-1 text-sm rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-200 hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              title={`مشاهده سوالات دارای برچسب ${tag.name}`}
+            >
+              #{tag.name}
+            </Link>
+          ))}
+        </div>
+      )}
 
       {/* Bottom Row: Voting and Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-sm text-gray-600 dark:text-gray-400">

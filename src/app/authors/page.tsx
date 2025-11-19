@@ -81,7 +81,7 @@ export default async function AuthorsPage({ searchParams }: AuthorsPageProps) {
       "itemListElement": authors.map((author, index) => ({
         "@type": "ListItem",
         "position": index + 1,
-        "url": `https://faqhub.ir/authors/${author.id}`,
+        "url": `https://faqhub.ir/authors/${author.username ?? author.id}`,
         "name": author.name,
         "description": `${author.questions_count} سوال مرتبط`,
       })),

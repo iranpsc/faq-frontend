@@ -14,14 +14,14 @@ interface AuthorDetailPageContentProps {
   initialAuthor: User;
   initialQuestions: Question[];
   initialPagination: PaginatedResponse<Question>['meta'];
-  authorId: string;
+  authorUsername: string;
 }
 
 export function AuthorDetailPageContent({
   initialAuthor,
   initialQuestions,
   initialPagination,
-  authorId
+  authorUsername,
 }: AuthorDetailPageContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -32,58 +32,39 @@ export function AuthorDetailPageContent({
 
   const fetchAuthorQuestions = useCallback(async (page = 1) => {
     try {
-      const response = await apiService.getAuthorQuestions(authorId, page);
+      const response = await apiService.getAuthorQuestions(authorUsername, page);
       setQuestions(response.data);
       setPagination(response.meta);
     } catch (err) {
       console.error('Error fetching author questions:', err);
     }
-  }, [authorId]);
+  }, [authorUsername]);
 
-  // const handlePageChange = useCallback(async (page: number) => {
-  //   if (pagination && page === pagination.current_page) return;
-    
-  //   const target = Math.max(1, page);
-  //   await fetchAuthorQuestions(target);
-    
-  //   // Update URL
-  //   const urlParams = new URLSearchParams(searchParams);
-  //   if (target > 1) {
-  //     urlParams.set('page', target.toString());
-  //   } else {
-  //     urlParams.delete('page');
-  //   }
-    
-  //   const newUrl = `/authors/${authorId}?${urlParams.toString()}`;
-  //   router.push(newUrl);
-  // }, [pagination, fetchAuthorQuestions, searchParams, router, authorId]);
-const handlePageChange = useCallback(async (page: number) => {
-  if (pagination && page === pagination.current_page) return;
+  const handlePageChange = useCallback(async (page: number) => {
+    if (pagination && page === pagination.current_page) return;
 
-  const target = Math.max(1, page);
-  await fetchAuthorQuestions(target);
+    const target = Math.max(1, page);
+    await fetchAuthorQuestions(target);
 
-  // Update URL
-  const urlParams = new URLSearchParams(searchParams.toString());
-  if (target > 1) {
-    urlParams.set('page', target.toString());
-  } else {
-    urlParams.delete('page');
-  }
+    const urlParams = new URLSearchParams(searchParams.toString());
+    if (target > 1) {
+      urlParams.set('page', target.toString());
+    } else {
+      urlParams.delete('page');
+    }
 
-  const queryString = urlParams.toString();
-  const newUrl = queryString
-    ? `/authors/${authorId}?${queryString}`
-    : `/authors/${authorId}`;
+    const queryString = urlParams.toString();
+    const newUrl = queryString
+      ? `/authors/${authorUsername}?${queryString}`
+      : `/authors/${authorUsername}`;
 
-  router.push(newUrl);
-}, [pagination, fetchAuthorQuestions, searchParams, router, authorId]);
+    router.push(newUrl);
+  }, [pagination, fetchAuthorQuestions, searchParams, router, authorUsername]);
 
   const navigateToQuestion = useCallback((question: Question) => {
     router.push(`/questions/${question.slug}`);
   }, [router]);
 
-  // Handle URL changes for pagination
   useEffect(() => {
     const pageParam = searchParams.get('page');
     const target = parseInt(pageParam || '1');
@@ -100,17 +81,14 @@ const handlePageChange = useCallback(async (page: number) => {
       sidebarWidth="1/3"
       filters={
         <div className="mb-8">
-                    <div className='lg:hidden mb-8'>
+          <div className='lg:hidden mb-8'>
             <AuthorCard author={author} />
           </div>
-          {/* Added h1 for main page heading accessibility (previously missing) */}
           <h1 className="sr-only">پروفایل {author.name}</h1>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
             سوالات پرسیده شده توسط {author.name}
           </h2>
-
         </div>
-        
       }
       main={
         <div>
@@ -126,7 +104,6 @@ const handlePageChange = useCallback(async (page: number) => {
                 ))}
               </div>
 
-              {/* Pagination */}
               {pagination && pagination.last_page > 1 && (
                 <div className="mt-8">
                   <BasePagination
@@ -155,3 +132,4 @@ const handlePageChange = useCallback(async (page: number) => {
     />
   );
 }
+
