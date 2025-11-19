@@ -52,6 +52,13 @@ export const BasePagination = forwardRef<HTMLDivElement, BasePaginationProps>(
       return pages;
     };
 
+    // 📌 تابعی برای تغییر صفحه + اسکرول به بالا
+    const handlePageChange = (page: number) => {
+      onPageChange(page);
+      // Smooth scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
     return (
       <div
         ref={ref}
@@ -67,7 +74,7 @@ export const BasePagination = forwardRef<HTMLDivElement, BasePaginationProps>(
         <div className="flex items-center gap-2">
           {/* Previous button */}
           <button
-            onClick={() => onPageChange(currentPage - 1)}
+            onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
             className={clsx(
               'flex items-center gap-1 px-3 py-2 text-sm rounded-lg transition-colors',
@@ -85,7 +92,7 @@ export const BasePagination = forwardRef<HTMLDivElement, BasePaginationProps>(
             {getPageNumbers().map((page, index) => (
               <button
                 key={index}
-                onClick={() => typeof page === 'number' && onPageChange(page)}
+                onClick={() => typeof page === 'number' && handlePageChange(page)}
                 disabled={page === '...'}
                 className={clsx(
                   'px-3 py-2 text-sm rounded-lg transition-colors',
@@ -103,7 +110,7 @@ export const BasePagination = forwardRef<HTMLDivElement, BasePaginationProps>(
 
           {/* Next button */}
           <button
-            onClick={() => onPageChange(currentPage + 1)}
+            onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
             className={clsx(
               'flex items-center gap-1 px-3 py-2 text-sm rounded-lg transition-colors',

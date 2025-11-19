@@ -25,12 +25,19 @@ export function QuestionCard({ question, onClick }: QuestionCardProps) {
     }).format(date);
   };
 
-  const getContentPreview = (content: string) => {
+    const getContentPreview = (content: string) => {
     if (!content) return '';
-    // Remove HTML tags and get first 200 characters
-    const text = content.replace(/<[^>]*>/g, '');
-    return text.length > 200 ? text.substring(0, 200) + '...' : text;
+
+    // Remove HTML tags
+    const textWithEntities = content.replace(/<[^>]*>/g, '');
+
+    // Decode HTML entities (like &nbsp; &amp; &lt; &gt; ...)
+    const decodedText = new DOMParser().parseFromString(textWithEntities, 'text/html').documentElement.textContent || '';
+
+    // Limit to 200 chars
+    return decodedText.length > 200 ? decodedText.substring(0, 200) + '...' : decodedText;
   };
+
 
   // Conditional styling based on pinned/featured status - matching Vue implementation
   const cardClassName = clsx(

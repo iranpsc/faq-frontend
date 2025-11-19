@@ -457,3 +457,13 @@ a:focus {
   word-break: break-all;
   overflow-wrap: break-word;
 }
+.ck-editor__editable.custom-editor-fixed-height {
+  min-height: 400px !important;
+  height: auto !important;
+}
+
+@media (max-width: 768px) {
+  .ck-editor__editable.custom-editor-fixed-height {
+    min-height: 200px !important;
+  }
+}
