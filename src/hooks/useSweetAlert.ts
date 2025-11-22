@@ -1,6 +1,12 @@
 import { useCallback } from 'react';
 import Swal from 'sweetalert2';
 
+// Helper function to detect current theme
+const isDarkMode = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  return document.documentElement.classList.contains('dark');
+};
+
 // Centralized SweetAlert2 hook for consistent usage across the app
 export function useSweetAlert() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -20,31 +26,30 @@ export function useSweetAlert() {
     Swal.showValidationMessage(message);
   }, []);
 
-  const showAuthenticationDialog = useCallback(async (onLogin: () => Promise<void>, onRegister: () => Promise<void>) => {
+  const showAuthenticationDialog = useCallback(async (onLogin: () => Promise<void>) => {
     console.log('showAuthenticationDialog called'); // Debug log
+    
+    const isDark = isDarkMode();
     
     const result = await Swal.fire({
       html: `
-        <div class="text-gray-800 dark:text-white">
-          <h2 class="text-xl font-bold mb-2">وارد حساب کاربری شوید</h2>
-          <p>برای ادامه این عملیات باید وارد حساب کاربری خود شوید. اگر حساب کاربری ندارید، ثبت نام کنید.</p>
+        <div style="color: ${isDark ? '#f9fafb' : '#1f2937'};">
+          <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">وارد حساب کاربری شوید</h2>
+          <p style="margin: 0;">برای ادامه این عملیات باید وارد حساب کاربری خود شوید.</p>
         </div>
       `,
       icon: 'info',
-      showCancelButton: true,
+      showCancelButton: false,
       showConfirmButton: true,
       confirmButtonText: 'ورود',
-      cancelButtonText: 'ثبت نام',
-      confirmButtonColor: '#3b82f6',
-      cancelButtonColor: '#10b981',
-      reverseButtons: true,
-      focusConfirm: false,
-      focusCancel: false,
+      confirmButtonColor: isDark ? '#60a5fa' : '#3b82f6',
+      focusConfirm: true,
       allowOutsideClick: true,
       allowEscapeKey: true,
       showLoaderOnConfirm: true,
       backdrop: true,
-      background: '#ffffff',
+      background: isDark ? '#1f2937' : '#ffffff',
+      color: isDark ? '#f9fafb' : '#171717',
       preConfirm: async () => {
         try {
           console.log('Login button clicked'); // Debug log
@@ -63,18 +68,17 @@ export function useSweetAlert() {
     if (result.isConfirmed) {
       console.log('Login confirmed'); // Debug log
       // Login was initiated in preConfirm
-    } else if (result.dismiss === Swal.DismissReason.cancel) {
-      console.log('Register button clicked (cancel)'); // Debug log
-      // User clicked the register button (cancel button)
-      await onRegister();
     } else {
-      console.log('Dialog dismissed for other reason:', result.dismiss); // Debug log
+      console.log('Dialog dismissed:', result.dismiss); // Debug log
     }
   }, []);
 
   const showRegisterRedirect = useCallback(async () => {
     console.log('showRegisterRedirect called'); // Debug log
     
+    const isDark = isDarkMode();
+    
+    // Show loading dialog
     await Swal.fire({
       title: 'در حال انتقال...',
       text: 'لطفاً صبر کنید',
@@ -82,35 +86,51 @@ export function useSweetAlert() {
       allowOutsideClick: false,
       allowEscapeKey: false,
       showConfirmButton: false,
+      background: isDark ? '#1f2937' : '#ffffff',
+      color: isDark ? '#f9fafb' : '#171717',
       didOpen: () => {
         Swal.showLoading();
       }
     });
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 800));
+      // Wait a bit to show the loading state
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       console.log('Opening registration page...'); // Debug log
       
-      // Try to open the registration page
-      const newWindow = window.open('https://accounts.irpsc.com/register', '_blank');
+      // Try to open the registration page in a new tab
+      const registrationUrl = 'https://accounts.irpsc.com/register';
+      const newWindow = window.open(registrationUrl, '_blank', 'noopener,noreferrer');
       
-      if (!newWindow) {
-        // If popup was blocked, try redirecting in the same window
-        console.log('Popup blocked, trying redirect in same window');
-        Swal.close();
-        window.location.href = 'https://accounts.irpsc.com/register';
+      // Close the loading dialog
+      Swal.close();
+      
+      if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+        // Popup was blocked or failed, redirect in the same window
+        console.log('Popup blocked or failed, redirecting in same window');
+        // Small delay to ensure dialog closes
+        await new Promise(resolve => setTimeout(resolve, 200));
+        window.location.href = registrationUrl;
         return;
       }
       
-      Swal.close();
+      // Successfully opened in new tab, close the dialog
+      // The dialog is already closed above
     } catch (error) {
       console.error('Register redirect error:', error);
       Swal.close();
+      
+      // Show error dialog
+      const isDarkError = isDarkMode();
       await Swal.fire({
         title: 'خطا',
-        text: 'خطا در باز کردن صفحه ثبت نام.',
+        text: 'خطا در باز کردن صفحه ثبت نام. لطفاً دوباره تلاش کنید.',
         icon: 'error',
-        confirmButtonText: 'باشه'
+        confirmButtonText: 'باشه',
+        background: isDarkError ? '#1f2937' : '#ffffff',
+        color: isDarkError ? '#f9fafb' : '#171717',
+        confirmButtonColor: isDarkError ? '#60a5fa' : '#3b82f6',
       });
     }
   }, []);

@@ -64,8 +64,15 @@ export function HomeContent({
 
   useEffect(() => {
     const handleRefresh = () => refetchQuestions();
+    const handleLogout = () => refetchQuestions();
+    
     window.addEventListener('questions:refresh', handleRefresh);
-    return () => window.removeEventListener('questions:refresh', handleRefresh);
+    window.addEventListener('auth:logout', handleLogout);
+    
+    return () => {
+      window.removeEventListener('questions:refresh', handleRefresh);
+      window.removeEventListener('auth:logout', handleLogout);
+    };
   }, [refetchQuestions]);
 
   const handleFiltersChanged = (filters: Record<string, unknown>) => {

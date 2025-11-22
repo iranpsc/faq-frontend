@@ -37,7 +37,8 @@ export function FilterQuestion({ onFiltersChanged }: FilterQuestionProps) {
     { value: 'most_views', label: 'بازدید ها' },
     { value: 'unanswered', label: 'بی پاسخ' },
     { value: 'solved', label: 'حل شده' },
-    { value: 'unsolved', label: 'حل نشده' }
+    { value: 'unsolved', label: 'حل نشده' },
+    { value: 'unpublished', label: 'منتشر نشده' }
   ];
 
   // Computed properties
@@ -135,6 +136,9 @@ export function FilterQuestion({ onFiltersChanged }: FilterQuestionProps) {
           break;
         case 'unsolved':
           params.filter = 'unsolved';
+          break;
+        case 'unpublished':
+          params.filter = 'unpublished';
           break;
       }
     }

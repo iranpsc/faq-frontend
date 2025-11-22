@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSweetAlert } from '@/hooks/useSweetAlert';
 import { apiService } from '@/services/api';
 import { VoteData } from '@/services/types';
 
@@ -26,7 +27,8 @@ export function VoteButtons({
   size = 'medium',
   onVoteChanged
 }: VoteButtonsProps) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, login } = useAuth();
+  const { showAuthenticationDialog, fire } = useSweetAlert();
   const [isVoting, setIsVoting] = useState(false);
   const [activeVoteType, setActiveVoteType] = useState<'up' | 'down' | null>(null);
   const [hasVoted, setHasVoted] = useState(!!initialUserVote);
@@ -66,13 +68,30 @@ export function VoteButtons({
     return resourceId;
   };
 
-  const showLoginAlert = () => {
-    // TODO: Implement auth dialog similar to Vue
-    alert('برای رای دادن وارد شوید');
+  const showLoginAlert = async () => {
+    const handleLogin = async () => {
+      try {
+        await login();
+      } catch (error) {
+        console.error('Login error:', error);
+        throw error; // Re-throw to let SweetAlert handle the error
+      }
+    };
+
+    await showAuthenticationDialog(handleLogin);
   };
 
-  const showErrorAlert = (message: string) => {
-    alert(message);
+  const showErrorAlert = async (message: string) => {
+    const isDark = typeof window !== 'undefined' && document.documentElement.classList.contains('dark');
+    await fire({
+      title: 'خطا',
+      text: message,
+      icon: 'error',
+      confirmButtonText: 'باشه',
+      background: isDark ? '#1f2937' : '#ffffff',
+      color: isDark ? '#f9fafb' : '#171717',
+      confirmButtonColor: isDark ? '#60a5fa' : '#3b82f6',
+    });
   };
 
   const handleVote = async (voteType: 'up' | 'down') => {
@@ -80,7 +99,7 @@ export function VoteButtons({
 
     // Check if user is authenticated
     if (!isAuthenticated) {
-      showLoginAlert();
+      await showLoginAlert();
       return;
     }
 
@@ -93,7 +112,9 @@ export function VoteButtons({
       // Backend only supports adding votes, not removing them
       // If user already voted, show error message
       if (userVote) {
-        showErrorAlert('شما قبلا به این مورد رای داده‌اید');
+        await showErrorAlert('شما قبلا به این مورد رای داده‌اید');
+        setIsVoting(false);
+        setActiveVoteType(null);
         return;
       }
 
@@ -128,13 +149,13 @@ export function VoteButtons({
       } else {
         // Handle error
         if (result.error === 'authentication') {
-          showLoginAlert();
+          await showLoginAlert();
         } else if (result.status === 409) {
-          showErrorAlert(result.message || 'شما قبلا به این مورد رای داده‌اید');
+          await showErrorAlert(result.message || 'شما قبلا به این مورد رای داده‌اید');
         } else if (result.error === 'rate_limit') {
-          showErrorAlert(result.message || 'شما خیلی سریع رای می‌دهید. لطفا کمی صبر کنید.');
+          await showErrorAlert(result.message || 'شما خیلی سریع رای می‌دهید. لطفا کمی صبر کنید.');
         } else {
-          showErrorAlert(result.message || 'خطا در ثبت رای. لطفا دوباره تلاش کنید.');
+          await showErrorAlert(result.message || 'خطا در ثبت رای. لطفا دوباره تلاش کنید.');
         }
       }
     } catch (error: unknown) {
@@ -144,11 +165,11 @@ export function VoteButtons({
       const errorObj = error as Record<string, unknown>;
       const response = errorObj.response as Record<string, unknown>;
       if (response && response.status === 401) {
-        showLoginAlert();
+        await showLoginAlert();
       } else if (response && response.status === 429) {
-        showErrorAlert('شما خیلی سریع رای می‌دهید. لطفا کمی صبر کنید.');
+        await showErrorAlert('شما خیلی سریع رای می‌دهید. لطفا کمی صبر کنید.');
       } else {
-        showErrorAlert('خطا در ثبت رای. لطفا دوباره تلاش کنید.');
+        await showErrorAlert('خطا در ثبت رای. لطفا دوباره تلاش کنید.');
       }
     } finally {
       setIsVoting(false);

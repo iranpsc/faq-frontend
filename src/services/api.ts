@@ -33,6 +33,14 @@ class ApiService {
     return null;
   }
 
+  private processParams(params: Record<string, unknown>): Record<string, string> {
+    return Object.fromEntries(
+      Object.entries(params)
+        .filter(([, value]) => value !== undefined && value !== null)
+        .map(([key, value]) => [key, String(value)])
+    );
+  }
+
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
@@ -165,9 +173,7 @@ class ApiService {
 
   // Questions API
   async getQuestions(params: Record<string, unknown> = {}): Promise<PaginatedResponse<Question>> {
-    const stringParams = Object.fromEntries(
-      Object.entries(params).map(([key, value]) => [key, String(value)])
-    );
+    const stringParams = this.processParams(params);
     const queryString = new URLSearchParams(stringParams).toString();
     const endpoint = queryString ? `/questions?${queryString}` : '/questions';
     const response = await this.request<PaginatedResponse<Question>>(endpoint);
@@ -282,9 +288,7 @@ class ApiService {
 
   // Tags API
   async getTags(params: Record<string, unknown> = {}): Promise<Tag[]> {
-    const stringParams = Object.fromEntries(
-      Object.entries(params).map(([key, value]) => [key, String(value)])
-    );
+    const stringParams = this.processParams(params);
     const queryString = new URLSearchParams(stringParams).toString();
     const endpoint = queryString ? `/tags?${queryString}` : '/tags';
     const response = await this.request<{data: Tag[]}>(endpoint);
@@ -292,9 +296,7 @@ class ApiService {
   }
 
   async getTagsPaginated(params: ApiParams = {}): Promise<{ success: boolean; data: PaginatedResponse<Tag>; error?: string }> {
-    const stringParams = Object.fromEntries(
-      Object.entries(params).map(([key, value]) => [key, String(value)])
-    );
+    const stringParams = this.processParams(params);
     const queryString = new URLSearchParams(stringParams).toString();
     const endpoint = queryString ? `/tags?${queryString}` : '/tags';
     const response = await this.request<PaginatedResponse<Tag>>(endpoint);
@@ -328,9 +330,7 @@ class ApiService {
 
   // Authors API
   async getAuthors(params: Record<string, unknown> = {}): Promise<PaginatedResponse<User>> {
-    const stringParams = Object.fromEntries(
-      Object.entries(params).map(([key, value]) => [key, String(value)])
-    );
+    const stringParams = this.processParams(params);
     const queryString = new URLSearchParams(stringParams).toString();
     const endpoint = queryString ? `/authors?${queryString}` : '/authors';
     const response = await this.request<PaginatedResponse<User>>(endpoint);
@@ -915,9 +915,7 @@ class ApiService {
   }
 
   async getQuestionsServer(params: Record<string, unknown> = {}): Promise<PaginatedResponse<Question>> {
-    const stringParams = Object.fromEntries(
-      Object.entries(params).map(([key, value]) => [key, String(value)])
-    );
+    const stringParams = this.processParams(params);
     const queryString = new URLSearchParams(stringParams).toString();
     const endpoint = queryString ? `/questions?${queryString}` : '/questions';
     const response = await this.serverRequest<PaginatedResponse<Question>>(endpoint);
@@ -940,9 +938,7 @@ class ApiService {
   }
 
   async getTagsPaginatedServer(params: Record<string, unknown> = {}): Promise<PaginatedResponse<Tag>> {
-    const stringParams = Object.fromEntries(
-      Object.entries(params).map(([key, value]) => [key, String(value)])
-    );
+    const stringParams = this.processParams(params);
     const queryString = new URLSearchParams(stringParams).toString();
     const endpoint = queryString ? `/tags?${queryString}` : '/tags';
     const response = await this.serverRequest<PaginatedResponse<Tag>>(endpoint);
@@ -951,9 +947,7 @@ class ApiService {
 
   // Server-side category methods
   async getCategoriesPaginatedServer(params: Record<string, unknown> = {}): Promise<PaginatedResponse<Category>> {
-    const stringParams = Object.fromEntries(
-      Object.entries(params).map(([key, value]) => [key, String(value)])
-    );
+    const stringParams = this.processParams(params);
     const queryString = new URLSearchParams(stringParams).toString();
     const endpoint = queryString ? `/categories?${queryString}` : '/categories';
     const response = await this.serverRequest<PaginatedResponse<Category>>(endpoint);
@@ -972,9 +966,7 @@ class ApiService {
 
   // Server-side author methods
   async getAuthorsServer(params: Record<string, unknown> = {}): Promise<PaginatedResponse<User>> {
-    const stringParams = Object.fromEntries(
-      Object.entries(params).map(([key, value]) => [key, String(value)])
-    );
+    const stringParams = this.processParams(params);
     const queryString = new URLSearchParams(stringParams).toString();
     const endpoint = queryString ? `/authors?${queryString}` : '/authors';
     const response = await this.serverRequest<PaginatedResponse<User>>(endpoint);

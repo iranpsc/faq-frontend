@@ -11,7 +11,7 @@ interface AuthDialogProps {
 
 export function AuthDialog({ visible, onClose }: AuthDialogProps) {
   const { login } = useAuth();
-  const { showAuthenticationDialog, showRegisterRedirect } = useSweetAlert();
+  const { showAuthenticationDialog } = useSweetAlert();
 
   useEffect(() => {
     if (visible) {
@@ -24,16 +24,11 @@ export function AuthDialog({ visible, onClose }: AuthDialogProps) {
         }
       };
 
-      const handleRegister = async () => {
-        console.log('handleRegister called in AuthDialog'); // Debug log
-        await showRegisterRedirect();
-      };
-
-      showAuthenticationDialog(handleLogin, handleRegister).finally(() => {
+      showAuthenticationDialog(handleLogin).finally(() => {
         onClose();
       });
     }
-  }, [visible, login, showAuthenticationDialog, showRegisterRedirect, onClose]);
+  }, [visible, login, showAuthenticationDialog, onClose]);
 
   // This component doesn't render anything since SweetAlert2 handles the UI
   return null;

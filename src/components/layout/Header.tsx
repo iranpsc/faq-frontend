@@ -27,8 +27,8 @@ export function Header({ sidebarOpen, onToggleSidebar, onMainAction, mobileSearc
 
   return (
     <header 
-      className="header-container bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-4 py-3 transition-colors duration-300"
-      style={{ minHeight: '56px' }}
+      className="header-container bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-4 py-4 transition-colors duration-300"
+      style={{ minHeight: '72px' }}
     >
       <div className="flex items-center justify-between max-w-7xl mx-auto">
         {/* Left side - Menu button (hidden on large screens) */}
