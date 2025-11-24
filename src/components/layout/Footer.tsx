@@ -25,7 +25,7 @@ export function Footer({ onAskQuestion }: FooterProps) {
   return (
     <footer className="py-8 mb-0 pb-0 px-4 md:px-7 transition-colors duration-300 space-y-6">
       {/* Top icons section */}
-      <div className="flex-wrap flex justify-center items-center gap-2 mx-auto p-4 rounded-3xl bg-gray-100 dark:bg-gray-800 w-full">
+      {/* <div className="flex-wrap flex justify-center items-center gap-2 mx-auto p-4 rounded-3xl bg-gray-100 dark:bg-gray-800 w-full">
         <a 
           href="https://irpsc.com" 
           style={{ width: '55px', height: '55px' }} 
@@ -322,7 +322,7 @@ export function Footer({ onAskQuestion }: FooterProps) {
             referrerPolicy="no-referrer"
           />
         </a>
-      </div>
+      </div> */}
 
       {/* Main content sections */}
       <div className="mx-auto">

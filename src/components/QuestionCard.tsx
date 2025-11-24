@@ -88,7 +88,7 @@ export function QuestionCard({ question, onClick }: QuestionCardProps) {
           <div className="flex items-center gap-2 mb-4">
             {/* Category Badge */}
             {question.category && (
-              <Link href={`/categories/${question.category.slug}`}>
+              <Link className='!outline-0' href={`/categories/${question.category.slug}`}>
                 <span className="cursor-pointer transition-all duration-300 px-2 sm:px-3 md:px-4 lg:px-5 xl:px-6 2xl:px-8 py-1 pt-[5px] border border-gray-400 dark:border-gray-200 rounded-full text-xs sm:text-sm md:text-sm lg:text-sm xl:text-sm 2xl:text-base">
                   {question.category.name}
                 </span>

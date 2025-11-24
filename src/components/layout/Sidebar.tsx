@@ -195,7 +195,7 @@ export function Sidebar({ isOpen, mounted = false, theme, themeMode, onToggle, o
     { href: '/activity', icon: Clock, label: 'فعالیت ها' },
     { href: '/authors', icon: Users, label: 'فعالان انجمن' },
     { href: '#news', icon: Newspaper, label: 'اخبار متاورس' },
-    { href: '', icon: UserCheck, label: 'انجمن متاورس' },
+    { href: 'https://faqhub.ir/categories/metaverse', icon: UserCheck, label: 'انجمن متاورس' },
     { href: '/about', icon: Info, label: 'درباره ما', external: true },
     { href: '/contact', icon: Mail, label: 'ارتباط با ما', external: true },
     { href: '#language', icon: Globe, label: 'زبان' },
