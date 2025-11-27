@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { BaseAvatar } from '../ui/BaseAvatar';
 import { VoteButtons } from '../ui/VoteButtons';
 import { BaseEditor } from '../ui/BaseEditor';
+import { SanitizedContent } from '../ui/SanitizedContent';
 import { CommentsSection } from './CommentsSection';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAnswers } from '../../hooks/useAnswers';
@@ -481,9 +482,9 @@ export function AnswersSection({
                     {/* Answer Content */}
                     {editingAnswer !== answer.id ? (
                       <div className="mt-4 sm:mt-6 overflow-hidden">
-                        <div
+                        <SanitizedContent
+                          content={answer.content}
                           className="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 break-words"
-                          dangerouslySetInnerHTML={{ __html: answer.content }}
                         />
                       </div>
                     ) : (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { escapeHtml } from "@/lib/sanitize";
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
@@ -19,6 +20,16 @@ export default function ContactForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Escape HTML entities to prevent HTML injection in emails
+    const escapedData = {
+      name: escapeHtml(formData.name),
+      email: escapeHtml(formData.email),
+      phoneNo: escapeHtml(formData.phoneNo),
+      title: escapeHtml(formData.title),
+      message: escapeHtml(formData.message),
+    };
+    
     try {
       const response = await fetch("/api/sendEmail", {
         method: "POST",
@@ -28,14 +39,14 @@ export default function ContactForm() {
           cc: [""],
           bcc: [],
           message: {
-            subject: `فرم تماس از طرف ${formData.name}`,
+            subject: `فرم تماس از طرف ${escapedData.name}`,
             text: `نام: ${formData.name}\nایمیل: ${formData.email}\nتلفن: ${formData.phoneNo}\nموضوع: ${formData.title}\nپیام: ${formData.message}`,
             html: `
-                <p><strong>نام:</strong> ${formData.name}</p>
-                <p><strong>ایمیل:</strong> ${formData.email}</p>
-                <p><strong>تلفن:</strong> ${formData.phoneNo}</p>
-                <p><strong>موضوع:</strong> ${formData.title}</p>
-                <p><strong>پیام:</strong> ${formData.message}</p>
+                <p><strong>نام:</strong> ${escapedData.name}</p>
+                <p><strong>ایمیل:</strong> ${escapedData.email}</p>
+                <p><strong>تلفن:</strong> ${escapedData.phoneNo}</p>
+                <p><strong>موضوع:</strong> ${escapedData.title}</p>
+                <p><strong>پیام:</strong> ${escapedData.message}</p>
               `,
           },
         }),

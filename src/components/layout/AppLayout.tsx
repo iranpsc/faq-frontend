@@ -12,7 +12,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const [themeMode, setThemeMode] = useState<'light' | 'dark' | 'auto'>('light');
+  const [themeMode, setThemeMode] = useState<'light' | 'dark'>('light');
   const [showQuestionModal, setShowQuestionModal] = useState(false);
   const [questionToEdit, setQuestionToEdit] = useState<Question | null>(null);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
@@ -30,22 +30,21 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     setSidebarOpen(isLargeScreen);
 
     // Initialize theme
-    const savedThemeMode = localStorage.getItem('themeMode') as 'light' | 'dark' | 'auto' | null;
+    const savedThemeMode = localStorage.getItem('themeMode');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initialThemeMode = savedThemeMode || 'light';
+    const initialThemeMode = savedThemeMode === 'dark'
+      ? 'dark'
+      : savedThemeMode === 'light'
+        ? 'light'
+        : prefersDark
+          ? 'dark'
+          : 'light';
     setThemeMode(initialThemeMode);
     
-    // Determine actual theme based on mode
-    let actualTheme: 'light' | 'dark';
-    if (initialThemeMode === 'auto') {
-      actualTheme = prefersDark ? 'dark' : 'light';
-    } else {
-      actualTheme = initialThemeMode;
-    }
-    setTheme(actualTheme);
+    setTheme(initialThemeMode);
     
     // Apply theme to document
-    if (actualTheme === 'dark') {
+    if (initialThemeMode === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
@@ -85,21 +84,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     setMobileSearchOpen(!mobileSearchOpen);
   };
 
-  const handleThemeChange = (mode: 'light' | 'dark' | 'auto') => {
+  const handleThemeChange = (mode: 'light' | 'dark') => {
     setThemeMode(mode);
     localStorage.setItem('themeMode', mode);
     
-    // Determine actual theme based on mode
-    let actualTheme: 'light' | 'dark';
-    if (mode === 'auto') {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      actualTheme = prefersDark ? 'dark' : 'light';
-    } else {
-      actualTheme = mode;
-    }
-    setTheme(actualTheme);
+    setTheme(mode);
     
-    if (actualTheme === 'dark') {
+    if (mode === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');

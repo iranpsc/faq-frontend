@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { BaseAvatar } from '@/components/ui/BaseAvatar';
 import { VoteButtons } from '../ui/VoteButtons';
+import { SanitizedContent } from '../ui/SanitizedContent';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSweetAlert } from '@/hooks/useSweetAlert';
 import { apiService } from '@/services/api';
@@ -539,9 +540,9 @@ export function QuestionContent({
       </div>
 
       <div className="border-t border-gray-200 dark:border-gray-700 pt-6 overflow-hidden">
-        <div 
-          className="prose dark:prose-invert max-w-none break-words" 
-          dangerouslySetInnerHTML={{ __html: question.content }}
+        <SanitizedContent
+          content={question.content}
+          className="prose dark:prose-invert max-w-none break-words"
         />
 
         {/* Solved Badge */}

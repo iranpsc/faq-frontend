@@ -26,6 +26,25 @@ const nextConfig: NextConfig = {
   
   // Security headers
   async headers() {
+    const isProd = process.env.NODE_ENV === 'production';
+    
+    // Content Security Policy
+    // Note: 'unsafe-inline' is needed for Next.js and CKEditor styles
+    // 'unsafe-eval' is needed for CKEditor in development
+    const cspDirectives = [
+      "default-src 'self'",
+      `script-src 'self' 'unsafe-inline'${isProd ? '' : " 'unsafe-eval'"}`,
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com data:",
+      "img-src 'self' data: blob: https://api.faqhub.ir https://ui-avatars.com https://irpsc.com https://*.irpsc.com",
+      `connect-src 'self' ${isProd ? 'https://api.faqhub.ir' : 'http://localhost:8000'} https://fonts.googleapis.com https://fonts.gstatic.com`,
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "object-src 'none'",
+      "upgrade-insecure-requests",
+    ];
+    
     return [
       {
         source: '/(.*)',
@@ -40,7 +59,19 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Referrer-Policy',
-            value: 'origin-when-cross-origin',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: cspDirectives.join('; '),
           },
         ],
       },

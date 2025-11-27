@@ -20,8 +20,7 @@ import {
   LogIn, 
   LogOut,
   Sun,
-  Moon,
-  Monitor
+  Moon
 } from 'lucide-react';
 import { BaseButton } from '@/components/ui/BaseButton';
 import { BaseAvatar } from '@/components/ui/BaseAvatar';
@@ -34,9 +33,9 @@ interface SidebarProps {
   isOpen: boolean;
   mounted?: boolean;
   theme: 'light' | 'dark';
-  themeMode: 'light' | 'dark' | 'auto';
+  themeMode: 'light' | 'dark';
   onToggle: () => void;
-  onThemeChange: (mode: 'light' | 'dark' | 'auto') => void;
+  onThemeChange: (mode: 'light' | 'dark') => void;
 }
 
 export function Sidebar({ isOpen, mounted = false, theme, themeMode, onToggle, onThemeChange }: SidebarProps) {
@@ -71,15 +70,13 @@ export function Sidebar({ isOpen, mounted = false, theme, themeMode, onToggle, o
     }
   };
 
-  const onThemeClick = (mode: 'light' | 'dark' | 'auto') => {
+  const onThemeClick = (mode: 'light' | 'dark') => {
     onThemeChange(mode);
   };
 
-  const cycleCollapsedTheme = () => {
-    const order: ('light' | 'dark' | 'auto')[] = ['light', 'auto', 'dark'];
-    const currentIndex = order.indexOf(themeMode);
-    const next = order[(currentIndex + 1) % order.length];
-    onThemeChange(next);
+  const toggleCollapsedTheme = () => {
+    const nextMode = themeMode === 'light' ? 'dark' : 'light';
+    onThemeChange(nextMode);
   };
 
   const toggleUserDropdown = () => {
@@ -502,30 +499,21 @@ export function Sidebar({ isOpen, mounted = false, theme, themeMode, onToggle, o
 
         {/* Theme Toggle (Expanded) */}
         {isOpen && (
-          <div className="flex bg-gray-100 dark:bg-gray-700 rounded-full p-1">
+          <div className="flex w-full bg-gray-100 dark:bg-gray-700 rounded-full p-1">
             <BaseButton 
               onClick={() => onThemeClick('light')} 
               variant={themeMode === 'light' ? 'primary' : 'ghost'}
               size="sm" 
-              className="flex-1 rounded-full"
+              className="flex-1 rounded-r-full rounded-l-none h-10"
               aria-label='theme mode'
             >
               <Sun className="w-4 h-4" />
             </BaseButton>
             <BaseButton 
-              onClick={() => onThemeClick('auto')} 
-              variant={themeMode === 'auto' ? 'primary' : 'ghost'}
-              size="sm" 
-              className="flex-1 rounded-full"
-              aria-label='theme mode'
-            >
-              <Monitor className="w-4 h-4" />
-            </BaseButton>
-            <BaseButton 
               onClick={() => onThemeClick('dark')} 
               variant={themeMode === 'dark' ? 'primary' : 'ghost'}
               size="sm" 
-              className="flex-1 rounded-full"
+              className="flex-1 rounded-l-full rounded-r-none h-10"
               aria-label='theme mode'
             >
               <Moon className="w-4 h-4" />
@@ -543,15 +531,15 @@ export function Sidebar({ isOpen, mounted = false, theme, themeMode, onToggle, o
                   className="p-2 rounded-full bg-blue-700 dark:bg-yellow-700 text-white" 
                   title="ورود"
                 >
-                  <LogIn className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                  <LogIn className="w-5 h-5 text-white" />
                 </button>
               ) : (
                 <button 
                   onClick={handleLogout}
-                  className="p-2 rounded-full bg-blue-100 dark:bg-yellow-700" 
+                  className="p-2 rounded-full bg-blue-100 dark:bg-yellow-700 text-white" 
                   title="خروج"
                 >
-                  <LogOut className="w-5 h-5 text-red-500" />
+                  <LogOut className="w-5 h-5 text-white" />
                 </button>
               )}
             </div>
@@ -559,13 +547,11 @@ export function Sidebar({ isOpen, mounted = false, theme, themeMode, onToggle, o
               {/* Theme Toggle (Collapsed) */}
               <div className="flex justify-center">
                 <button  aria-label='theme mode'
-                  onClick={cycleCollapsedTheme}
+                  onClick={toggleCollapsedTheme}
                   className="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
                   {themeMode === 'light' ? (
                     <Sun className="w-5 h-5" />
-                  ) : themeMode === 'auto' ? (
-                    <Monitor className="w-5 h-5" />
                   ) : (
                     <Moon className="w-5 h-5" />
                   )}
