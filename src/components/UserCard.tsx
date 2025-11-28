@@ -22,8 +22,11 @@ export function UserCard({ user, className }: UserCardProps) {
     return num.toString();
   };
 
+  // Use username for the link, fall back to id if username is not available
+  const authorLink = user.username ? `/authors/${user.username}` : `/authors/${user.id}`;
+
   return (
-    <Link href={`/authors/${user.username}`} className="block h-full">
+    <Link href={authorLink} className="block h-full">
       <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 text-center hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col hover:transform hover:-translate-y-0.5 ${className || ''}`}>
         {/* User Avatar */}
         <div className="mb-3">
