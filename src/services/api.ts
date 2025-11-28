@@ -1010,7 +1010,7 @@ async getAuthorServer(username: string): Promise<User> {
         data: DailyActivity[];
         grouped_data: { [month: string]: DailyActivity[] };
         error?: string;
-      }>(`/dashboard/activities?${queryParams.toString()}`);
+      }>(`/dashboard/activity?${queryParams.toString()}`);
 
       // Ensure response has the expected structure
       return {

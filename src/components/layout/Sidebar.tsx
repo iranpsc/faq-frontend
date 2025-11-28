@@ -189,12 +189,12 @@ export function Sidebar({ isOpen, mounted = false, theme, themeMode, onToggle, o
     { href: '/', icon: Home, label: 'خانه' },
     { href: '/categories', icon: Grid3X3, label: 'دسته بندی ها' },
     { href: '/tags', icon: Tag, label: 'برچسب ها' },
-    { href: '/activity', icon: Clock, label: 'فعالیت ها' },
+    { href: '/activities', icon: Clock, label: 'فعالیت ها' },
     { href: '/authors', icon: Users, label: 'فعالان انجمن' },
-    { href: '#news', icon: Newspaper, label: 'اخبار متاورس' },
-    { href: 'https://faqhub.ir/categories/metaverse', icon: UserCheck, label: 'انجمن متاورس' },
-    { href: '/about', icon: Info, label: 'درباره ما', external: true },
-    { href: '/contact', icon: Mail, label: 'ارتباط با ما', external: true },
+    { href: '/news', icon: Newspaper, label: 'اخبار متاورس' },
+    { href: '/metaverse', icon: UserCheck, label: 'انجمن متاورس' },
+    { href: '/about', icon: Info, label: 'درباره ما' },
+    { href: '/contact', icon: Mail, label: 'ارتباط با ما' },
     { href: '#language', icon: Globe, label: 'زبان' },
   ];
 
@@ -400,34 +400,10 @@ export function Sidebar({ isOpen, mounted = false, theme, themeMode, onToggle, o
           <ul className="space-y-2">
             {navigationItems.map((item) => {
               const Icon = item.icon;
-              const isExternal = item.external === true;
-              const isActive = !isExternal && pathname === item.href;
+              const isActive = pathname === item.href;
               
               return (
                 <li key={item.href}>
-                  {isExternal ? (
-                    <a 
-                      href={item.href} 
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={handleMenuItemClick}
-                      className={clsx(
-                        'flex items-center rounded-lg transition-colors focus:outline-none',
-                        {
-                          'gap-3 p-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': isOpen,
-                          'p-2 justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': !isOpen
-                        }
-                      )}
-                    >
-                      <Icon className="w-4 h-4 md:w-7 md:h-7 text-gray-400 dark:text-gray-500 flex-shrink-0" />
-                      <span className={clsx(
-                        'text-xs md:text-base transition-all duration-300 whitespace-nowrap mt-2',
-                        { 'opacity-100': isOpen, 'opacity-0 w-0 overflow-hidden': !isOpen }
-                      )}>
-                        {item.label}
-                      </span>
-                    </a>
-                  ) : (
                     <Link 
                       href={item.href} 
                       onClick={handleMenuItemClick}
@@ -454,7 +430,6 @@ export function Sidebar({ isOpen, mounted = false, theme, themeMode, onToggle, o
                         {item.label}
                       </span>
                     </Link>
-                  )}
                 </li>
               );
             })}
