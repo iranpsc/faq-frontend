@@ -9,6 +9,9 @@ export interface Question {
   views?: number;
   views_count?: number;
   answers_count?: number;
+  unpublished_answers_count?: number;
+  comments_count?: number;
+  unpublished_comments_count?: number;
   votes_count?: number;
   is_solved: boolean;
   is_pinned_by_user?: boolean;

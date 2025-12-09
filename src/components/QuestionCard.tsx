@@ -231,6 +231,51 @@ export function QuestionCard({ question, onClick }: QuestionCardProps) {
                 #حل شده
               </span>
             )}
+
+            {/* Unpublished Answers Badge */}
+            {(question.unpublished_answers_count || 0) > 0 && (
+              <BaseBadge
+                variant="warning"
+                size="sm"
+                className="flex items-center gap-1 border border-yellow-300 dark:border-yellow-500"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                <span className="hidden md:inline">{question.unpublished_answers_count} پاسخ منتشر نشده</span>
+                <span className="md:hidden">{question.unpublished_answers_count}</span>
+              </BaseBadge>
+            )}
+
+            {/* Comments Count Badge */}
+            {(question.comments_count || 0) > 0 && (
+              <BaseBadge
+                variant="info"
+                size="sm"
+                className="flex items-center gap-1 border border-blue-300 dark:border-blue-500"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                </svg>
+                <span className="hidden md:inline">{question.comments_count} نظر</span>
+                <span className="md:hidden">{question.comments_count}</span>
+              </BaseBadge>
+            )}
+
+            {/* Unpublished Comments Badge */}
+            {(question.unpublished_comments_count || 0) > 0 && (
+              <BaseBadge
+                variant="warning"
+                size="sm"
+                className="flex items-center gap-1 border border-yellow-300 dark:border-yellow-500"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                </svg>
+                <span className="hidden md:inline">{question.unpublished_comments_count} نظر منتشر نشده</span>
+                <span className="md:hidden">{question.unpublished_comments_count}</span>
+              </BaseBadge>
+            )}
           </div>
 
           {/* Unpublished Badge */}
