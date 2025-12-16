@@ -166,20 +166,22 @@ export interface Comment {
 
 export interface DailyActivity {
   id: string;
-  type: 'question' | 'answer' | 'comment';
+  type: 'question' | 'answer' | 'comment' | 'vote' | 'publish' | 'feature';
   user_name: string;
-  user_id: string;
-  user_image?: string;
+  user_id: string | number | null;
+  user_image?: string | null;
   title?: string;
   slug?: string;
-  question_id?: string;
+  question_id?: string | number;
   category_name?: string;
   description: string;
   created_at: string;
-  url?: string;
+  url?: string | null;
   is_correct?: boolean;
   month?: string;
   user_url?: string;
+  vote_type?: 'up' | 'down';
+  is_featured?: boolean;
 }
 
 export interface ActivityPeriod {
@@ -196,18 +198,17 @@ export interface ActivityLimits {
 }
 
 export interface ActivityPagination {
-  current_offset: number;
+  limit: number;
+  offset: number;
   next_offset: number;
   has_more: boolean;
-  months_loaded: number;
+  total: number;
 }
 
 export type ActivityGroupedData = Record<string, DailyActivity[]>;
 
 export interface ActivityApiResponse extends ApiResponse<DailyActivity[]> {
   grouped_data?: ActivityGroupedData;
-  period?: ActivityPeriod;
-  limits?: ActivityLimits;
   pagination?: ActivityPagination;
 }
 

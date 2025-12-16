@@ -39,7 +39,7 @@ export function ActivityPageContent({
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentOffset, setCurrentOffset] = useState(() => initialPagination?.next_offset ?? initialPagination?.current_offset ?? 0);
+  const [currentOffset, setCurrentOffset] = useState(() => initialPagination?.offset ?? 0);
   const [hasMore, setHasMore] = useState(initialPagination?.has_more ?? true);
 
   const buildGroupedActivities = useCallback((items: ActivityWithMonth[]): GroupedActivities => {
@@ -67,12 +67,8 @@ export function ActivityPageContent({
       setError(null);
 
       const response = await apiService.getActivity({
-        months: 3,
+        limit: 30,
         offset: append ? currentOffset : 0,
-        questions_limit: 10,
-        answers_limit: 8,
-        comments_limit: 5,
-        load_more: append
       }) as ActivityApiResponse;
 
       if (response.success) {
@@ -120,8 +116,8 @@ export function ActivityPageContent({
           if (pagination?.next_offset !== undefined) {
             return pagination.next_offset;
           }
-          const monthsLoaded = pagination?.months_loaded ?? 3;
-          return append ? prev + monthsLoaded : monthsLoaded;
+          const limit = pagination?.limit ?? 30;
+          return append ? prev + limit : limit;
         });
       } else {
         throw new Error(response.error || 'خطا در دریافت فعالیت‌ها');
@@ -153,7 +149,10 @@ export function ActivityPageContent({
     const labels = {
       question: 'سوال',
       answer: 'پاسخ',
-      comment: 'نظر'
+      comment: 'نظر',
+      vote: 'رای',
+      publish: 'انتشار',
+      feature: 'ویژه'
     };
     return labels[type as keyof typeof labels] || type;
   };
@@ -162,7 +161,10 @@ export function ActivityPageContent({
     const variants = {
       question: 'primary' as const,
       answer: 'success' as const,
-      comment: 'warning' as const
+      comment: 'warning' as const,
+      vote: 'info' as const,
+      publish: 'secondary' as const,
+      feature: 'warning' as const
     };
     return variants[type as keyof typeof variants] || 'secondary' as const;
   };
@@ -244,7 +246,7 @@ export function ActivityPageContent({
                       <div className="flex  items-start gap-4">
                         {/* User Avatar */}
                         <BaseAvatar
-                          src={activity.user_image}
+                          src={activity.user_image ?? undefined}
                           name={activity.user_name}
                           size="md"
                         />
@@ -276,6 +278,16 @@ export function ActivityPageContent({
                           {getActivityTypeLabel(activity.type)}
                         </BaseBadge>
 
+                        {/* Vote Type Badge */}
+                        {activity.type === 'vote' && activity.vote_type && (
+                          <BaseBadge
+                            variant={activity.vote_type === 'up' ? 'success' : 'danger'}
+                            size="xs"
+                          >
+                            {activity.vote_type === 'up' ? 'رای مثبت' : 'رای منفی'}
+                          </BaseBadge>
+                        )}
+
                         {/* Correct Answer Badge */}
                         {activity.type === 'answer' && activity.is_correct && (
                           <BaseBadge
@@ -283,6 +295,16 @@ export function ActivityPageContent({
                             size="xs"
                           >
                             پاسخ صحیح
+                          </BaseBadge>
+                        )}
+
+                        {/* Featured Badge */}
+                        {activity.is_featured && (
+                          <BaseBadge
+                            variant="warning"
+                            size="xs"
+                          >
+                            ویژه شده
                           </BaseBadge>
                         )}
 

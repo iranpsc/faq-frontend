@@ -40,11 +40,8 @@ export async function generateMetadata() {
 export default async function ActivityPage() {
   // 🟢 گرفتن دیتا SSR
   const response = await apiService.getActivity({
-    months: 3,
+    limit: 30,
     offset: 0,
-    questions_limit: 10,
-    answers_limit: 8,
-    comments_limit: 5,
   }) as ActivityApiResponse;
 
   const activities: DailyActivity[] = response.success ? (response.data ?? []) : [];

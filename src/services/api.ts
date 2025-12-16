@@ -750,23 +750,13 @@ class ApiService {
 
   // Activity API
   async getActivity(params: { 
-    months?: number; 
-    offset?: number; 
-    questions_limit?: number;
-    answers_limit?: number;
-    comments_limit?: number;
-    load_more?: boolean;
+    limit?: number; 
+    offset?: number;
   } = {}): Promise<ActivityApiResponse> {
     try {
       const queryParams = new URLSearchParams();
-      if (params.months) queryParams.append('months', params.months.toString());
+      if (params.limit) queryParams.append('limit', params.limit.toString());
       if (params.offset) queryParams.append('offset', params.offset.toString());
-      if (params.questions_limit) queryParams.append('questions_limit', params.questions_limit.toString());
-      if (params.answers_limit) queryParams.append('answers_limit', params.answers_limit.toString());
-      if (params.comments_limit) queryParams.append('comments_limit', params.comments_limit.toString());
-      if (params.load_more !== undefined) {
-        queryParams.append('load_more', params.load_more ? '1' : '0');
-      }
 
       const queryString = queryParams.toString();
       const endpoint = queryString
@@ -986,11 +976,8 @@ async getAuthorServer(username: string): Promise<User> {
 
   // Server-side activity methods
   async getActivityServer(params: { 
-    months?: number; 
-    offset?: number; 
-    questions_limit?: number;
-    answers_limit?: number;
-    comments_limit?: number;
+    limit?: number; 
+    offset?: number;
   } = {}): Promise<{
     success: boolean;
     data: DailyActivity[];
@@ -999,11 +986,8 @@ async getAuthorServer(username: string): Promise<User> {
   }> {
     try {
       const queryParams = new URLSearchParams();
-      if (params.months) queryParams.append('months', params.months.toString());
+      if (params.limit) queryParams.append('limit', params.limit.toString());
       if (params.offset) queryParams.append('offset', params.offset.toString());
-      if (params.questions_limit) queryParams.append('questions_limit', params.questions_limit.toString());
-      if (params.answers_limit) queryParams.append('answers_limit', params.answers_limit.toString());
-      if (params.comments_limit) queryParams.append('comments_limit', params.comments_limit.toString());
 
       const response = await this.serverRequest<{
         success: boolean;
