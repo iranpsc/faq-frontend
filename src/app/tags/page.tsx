@@ -7,6 +7,8 @@ import { PaginationHandler } from '@/components/PaginationHandler';
 import { apiService } from '@/services/api';
 import { Tag, PaginatedResponse } from '@/services/types';
 
+export const revalidate = 180; // Revalidate every 3 minutes
+
 // Metadata for SEO
 export const metadata: Metadata = {
   title: 'برچسب‌ها - سوالات متداول',

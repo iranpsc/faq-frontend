@@ -6,6 +6,8 @@ import { BaseAlert } from '@/components/ui/BaseAlert';
 import { PaginationHandler } from '@/components/PaginationHandler';
 import { apiService } from '@/services/api';
 
+export const revalidate = 180; // Revalidate every 3 minutes
+
 // ✅ SEO Metadata
 export const metadata: Metadata = {
   title: 'دسته‌بندی‌ها - سوالات متداول',
@@ -53,14 +55,14 @@ export default async function CategoriesPage({ searchParams }: CategoriesPagePro
       total: 0,
     };
 
-    // ✅ تولید اسکیما JSON-LD برای گوگل
+    // ✅ تولید اسکیما JSON-LD برای گوگل (optimized - limit to first 20 items)
     const schemaData = {
       "@context": "https://schema.org",
       "@type": "ItemList",
       "name": "لیست دسته‌بندی‌های سوالات متداول",
       "description": "تمام دسته‌بندی‌های موجود در سیستم سوالات متداول فَقهَب (FAQHub)",
-      "numberOfItems": categories.length,
-      "itemListElement": categories.map((category, index) => ({
+      "numberOfItems": Math.min(categories.length, 20),
+      "itemListElement": categories.slice(0, 20).map((category, index) => ({
         "@type": "ListItem",
         "position": index + 1,
         "url": `https://faqhub.ir/categories/${category.slug}`,

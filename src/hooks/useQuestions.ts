@@ -163,7 +163,8 @@ export function useQuestions(
     if (fetchOnMount) {
       fetchQuestions();
     }
-  }, [fetchQuestions, fetchOnMount]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount to avoid infinite loop
 
   return {
     questions,

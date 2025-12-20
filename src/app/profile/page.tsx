@@ -307,7 +307,8 @@ export default function ProfilePage() {
       fetchUserStats();
       fetchRecentActivity();
     }
-  }, [isAuthenticated, loadUserData, fetchUserProfile, fetchUserStats, fetchRecentActivity]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]); // Only depend on isAuthenticated to avoid infinite loop
 
   if (!isAuthenticated) {
     return (

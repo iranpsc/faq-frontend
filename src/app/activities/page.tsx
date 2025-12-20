@@ -8,6 +8,8 @@ import {
   ActivityPagination,
 } from "@/services/types";
 
+export const revalidate = 30; // Revalidate every 30 seconds (activities change frequently)
+
 export async function generateMetadata() {
   return {
     title: "فعالیت‌ها | انجمن",
@@ -60,13 +62,13 @@ export default async function ActivityPage() {
 
   const pagination: ActivityPagination | null = response.pagination ?? null;
 
-  // 🟢 فقط Schema: ItemList
+  // 🟢 فقط Schema: ItemList (optimized - limit to first 20 items)
   const itemListSchema = {
     "@context": "https://schema.org",
     "@type": "ItemList",
     name: "فعالیت‌های کاربران",
     description: "لیست سوالات، پاسخ‌ها و نظرات کاربران در انجمن",
-    itemListElement: activities.map((activityItem, index) => {
+    itemListElement: activities.slice(0, 20).map((activityItem, index) => {
       let itemType: "Article" | "Question" | "Answer" | "Comment" = "Article";
       if (activityItem.type === "question") itemType = "Question";
       if (activityItem.type === "answer") itemType = "Answer";

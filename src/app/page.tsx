@@ -2,6 +2,7 @@ import HomeContent from '@/components/HomeContent';
 import { apiService } from '@/services/api';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 60; // Revalidate every 60 seconds
 
 export async function generateMetadata() {
   const title = "انجمن حم - بزرگترین انجمن پرسش و پاسخ ایران";
@@ -37,19 +38,24 @@ export default async function HomePage() {
     const initialPaginationMeta = questionsData.meta || null;
     const initialActiveUsers = Array.isArray(activeUsers) ? activeUsers : [];
 
-    // Prepare top questions for FAQ schema
+    // Prepare top questions for FAQ schema (optimized)
     const topQuestions = initialQuestions
-      .filter(q => q && typeof q.title === 'string' && typeof q.content === 'string')
+      .filter(q => q?.title && q?.content)
       .slice(0, 5)
-      .map(q => ({
-        "@type": "Question",
-        name: q.title.trim(),
-        url: `https://faqhub.ir/questions/${q.slug}`,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: q.content.replace(/<[^>]*>/g, '').trim().substring(0, 500),
-        },
-      }));
+      .map(q => {
+        // Use plain_content if available from backend, otherwise do minimal processing
+        const answerText = q.plain_content || q.content.substring(0, 500);
+        
+        return {
+          "@type": "Question",
+          name: q.title,
+          url: `https://faqhub.ir/questions/${q.slug}`,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: answerText,
+          },
+        };
+      });
 
     const siteSchema = {
       "@context": "https://schema.org",

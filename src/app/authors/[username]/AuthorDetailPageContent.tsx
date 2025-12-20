@@ -71,7 +71,8 @@ export function AuthorDetailPageContent({
     if (pagination && target !== pagination.current_page) {
       fetchAuthorQuestions(target);
     }
-  }, [searchParams, pagination, fetchAuthorQuestions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]); // Only depend on searchParams to avoid infinite loop
 
   return (
     <ContentArea 

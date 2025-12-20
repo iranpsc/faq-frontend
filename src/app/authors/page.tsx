@@ -4,6 +4,8 @@ import { AuthorsPageContent } from './AuthorsPageContent';
 import { Metadata } from 'next';
 import { User, PaginatedResponse } from '@/services/types';
 
+export const revalidate = 120; // Revalidate every 2 minutes
+
 export const metadata: Metadata = {
   title: 'فعالان انجمن - نویسندگان',
   description: 'لیست تمام نویسندگان فعال در انجمن سوالات متداول',
@@ -70,15 +72,15 @@ export default async function AuthorsPage({ searchParams }: AuthorsPageProps) {
       total: 0,
     };
 
-    // JSON-LD Schema
+    // JSON-LD Schema (optimized - limit to first 20 items)
     const schema = {
       "@context": "https://schema.org",
       "@type": "ItemList",
       "name": "فعالان انجمن",
       "description": "لیست تمام نویسندگان فعال در انجمن سوالات متداول",
       "url": `https://faqhub.ir/authors`,
-      "numberOfItems": authors.length,
-      "itemListElement": authors.map((author, index) => ({
+      "numberOfItems": Math.min(authors.length, 20),
+      "itemListElement": authors.slice(0, 20).map((author, index) => ({
         "@type": "ListItem",
         "position": index + 1,
         "url": `https://faqhub.ir/authors/${author.username ?? author.id}`,

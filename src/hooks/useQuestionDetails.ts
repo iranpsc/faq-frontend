@@ -24,10 +24,12 @@ export function useQuestionDetails(
     setError(null);
     
     try {
+      // First fetch the question to get the ID
       const questionData = await apiService.getQuestionBySlug(slug);
       setQuestion(questionData);
       
-      // Fetch answers for the question
+      // Then fetch answers (sequential is necessary since we need question.id)
+      // This is acceptable as we need the question ID first
       const answersData = await apiService.getQuestionAnswers(questionData.id);
       setAnswers(answersData.data || []);
     } catch (err) {
@@ -58,7 +60,8 @@ export function useQuestionDetails(
     if (fetchOnMount && !initialState) {
       fetchQuestion();
     }
-  }, [fetchQuestion, fetchOnMount, initialState]); // Include all dependencies
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount to avoid infinite loop
 
   return {
     question,

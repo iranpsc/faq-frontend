@@ -143,7 +143,8 @@ export function ActivityPageContent({
     if (initialActivities.length === 0 && Object.keys(initialGroupedActivities).length === 0) {
       fetchActivities();
     }
-  }, [fetchActivities, initialActivities.length, initialGroupedActivities]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount to avoid infinite loop
 
   const getActivityTypeLabel = (type: string) => {
     const labels = {

@@ -223,7 +223,8 @@ export function AuthProvider({ children, initialUser = null, initialToken = null
     return () => {
       isMounted = false;
     };
-  }, [initialToken, initialUser, fetchUser, setTokenWithEvents, setUserWithEvents]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount - initialToken and initialUser are props and won't change
 
   useEffect(() => {
     wasAuthenticatedRef.current = !!(token && user);
@@ -270,7 +271,8 @@ export function AuthProvider({ children, initialUser = null, initialToken = null
         }
       }
     }
-  }, [fetchUser, setTokenWithEvents]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount to avoid infinite loop
 
 
   // Login function
@@ -422,7 +424,8 @@ export function AuthProvider({ children, initialUser = null, initialToken = null
       window.removeEventListener('auth:logout', handleAuthLogout);
       window.removeEventListener('auth:token', handleAuthToken as EventListener);
     };
-  }, [dispatchAuthEvent, fetchUser, setTokenWithEvents, setUserWithEvents, token]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]); // Only depend on token to avoid recreating listeners unnecessarily
 
   const value: AuthContextType = {
     user,

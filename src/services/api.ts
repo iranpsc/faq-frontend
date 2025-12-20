@@ -780,9 +780,14 @@ class ApiService {
   // Server-side compatible methods (no browser APIs)
   async serverRequest<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    timeout: number = 10000 // 10 second timeout for SSR
   ): Promise<T> {
     const url = `${SERVER_API_BASE_URL}${endpoint}`;
+
+    // Create abort controller for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
 
     const headers = new Headers({
       'Accept': 'application/json',
@@ -868,10 +873,13 @@ class ApiService {
     const config: RequestInit = {
       ...options,
       headers,
+      signal: controller.signal,
     };
 
     try {
       const response = await fetch(url, config);
+      
+      clearTimeout(timeoutId);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -888,6 +896,13 @@ class ApiService {
         return { success: true } as T;
       }
     } catch (error) {
+      clearTimeout(timeoutId);
+      
+      if ((error as Error).name === 'AbortError') {
+        console.error('Server API request timeout:', endpoint);
+        throw new Error(`Request timeout after ${timeout}ms`);
+      }
+      
       console.error('Server API request failed:', error);
       throw error;
     }

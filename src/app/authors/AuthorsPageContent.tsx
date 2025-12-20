@@ -115,7 +115,8 @@ export function AuthorsPageContent({
       setCurrentPage(target);
       loadAuthors(target);
     }
-  }, [searchParams, currentPage, loadAuthors]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]); // Only depend on searchParams to avoid infinite loop
 
   // Cleanup timeout on unmount
   useEffect(() => {

@@ -1,9 +1,22 @@
 
 // app/questions/[slug]/page.tsx
 import { Metadata } from "next"
+import { cache } from "react"
 import { apiService } from "@/services/api"
 import QuestionDetailsContent from "@/components/QuestionDetailsContent"
 import { Answer, Question } from "@/services/types"
+
+// Cache the question fetch to avoid duplicate API calls
+const getQuestion = cache(async (slug: string) => {
+  return await apiService.getQuestionBySlugServer(slug);
+});
+
+// Cache the answers fetch
+const getAnswers = cache(async (questionId: string) => {
+  return await apiService.getQuestionAnswersServer(questionId);
+});
+
+export const revalidate = 300; // Revalidate every 5 minutes
 
 export async function generateMetadata({
   params,
@@ -11,7 +24,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
   const { slug } = await params
-  const question = await apiService.getQuestionBySlugServer(slug)
+  const question = await getQuestion(slug)
 
   const title = question?.title || "سؤال بدون عنوان"
   const description = question?.content
@@ -57,11 +70,21 @@ export default async function QuestionDetailsPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const question: Question = await apiService.getQuestionBySlugServer(slug)
-  const answersResponse = await apiService.getQuestionAnswersServer(question.id)
+  
+  // Use cached question fetch (deduplicates with generateMetadata)
+  const question: Question = await getQuestion(slug)
+  
+  // Fetch answers using cached function
+  const answersResponse = await getAnswers(question.id)
   const answers: Answer[] = answersResponse?.data || []
 
-  const clean = (text: string) => text.replace(/<[^>]*>/g, "").trim()
+  // Optimized clean function - use plain text from backend if available
+  const clean = (text: string) => {
+    // If text is already plain (no HTML tags), return as is
+    if (!text.includes('<')) return text.trim();
+    // Otherwise do minimal processing
+    return text.replace(/<[^>]*>/g, "").trim();
+  };
 
 const qaSchema = {
   "@context": "https://schema.org",
