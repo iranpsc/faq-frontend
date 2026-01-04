@@ -8,7 +8,9 @@ import {
   ActivityPagination,
 } from "@/services/types";
 
-export const revalidate = 30; // Revalidate every 30 seconds (activities change frequently)
+// Force dynamic rendering to avoid build-time API calls
+export const dynamic = 'force-dynamic';
+export const revalidate = 0; // Disable static generation for this page
 
 export async function generateMetadata() {
   return {
@@ -40,11 +42,22 @@ export async function generateMetadata() {
 }
 
 export default async function ActivityPage() {
-  // 🟢 گرفتن دیتا SSR
-  const response = await apiService.getActivity({
-    limit: 30,
-    offset: 0,
-  }) as ActivityApiResponse;
+  // 🟢 گرفتن دیتا SSR با error handling برای build time
+  let response: ActivityApiResponse;
+  try {
+    response = await apiService.getActivity({
+      limit: 30,
+      offset: 0,
+    }) as ActivityApiResponse;
+  } catch (error) {
+    // Handle API failures during build time gracefully
+    console.error('Failed to fetch activities during build:', error);
+    response = {
+      success: false,
+      data: [],
+      error: error instanceof Error ? error.message : 'خطا در دریافت فعالیت‌ها'
+    } as ActivityApiResponse;
+  }
 
   const activities: DailyActivity[] = response.success ? (response.data ?? []) : [];
 
