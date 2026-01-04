@@ -42,24 +42,46 @@ export async function generateMetadata() {
 }
 
 export default async function ActivityPage() {
-  // 🟢 گرفتن دیتا SSR با error handling برای build time
+  // 🟢 گرفتن دیتا SSR با error handling برای build time و production
   let response: ActivityApiResponse;
   try {
     response = await apiService.getActivity({
       limit: 30,
       offset: 0,
     }) as ActivityApiResponse;
+    
+    // Ensure response is valid even if API returns unexpected format
+    if (!response || typeof response !== 'object') {
+      response = {
+        success: false,
+        data: [],
+        error: 'Invalid API response format'
+      } as ActivityApiResponse;
+    }
   } catch (error) {
-    // Handle API failures during build time gracefully
-    console.error('Failed to fetch activities during build:', error);
+    // Handle API failures gracefully (build time, production timeouts, network errors)
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : typeof error === 'string' 
+        ? error 
+        : 'خطا در دریافت فعالیت‌ها';
+    
+    // Only log in development to avoid leaking sensitive info in production
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Failed to fetch activities:', error);
+    }
+    
     response = {
       success: false,
       data: [],
-      error: error instanceof Error ? error.message : 'خطا در دریافت فعالیت‌ها'
+      error: errorMessage
     } as ActivityApiResponse;
   }
 
-  const activities: DailyActivity[] = response.success ? (response.data ?? []) : [];
+  // Safely extract activities with fallback
+  const activities: DailyActivity[] = (response?.success && Array.isArray(response?.data)) 
+    ? response.data 
+    : [];
 
   const groupedActivities: ActivityGroupedData = response.success && response.grouped_data
     ? response.grouped_data

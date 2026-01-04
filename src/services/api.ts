@@ -764,15 +764,27 @@ class ApiService {
         : '/dashboard/activity';
 
       if (typeof window === 'undefined') {
-        return await this.serverRequest<ActivityApiResponse>(endpoint);
+        // Use longer timeout for production (30 seconds) to handle slow API responses
+        const timeout = process.env.NODE_ENV === 'production' ? 30000 : 10000;
+        return await this.serverRequest<ActivityApiResponse>(endpoint, {}, timeout);
       }
 
       return await this.request<ActivityApiResponse>(endpoint);
     } catch (error: unknown) {
+      // Log error for debugging but return safe fallback
+      const errorMessage = (error as ApiError)?.response?.data?.message 
+        || (error as ApiError)?.message 
+        || (error as Error)?.message
+        || 'خطا در دریافت فعالیت‌ها';
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.error('getActivity error:', error);
+      }
+      
       return { 
         success: false,
         data: [] as DailyActivity[],
-        error: (error as ApiError)?.response?.data?.message || (error as ApiError)?.message || 'خطا در دریافت فعالیت‌ها'
+        error: errorMessage
       };
     }
   }
@@ -781,7 +793,7 @@ class ApiService {
   async serverRequest<T>(
     endpoint: string,
     options: RequestInit = {},
-    timeout: number = 10000 // 10 second timeout for SSR
+    timeout: number = process.env.NODE_ENV === 'production' ? 30000 : 10000 // 30s for production, 10s for dev
   ): Promise<T> {
     const url = `${SERVER_API_BASE_URL}${endpoint}`;
 
@@ -898,12 +910,29 @@ class ApiService {
     } catch (error) {
       clearTimeout(timeoutId);
       
-      if ((error as Error).name === 'AbortError') {
-        console.error('Server API request timeout:', endpoint);
-        throw new Error(`Request timeout after ${timeout}ms`);
+      // Handle timeout and network errors gracefully
+      if ((error as Error).name === 'AbortError' || (error as Error).name === 'TimeoutError') {
+        const errorMsg = `Request timeout after ${timeout}ms for ${endpoint}`;
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Server API request timeout:', errorMsg);
+        }
+        throw new Error(errorMsg);
       }
       
-      console.error('Server API request failed:', error);
+      // Handle network errors (ETIMEDOUT, ECONNREFUSED, etc.)
+      if ((error as Error & { code?: string; errno?: number })?.code === 'ETIMEDOUT' 
+          || (error as Error & { code?: string })?.code === 'ECONNREFUSED'
+          || (error as Error & { code?: string })?.code === 'ENOTFOUND') {
+        const errorMsg = `Network error connecting to API: ${endpoint}`;
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Server API network error:', errorMsg, error);
+        }
+        throw new Error(errorMsg);
+      }
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Server API request failed:', endpoint, error);
+      }
       throw error;
     }
   }
