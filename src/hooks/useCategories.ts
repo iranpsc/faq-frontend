@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { apiService } from '@/services/api';
 import { Category } from '@/services/types';
 
@@ -14,12 +14,14 @@ export function useCategories(limit?: number, fetchOnMount: boolean = true): Use
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const hasFetchedRef = useRef(false);
+  const currentLimitRef = useRef(limit);
 
   const fetchCategories = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const data = await apiService.getPopularCategories(limit);
+      const data = await apiService.getPopularCategories(currentLimitRef.current);
       setCategories(data);
     } catch (err) {
       console.error('useCategories: Error fetching categories:', err);
@@ -27,7 +29,7 @@ export function useCategories(limit?: number, fetchOnMount: boolean = true): Use
     } finally {
       setIsLoading(false);
     }
-  }, [limit]);
+  }, []);
 
   const fetchCategoriesPaginated = async (page: number): Promise<{ success: boolean; data?: Category[]; error?: string }> => {
     try {
@@ -39,11 +41,22 @@ export function useCategories(limit?: number, fetchOnMount: boolean = true): Use
     }
   };
 
+  // Update ref when limit changes
   useEffect(() => {
-    if (fetchOnMount) {
+    currentLimitRef.current = limit;
+  }, [limit]);
+
+  // Fetch on mount or when limit changes
+  useEffect(() => {
+    if (fetchOnMount && !hasFetchedRef.current) {
+      hasFetchedRef.current = true;
+      fetchCategories();
+    } else if (fetchOnMount && hasFetchedRef.current && currentLimitRef.current !== limit) {
+      // Refetch if limit changes after initial mount
       fetchCategories();
     }
-  }, [limit, fetchCategories, fetchOnMount]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [limit, fetchOnMount]); // fetchCategories is stable now
 
   return {
     categories,

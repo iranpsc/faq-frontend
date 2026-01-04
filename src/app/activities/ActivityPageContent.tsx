@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { BaseAvatar } from '@/components/ui/BaseAvatar';
 import { BaseBadge } from '@/components/ui/BaseBadge';
 import { BaseButton } from '@/components/ui/BaseButton';
@@ -41,6 +41,9 @@ export function ActivityPageContent({
   const [error, setError] = useState<string | null>(null);
   const [currentOffset, setCurrentOffset] = useState(() => initialPagination?.offset ?? 0);
   const [hasMore, setHasMore] = useState(initialPagination?.has_more ?? true);
+  
+  // Use ref to track current offset to avoid dependency issues
+  const currentOffsetRef = useRef(initialPagination?.offset ?? 0);
 
   const buildGroupedActivities = useCallback((items: ActivityWithMonth[]): GroupedActivities => {
     return items.reduce<GroupedActivities>((acc, activity) => {
@@ -68,7 +71,7 @@ export function ActivityPageContent({
 
       const response = await apiService.getActivity({
         limit: 30,
-        offset: append ? currentOffset : 0,
+        offset: append ? currentOffsetRef.current : 0,
       }) as ActivityApiResponse;
 
       if (response.success) {
@@ -112,13 +115,14 @@ export function ActivityPageContent({
         }
 
         setHasMore(pagination?.has_more ?? (append ? newActivities.length > 0 : true));
-        setCurrentOffset(prev => {
-          if (pagination?.next_offset !== undefined) {
-            return pagination.next_offset;
-          }
-          const limit = pagination?.limit ?? 30;
-          return append ? prev + limit : limit;
-        });
+        
+        // Update both state and ref for offset
+        const newOffset = pagination?.next_offset !== undefined 
+          ? pagination.next_offset 
+          : append ? currentOffsetRef.current + (pagination?.limit ?? 30) : (pagination?.limit ?? 30);
+        
+        setCurrentOffset(newOffset);
+        currentOffsetRef.current = newOffset;
       } else {
         throw new Error(response.error || 'خطا در دریافت فعالیت‌ها');
       }
@@ -129,7 +133,7 @@ export function ActivityPageContent({
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [buildGroupedActivities, currentOffset]);
+  }, [buildGroupedActivities]); // Removed currentOffset from dependencies
 
   const loadMore = useCallback(() => {
     if (loadingMore || !hasMore) {

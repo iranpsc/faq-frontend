@@ -34,6 +34,8 @@ export function AuthProvider({ children, initialUser = null, initialToken = null
   const wasAuthenticatedRef = useRef(Boolean(initialToken && initialUser));
   // Deduplicate in-flight /me requests
   const fetchUserInFlightRef = useRef<Promise<User | null> | null>(null);
+  // Prevent duplicate initialization
+  const hasInitializedRef = useRef(false);
 
   const isAuthenticated = !!token && !!user;
 
@@ -166,6 +168,10 @@ export function AuthProvider({ children, initialUser = null, initialToken = null
     let isMounted = true;
 
     const initializeAuth = async () => {
+      // Prevent duplicate initialization
+      if (hasInitializedRef.current) return;
+      hasInitializedRef.current = true;
+
       if (typeof window === 'undefined') {
         if (isMounted) {
           setIsLoading(false);
@@ -174,7 +180,30 @@ export function AuthProvider({ children, initialUser = null, initialToken = null
       }
 
       try {
-        if (initialToken) {
+        // First, check for token in URL (OAuth redirects) to avoid duplicate fetchUser calls
+        let tokenFromUrl = null;
+        try {
+          if (window.location.hash && window.location.hash.length > 1) {
+            const hashParams = new URLSearchParams(window.location.hash.substring(1));
+            tokenFromUrl = hashParams.get('token');
+          }
+          if (!tokenFromUrl) {
+            const urlParams = new URLSearchParams(window.location.search);
+            tokenFromUrl = urlParams.get('token');
+          }
+        } catch (error) {
+          console.warn('Failed to extract auth token from URL:', error);
+        }
+
+        if (tokenFromUrl) {
+          // Handle OAuth redirect with token in URL
+          setTokenWithEvents(tokenFromUrl);
+          // Clean the URL
+          const cleanPath = window.location.pathname;
+          window.history.replaceState({}, document.title, cleanPath);
+          await fetchUser(tokenFromUrl);
+        } else if (initialToken) {
+          // Handle server-provided initial token
           localStorage.setItem('auth_token', initialToken);
 
           if (initialUser) {
@@ -185,11 +214,12 @@ export function AuthProvider({ children, initialUser = null, initialToken = null
             await fetchUser(initialToken);
           }
         } else {
+          // Handle stored token from localStorage
           const storedToken = localStorage.getItem('auth_token');
           const storedUser = localStorage.getItem('auth_user');
 
           if (storedToken) {
-            setTokenWithEvents(storedToken);
+            setTokenWithEvents(storedToken, { syncCookie: false }); // Avoid extra sync on init
 
             if (storedUser) {
               try {
@@ -229,50 +259,6 @@ export function AuthProvider({ children, initialUser = null, initialToken = null
   useEffect(() => {
     wasAuthenticatedRef.current = !!(token && user);
   }, [token, user]);
-
-  // Handle token from URL (for OAuth redirects)
-  useEffect(() => {
-    const handleTokenFromUrl = () => {
-      // Prefer URL fragment to avoid referrer leakage
-      let tokenFromFragment = null;
-      try {
-        if (window.location.hash && window.location.hash.length > 1) {
-          const hashParams = new URLSearchParams(window.location.hash.substring(1));
-          tokenFromFragment = hashParams.get('token');
-        }
-      } catch (error) {
-        console.warn('Failed to extract auth token from URL fragment:', error);
-      }
-
-      // Backward compatibility: still support query param for any old links
-      const urlParams = new URLSearchParams(window.location.search);
-      const tokenFromQuery = urlParams.get('token');
-
-      const urlToken = tokenFromFragment || tokenFromQuery;
-
-      if (urlToken) {
-        setTokenWithEvents(urlToken);
-        // Clean the URL (remove both search and hash)
-        const cleanPath = window.location.pathname;
-        window.history.replaceState({}, document.title, cleanPath);
-        // Fetch user data
-        fetchUser(urlToken);
-        return true;
-      }
-      return false;
-    };
-
-    if (typeof window !== 'undefined') {
-      if (!handleTokenFromUrl()) {
-        // If no token in URL, check local storage and fetch user if token exists
-        const storedToken = localStorage.getItem('auth_token');
-        if (storedToken) {
-          fetchUser(storedToken);
-        }
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run once on mount to avoid infinite loop
 
 
   // Login function

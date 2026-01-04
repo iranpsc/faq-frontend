@@ -302,10 +302,23 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (isAuthenticated) {
+      // Load user data from context first (synchronous)
       loadUserData();
-      fetchUserProfile();
-      fetchUserStats();
-      fetchRecentActivity();
+      
+      // Fetch all profile data in parallel to reduce load time
+      Promise.allSettled([
+        fetchUserProfile(),
+        fetchUserStats(),
+        fetchRecentActivity()
+      ]).then((results) => {
+        // Log any failures for debugging
+        results.forEach((result, index) => {
+          if (result.status === 'rejected') {
+            const apiNames = ['profile', 'stats', 'activity'];
+            console.error(`Failed to fetch ${apiNames[index]}:`, result.reason);
+          }
+        });
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]); // Only depend on isAuthenticated to avoid infinite loop
