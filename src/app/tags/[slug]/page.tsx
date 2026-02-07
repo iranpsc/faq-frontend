@@ -3,14 +3,15 @@ import { apiService } from '@/services/api';
 import { Metadata } from 'next';
 
 interface TagPageProps {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export const dynamic = 'force-dynamic';
 
 // تابع برای متادیتای داینامیک
 export async function generateMetadata({ params }: TagPageProps): Promise<Metadata> {
-  const { slug } = params;
+  const resolvedParams = await params;
+  const { slug } = resolvedParams;
   try {
     const tagData = await apiService.getTagQuestionsServer(slug, 1);
     const tag = tagData.tag;
@@ -47,8 +48,9 @@ export async function generateMetadata({ params }: TagPageProps): Promise<Metada
   }
 }
 
-export default async function TagPage({ params }: { params: { slug: string } }) {
-  const { slug } = params;
+export default async function TagPage({ params }: TagPageProps) {
+  const resolvedParams = await params;
+  const { slug } = resolvedParams;
 
   try {
     const tagData = await apiService.getTagQuestionsServer(slug, 1);

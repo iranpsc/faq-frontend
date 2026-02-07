@@ -7,7 +7,28 @@ const nextConfig: NextConfig = {
   
   // Image optimization
   images: {
-    domains: ['api.faqhub.ir', 'localhost', 'irpsc.com', 'ui-avatars.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'api.faqhub.ir',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+      {
+        protocol: 'https',
+        hostname: 'irpsc.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.irpsc.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'ui-avatars.com',
+      },
+    ],
     formats: ['image/webp', 'image/avif'],
   },
   

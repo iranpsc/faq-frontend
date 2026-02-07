@@ -39,7 +39,6 @@ export function ActivityPageContent({
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentOffset, setCurrentOffset] = useState(() => initialPagination?.offset ?? 0);
   const [hasMore, setHasMore] = useState(initialPagination?.has_more ?? true);
   
   // Use ref to track current offset to avoid dependency issues
@@ -116,12 +115,11 @@ export function ActivityPageContent({
 
         setHasMore(pagination?.has_more ?? (append ? newActivities.length > 0 : true));
         
-        // Update both state and ref for offset
+        // Update ref for offset
         const newOffset = pagination?.next_offset !== undefined 
           ? pagination.next_offset 
           : append ? currentOffsetRef.current + (pagination?.limit ?? 30) : (pagination?.limit ?? 30);
         
-        setCurrentOffset(newOffset);
         currentOffsetRef.current = newOffset;
       } else {
         throw new Error(response.error || 'خطا در دریافت فعالیت‌ها');

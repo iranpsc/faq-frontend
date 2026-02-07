@@ -894,6 +894,27 @@ class ApiService {
       clearTimeout(timeoutId);
       
       if (!response.ok) {
+        // Log detailed error information for debugging
+        console.error(`Server API request failed: ${url}`);
+        console.error(`Status: ${response.status} ${response.statusText}`);
+        
+        // Try to get error response body
+        let errorBody = '';
+        try {
+          const contentType = response.headers.get('content-type');
+          if (contentType?.includes('application/json')) {
+            const errorData = await response.json();
+            errorBody = JSON.stringify(errorData);
+          } else {
+            errorBody = await response.text();
+          }
+          if (errorBody) {
+            console.error(`Response body: ${errorBody}`);
+          }
+        } catch {
+          // Ignore parsing errors
+        }
+        
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
