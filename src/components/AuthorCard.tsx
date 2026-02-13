@@ -29,9 +29,8 @@ export function AuthorCard({ author, onClick }: AuthorCardProps) {
     setImageError(true);
   };
 
-  const handleQuestionClick = (question: Question) => {
-    // Navigate to question detail page
-    console.log('Question clicked:', question);
+  const handleQuestionClick = (_question: Question) => {
+    // Navigation is handled by parent / link
   };
 
   return (

@@ -93,7 +93,6 @@ export function UserCard({ user, className }: UserCardProps) {
             onClick={(e) => {
               e.preventDefault();
               // TODO: Implement chat functionality
-              console.log('Chat with user:', user.name);
             }}
           >
             <div>
