@@ -90,8 +90,8 @@ export function HomeContent({
     }
   };
 
-  const handleQuestionClick = (question: Question) => {
-    console.log('Question clicked:', question);
+  const handleQuestionClick = (_question: Question) => {
+    // Navigation handled by ContentArea / link
   };
 
   const handlePageChange = (page: number) => {

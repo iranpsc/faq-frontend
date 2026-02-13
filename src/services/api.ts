@@ -17,13 +17,21 @@ import {
 } from './types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-const SERVER_API_BASE_URL = process.env.NODE_ENV === 'production' 
+const SERVER_API_BASE_URL = process.env.NODE_ENV === 'production'
   ? 'https://api.faqhub.ir/api'
   : 'http://localhost:8000/api';
 
-// Development mode check
 const isDevelopment = process.env.NODE_ENV === 'development';
 
+/** In-flight server GET requests: same URL reuses one request (deduplication) */
+const serverRequestCache = new Map<string, Promise<unknown>>();
+
+function getServerRequestCacheKey(endpoint: string, options: RequestInit): string | null {
+  if (typeof window !== 'undefined') return null;
+  const method = (options.method || 'GET').toUpperCase();
+  if (method !== 'GET' || options.body !== undefined) return null;
+  return endpoint;
+}
 
 class ApiService {
   private getAuthToken(): string | null {
@@ -122,10 +130,13 @@ class ApiService {
         return { success: true } as T;
       }
     } catch (error) {
-      console.error('API request failed:', error);
-      console.error('Request URL:', url);
-      console.error('Request config:', config);
-      
+      if (isDevelopment) {
+        console.error('API request failed:', error);
+        console.error('Request URL:', url);
+      } else {
+        const msg = error instanceof Error ? error.message : String(error);
+        console.error('API request failed:', msg);
+      }
       // Check if it's a connection error (backend not running or CORS issue)
       if (error instanceof TypeError && (error.message.includes('fetch') || error.message.includes('Failed to fetch'))) {
         const errorMessage = isDevelopment 
@@ -793,16 +804,24 @@ class ApiService {
   async serverRequest<T>(
     endpoint: string,
     options: RequestInit = {},
-    timeout: number = process.env.NODE_ENV === 'production' ? 30000 : 10000 // 30s for production, 10s for dev
+    timeout: number = process.env.NODE_ENV === 'production' ? 30000 : 10000
   ): Promise<T> {
     const url = `${SERVER_API_BASE_URL}${endpoint}`;
+    const cacheKey = getServerRequestCacheKey(endpoint, options);
 
-    // Create abort controller for timeout
+    if (cacheKey) {
+      const pending = serverRequestCache.get(cacheKey);
+      if (pending) {
+        return pending as Promise<T>;
+      }
+    }
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
     const headers = new Headers({
       'Accept': 'application/json',
+      'Connection': 'keep-alive',
     });
 
     const applyHeaders = (source?: HeadersInit) => {
@@ -888,50 +907,38 @@ class ApiService {
       signal: controller.signal,
     };
 
-    try {
-      const response = await fetch(url, config);
-      
-      clearTimeout(timeoutId);
-      
-      if (!response.ok) {
-        // Log detailed error information for debugging
-        console.error(`Server API request failed: ${url}`);
-        console.error(`Status: ${response.status} ${response.statusText}`);
-        
-        // Try to get error response body
-        let errorBody = '';
-        try {
-          const contentType = response.headers.get('content-type');
-          if (contentType?.includes('application/json')) {
-            const errorData = await response.json();
-            errorBody = JSON.stringify(errorData);
-          } else {
-            errorBody = await response.text();
+    const doRequest = async (): Promise<T> => {
+      try {
+        const response = await fetch(url, config);
+        clearTimeout(timeoutId);
+        if (!response.ok) {
+          console.error(`Server API request failed: ${url}`);
+          console.error(`Status: ${response.status} ${response.statusText}`);
+          let errorBody = '';
+          try {
+            const ct = response.headers.get('content-type');
+            if (ct?.includes('application/json')) {
+              const errorData = await response.json();
+              errorBody = JSON.stringify(errorData);
+            } else {
+              errorBody = await response.text();
+            }
+            if (errorBody) console.error(`Response body: ${errorBody}`);
+          } catch {
+            // Ignore parsing errors
           }
-          if (errorBody) {
-            console.error(`Response body: ${errorBody}`);
-          }
-        } catch {
-          // Ignore parsing errors
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const contentType = response.headers.get('content-type');
-      const hasJsonContent = contentType && contentType.includes('application/json');
-      const hasContent = response.status !== 204 && response.headers.get('content-length') !== '0';
-      
-      if (hasJsonContent && hasContent) {
-        const data = await response.json();
-        return data as T;
-      } else {
+        const contentType = response.headers.get('content-type');
+        const hasJsonContent = contentType && contentType.includes('application/json');
+        const hasContent = response.status !== 204 && response.headers.get('content-length') !== '0';
+        if (hasJsonContent && hasContent) {
+          const data = await response.json();
+          return data as T;
+        }
         return { success: true } as T;
-      }
     } catch (error) {
       clearTimeout(timeoutId);
-      
-      // Handle timeout and network errors gracefully
       if ((error as Error).name === 'AbortError' || (error as Error).name === 'TimeoutError') {
         const errorMsg = `Request timeout after ${timeout}ms for ${endpoint}`;
         if (process.env.NODE_ENV === 'development') {
@@ -939,9 +946,7 @@ class ApiService {
         }
         throw new Error(errorMsg);
       }
-      
-      // Handle network errors (ETIMEDOUT, ECONNREFUSED, etc.)
-      if ((error as Error & { code?: string; errno?: number })?.code === 'ETIMEDOUT' 
+      if ((error as Error & { code?: string; errno?: number })?.code === 'ETIMEDOUT'
           || (error as Error & { code?: string })?.code === 'ECONNREFUSED'
           || (error as Error & { code?: string })?.code === 'ENOTFOUND') {
         const errorMsg = `Network error connecting to API: ${endpoint}`;
@@ -950,12 +955,21 @@ class ApiService {
         }
         throw new Error(errorMsg);
       }
-      
       if (process.env.NODE_ENV === 'development') {
         console.error('Server API request failed:', endpoint, error);
       }
       throw error;
     }
+    };
+
+    if (cacheKey) {
+      const promise = doRequest().finally(() => {
+        serverRequestCache.delete(cacheKey);
+      });
+      serverRequestCache.set(cacheKey, promise);
+      return promise as Promise<T>;
+    }
+    return doRequest();
   }
 
   // Server-side question methods
