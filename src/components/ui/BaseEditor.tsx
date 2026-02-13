@@ -1,15 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import type { Editor } from '@ckeditor/ckeditor5-core';
+
+/** Minimal Editor-like type to avoid version conflicts between CKEditor packages */
+interface CKEditorInstance {
+  plugins: { get: (name: string) => unknown };
+}
 
 interface CKEditorFileLoader {
   file: Promise<File>;
 }
 
 type CKEditorConstructor = {
-  create: (...args: unknown[]) => Promise<Editor>;
+  create: (...args: unknown[]) => Promise<CKEditorInstance>;
   EditorWatchdog: unknown;
   ContextWatchdog: unknown;
 };
@@ -21,7 +25,7 @@ const ensureFileLoader = (loader: unknown): CKEditorFileLoader => {
   return loader as CKEditorFileLoader;
 };
 
-type EditorWithExtras = Editor & {
+type EditorWithExtras = CKEditorInstance & {
   getData: () => string;
   ui: {
     view: {
@@ -67,6 +71,7 @@ export function BaseEditor({
 }: BaseEditorProps) {
   const [isClient, setIsClient] = useState(false);
   const [editorLoaded, setEditorLoaded] = useState(false);
+  const onReadyCleanupRef = useRef<(() => void) | null>(null);
 
   const getResponsiveHeight = () => {
     if (typeof window !== 'undefined') {
@@ -94,7 +99,7 @@ export function BaseEditor({
     abort() {}
   }
 
-  function uploadPlugin(editor: Editor) {
+  function uploadPlugin(editor: CKEditorInstance) {
     const fileRepository = editor.plugins.get('FileRepository') as unknown as {
       createUploadAdapter: (loader: unknown) => unknown;
     };
@@ -182,7 +187,14 @@ export function BaseEditor({
     loadEditor();
   }, []);
 
-  const handleEditorChange = (_event: unknown, editor: Editor) => {
+  useEffect(
+    () => () => {
+      onReadyCleanupRef.current?.();
+    },
+    []
+  );
+
+  const handleEditorChange = (_event: unknown, editor: CKEditorInstance) => {
     const enhancedEditor = editor as EditorWithExtras;
     onChange(enhancedEditor.getData());
   };
@@ -204,7 +216,7 @@ export function BaseEditor({
           editor={ClassicEditor as never}
           config={editorConfiguration}
           data={value}
-          onReady={(editor: Editor) => {
+          onReady={(editor) => {
             const enhancedEditor = editor as EditorWithExtras;
             const editableElement = enhancedEditor.ui.view.editable.element;
             const toolbarElement = enhancedEditor.ui.view.toolbar.element;
@@ -244,7 +256,7 @@ export function BaseEditor({
             };
 
             window.addEventListener('resize', handleResize);
-            return () => {
+            onReadyCleanupRef.current = () => {
               window.removeEventListener('resize', handleResize);
               observer.disconnect();
             };
